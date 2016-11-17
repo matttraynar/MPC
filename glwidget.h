@@ -5,11 +5,14 @@
 #include <QGLWidget>
 #include <QTime>
 
-#include <QGLBuffer>
-#include <QGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QMouseEvent>
+
+#include "modelloader.h"
 
 class GLWidget : public QGLWidget
 {
@@ -17,6 +20,7 @@ class GLWidget : public QGLWidget
 
 public:
     GLWidget(QWidget* parent = 0 );
+    ~GLWidget();
 
 protected:
     virtual void initializeGL();
@@ -28,10 +32,21 @@ protected:
     virtual void mousePressEvent(QMouseEvent* e);
 
 private:
+    void createGeometry();
+
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
 
-    QGLShaderProgram m_pgm;
-    QGLBuffer m_vbo;
+    void drawNode(const QMatrix4x4 &model, const Node *node, QMatrix4x4 parent);
+    void draw();
+
+    ModelLoader m_loader;
+
+    QOpenGLShaderProgram m_pgm;
+    QOpenGLVertexArrayObject m_vao;
+
+    QOpenGLBuffer m_vbo;
+    QOpenGLBuffer m_nbo;
+    QOpenGLBuffer m_ibo;
 
     QMatrix4x4 m_model;
     QMatrix4x4 m_view;

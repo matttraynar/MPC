@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    modelloader.cpp
 
 HEADERS  += mainwindow.h \
-    glwidget.h
+    glwidget.h \
+    modelloader.h
 
 FORMS    += mainwindow.ui
 
@@ -26,3 +28,7 @@ DISTFILES += \
     shaders/frag.glsl \
     demo.frag \
     demo.vert
+
+LIBS += -L$$PWD/libs/assimp/lib/ -lassimp
+
+INCLUDEPATH += $$PWD/include/
