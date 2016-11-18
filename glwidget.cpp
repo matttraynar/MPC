@@ -192,11 +192,11 @@ void GLWidget::drawNode(const QMatrix4x4 &model, const Node *node, QMatrix4x4 pa
                        reinterpret_cast<const void*>(m.iOffset * sizeof(uint)));
     }
 
-    /*std::cout<<"Size :"<<node->nodes.size()<<'\n';
+    std::cout<<"Size :"<<node->nodes.size()<<'\n';
     for(int i = 0; i < node->nodes.size(); ++i)
     {
         drawNode(model, &node->nodes[i], local);
-    }*/
+    }
 }
 
 void GLWidget::draw()
@@ -251,8 +251,8 @@ void GLWidget::paintGL()
     m_pgm.setUniformValue("MVP",m_mvp);
 
     // Draw stuff
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    //draw();
+    //glDrawArrays(GL_TRIANGLES, 0, 36);
+    draw();
 
     m_vao.release();
 

@@ -814,10 +814,13 @@ moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglbuffer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLShaderProgram \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglshaderprogram.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
@@ -826,6 +829,12 @@ moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QKeyEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QWheelEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent \
+		modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector \
 		glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/bin/moc
 	/opt/Qt5.7.0/5.7/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++ -I/home/i7626944/Documents/Demo -I/home/i7626944/Documents/Demo/include -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include glwidget.h -o moc_glwidget.cpp
@@ -953,10 +962,13 @@ ui_mainwindow.h: mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglbuffer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLShaderProgram \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglshaderprogram.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
@@ -964,7 +976,13 @@ ui_mainwindow.h: mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QKeyEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QWheelEvent \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent \
+		modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
 	/opt/Qt5.7.0/5.7/gcc_64/bin/uic mainwindow.ui -o ui_mainwindow.h
 
 compiler_yacc_decl_make_all:
@@ -1098,10 +1116,13 @@ main.o: main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglbuffer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLShaderProgram \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglshaderprogram.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
@@ -1109,7 +1130,13 @@ main.o: main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QKeyEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QWheelEvent \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent \
+		modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
@@ -1268,10 +1295,13 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglbuffer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLShaderProgram \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglshaderprogram.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
@@ -1279,7 +1309,13 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QKeyEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QWheelEvent \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent \
+		modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 glwidget.o: glwidget.cpp glwidget.h \
@@ -1398,10 +1434,13 @@ glwidget.o: glwidget.cpp glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglbuffer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLShaderProgram \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/qglshaderprogram.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
@@ -1409,10 +1448,91 @@ glwidget.o: glwidget.cpp glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QKeyEvent \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QWheelEvent \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMouseEvent \
+		modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o glwidget.o glwidget.cpp
 
-modelloader.o: modelloader.cpp 
+modelloader.o: modelloader.cpp modelloader.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qpoint.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfeatures.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypetraits.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qisenum.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_msvc.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmutex.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qquaternion.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdebug.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qhash.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qiterator.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlist.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qhashfunctions.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qpair.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbytearraylist.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringlist.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qregexp.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringmatcher.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmap.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtextstream.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qiodevice.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobject.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcoreevent.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qscopedpointer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobject_impl.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlocale.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvariant.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qshareddata.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qset.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcontiguouscache.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsharedpointer.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatastream.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qrect.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmargins.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsize.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o modelloader.o modelloader.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
