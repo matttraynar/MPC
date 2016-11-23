@@ -5,18 +5,21 @@ in vec3 pos;
 
 out vec4 fragColour;
 
+uniform mat4 M;
+uniform mat4 MVP;
 
 void main()
 {
-    vec3 lightPos = vec3(10,10,10);
-    vec3 colour = vec3(0.9,0.9,0.9);
+    vec3  lightDir       = vec3(-10,-10,-10);
+    vec3  lightCol       = vec3(0.0,1.0,0.0);
+    float lightIntensity = 0.1;
 
-    vec3 lDir = normalize(lightPos - pos);
-    float ltoN = max(dot(norm, lDir), 0.0);
+    vec4 colour = vec4(0.9,0.9,0.9,1.0);
 
-    vec3 shadeColour = clamp(colour * 0.4 + colour * 0.6 * ltoN, 0.0f, 1.0f);
+    float brightness = max(0.0, dot(normalize(norm),lightDir));
 
-    fragColour = vec4(colour,1.0f);
+
+    fragColour = colour * vec4(lightCol * (lightIntensity + brightness), 1.0);
 }
 
 
