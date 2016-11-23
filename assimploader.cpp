@@ -1,11 +1,18 @@
 #include "assimploader.h"
 
+#include <iostream>
+
 AssimpLoader::AssimpLoader()
 {
 
 }
 
-void AssimpLoader::LoadMesh(const char *filepath)
+AssimpLoader::~AssimpLoader()
+{
+
+}
+
+void AssimpLoader::loadMesh(const char *filepath)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filepath,
@@ -16,7 +23,7 @@ void AssimpLoader::LoadMesh(const char *filepath)
 
     if(!scene)
     {
-        qtWarning() << "Error: File didn't load: ASSIMP: " << importer.GetErrorString();
+        qWarning() << "Error: File didn't load: ASSIMP: " << importer.GetErrorString();
         exit(1);
     }
 
@@ -31,7 +38,9 @@ void AssimpLoader::LoadMesh(const char *filepath)
             for(uint j = 0; j < numFaces; ++j)
             {
                 auto face = scene->mMeshes[i]->mFaces[j];
-                m_meshIndex.push_back(QVector3D(face.mIndices[0] + iOffset, face.mIndices[1] + iOffset, face.mIndices[2] + iOffset));
+                m_meshIndex.push_back(face.mIndices[0]);
+                m_meshIndex.push_back(face.mIndices[1]);
+                m_meshIndex.push_back(face.mIndices[2]);
 
                 iOffset += 3;
             }
@@ -50,7 +59,11 @@ void AssimpLoader::LoadMesh(const char *filepath)
     }
 }
 
-void AssimpLoader::DrawMesh(int meshID)
+void AssimpLoader::print()
 {
-
+    for(int i = 0; i < m_verts.size(); ++i)
+    {
+        QVector3D newVector = m_verts[i];
+        std::cout<<"New verts: "<<newVector.x()<<' '<<newVector.y()<<' '<<newVector.z()<<"\n--------------------\n";
+    }
 }

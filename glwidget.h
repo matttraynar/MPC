@@ -12,7 +12,9 @@
 #include <QWheelEvent>
 #include <QMouseEvent>
 
-#include "modelloader.h"
+#include <memory>
+
+#include "assimploader.h"
 
 class GLWidget : public QGLWidget
 {
@@ -27,19 +29,25 @@ protected:
     virtual void resizeGL( int w, int h );
     virtual void paintGL();
 
-    virtual void keyPressEvent( QKeyEvent* e );
     virtual void wheelEvent(QWheelEvent* e);
     virtual void mousePressEvent(QMouseEvent* e);
+    virtual void mouseMoveEvent(QMouseEvent* e);
+
+    static void qNormalizeAngle(int &angle);
+
+    void setXTranslation(int x);
+    void setYTranslation(int y);
+    void setZTranslation(int z);
+
+    void setXRotation(int angle);
+    void setYRotation(int angle);
+    void setZRotation(int angle);
+
 
 private:
-    void createGeometry();
-
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
 
-    void drawNode(const QMatrix4x4 &model, const Node *node, QMatrix4x4 parent);
-    void draw();
-
-    ModelLoader m_loader;
+    std::unique_ptr<AssimpLoader> m_loader;
 
     QOpenGLShaderProgram m_pgm;
     QOpenGLVertexArrayObject m_vao;
@@ -65,6 +73,14 @@ private:
     QVector3D m_dir;
     QVector3D m_right;
     QVector3D m_up;
+
+    int m_xRot;
+    int m_yRot;
+    int m_zRot;
+    int m_xDis;
+    int m_yDis;
+    int m_zDis;
+    QPoint m_lastPos;
 
 };
 

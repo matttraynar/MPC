@@ -27,9 +27,7 @@ FORMS    += mainwindow.ui
 
 DISTFILES += \
     shaders/vert.glsl \
-    shaders/frag.glsl \
-    demo.frag \
-    demo.vert
+    shaders/frag.glsl
 
 LIBS += -L$$PWD/libs/assimp/lib/ -lassimp
 

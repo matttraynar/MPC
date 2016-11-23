@@ -5,6 +5,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include <QtGui>
 #include <QOpenGLBuffer>
 #include <QVector3D>
 
@@ -14,15 +15,16 @@ class AssimpLoader
 {
 public:
     AssimpLoader();
+    ~AssimpLoader();
 
-    void LoadMesh(const char* filepath);
-    void DrawMesh(int meshID);
+    void loadMesh(const char* filepath);
+    void print();
 
-private:
-    std::vector<QOpenGLBuffer> m_meshVBOs;
     std::vector<QVector3D> m_verts;
     std::vector<QVector3D> m_norms;
-    std::vector<QVector3D> m_meshIndex;
+    std::vector<uint> m_meshIndex;
+
+private:
 
 
 };
