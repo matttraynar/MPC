@@ -569,7 +569,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents include/assimploader.h include/glwidget.h include/mainwindow.h include/modelloader.h include/ui_mainwindow.h $(DISTDIR)/
 	$(COPY_FILE) --parents src/assimploader.cpp src/glwidget.cpp src/main.cpp src/mainwindow.cpp src/modelloader.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.ui $(DISTDIR)/
+	$(COPY_FILE) --parents forms/mainwindow.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -1028,7 +1028,7 @@ compiler_moc_source_clean:
 compiler_uic_make_all: ui_mainwindow.h
 compiler_uic_clean:
 	-$(DEL_FILE) ui_mainwindow.h
-ui_mainwindow.h: mainwindow.ui \
+ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/bin/uic \
 		include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
@@ -1348,7 +1348,7 @@ ui_mainwindow.h: mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
-	/opt/Qt5.7.0/5.7/gcc_64/bin/uic mainwindow.ui -o ui_mainwindow.h
+	/opt/Qt5.7.0/5.7/gcc_64/bin/uic forms/mainwindow.ui -o ui_mainwindow.h
 
 compiler_yacc_decl_make_all:
 compiler_yacc_decl_clean:
@@ -2410,7 +2410,7 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtouchdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/qtabwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qicon.h \
-		ui_mainwindow.h \
+		include/ui_mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVariant \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QAction \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/qaction.h \

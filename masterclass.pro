@@ -17,7 +17,7 @@ SOURCES += $$PWD/src/*.cpp
 
 HEADERS  += $$PWD/include/*.h
 
-FORMS    += mainwindow.ui
+FORMS    += $$PWD/forms/mainwindow.ui
 
 DISTFILES += \
         shaders/vert.glsl \
