@@ -1,14 +1,15 @@
-#include "assimploader.h"
+#include "mesh.h"
 
 #include <iostream>
 
-AssimpLoader::~AssimpLoader()
+Mesh::~Mesh()
 {
 
 }
 
-void AssimpLoader::loadMesh(const char *filepath)
+void Mesh::loadMesh(const char *filepath)
 {
+    m_wireframeMode = false;
     m_colour = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
 
     Assimp::Importer importer;
@@ -55,7 +56,7 @@ void AssimpLoader::loadMesh(const char *filepath)
     m_colour = QVector4D(m_verts[0][0],m_verts[0][1],m_verts[0][2],1.0f);
 }
 
-void AssimpLoader::prepareMesh(QOpenGLShaderProgram& program)
+void Mesh::prepareMesh(QOpenGLShaderProgram& program)
 {
     m_vao.create();
     m_vao.bind();
@@ -90,11 +91,30 @@ void AssimpLoader::prepareMesh(QOpenGLShaderProgram& program)
     m_vao.release();
 }
 
-void AssimpLoader::draw()
+void Mesh::draw()
 {
     m_vao.bind();
 
+    if(m_wireframeMode)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
     glDrawElements(GL_TRIANGLES, m_meshIndex.size(), GL_UNSIGNED_INT, &m_meshIndex[0]);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     m_vao.release();
+}
+
+void Mesh::setWireMode()
+{
+    if(m_wireframeMode)
+    {
+        m_wireframeMode = false;
+    }
+    else
+    {
+        m_wireframeMode = true;
+    }
 }

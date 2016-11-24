@@ -4,7 +4,7 @@
 
 GLWidget::GLWidget( QWidget* parent )
     : QGLWidget(parent ),
-    m_loader(new AssimpLoader)
+    m_loader(new Mesh)
 {
     //Setup the format for the window
     QSurfaceFormat glFormat;
@@ -187,13 +187,23 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
         setXRotation(m_xRot + 8 * dy);
         setYRotation(m_yRot + 8 * dx);
     }
-    else if (e->buttons() & Qt::RightButton)
-    {
-        setZTranslation(m_zDis + dy);
-    }
 
     //Update the last position
     m_lastPos = e->pos();
+    update();
+}
+
+void GLWidget::keyPressEvent(QKeyEvent *e)
+{
+    switch(e->key())
+    {
+    case Qt::Key_W:
+        m_loader->setWireMode();
+        break;
+    default:
+        break;
+    }
+
     update();
 }
 
