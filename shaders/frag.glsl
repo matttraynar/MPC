@@ -1,25 +1,24 @@
 #version 330
 
-in vec3 norm;
-in vec3 pos;
+in vec3 out_pos;
+in vec3 out_norm;
+
+uniform mat4 M;
+uniform vec4 mCol;
 
 out vec4 fragColour;
 
-uniform mat4 M;
-uniform mat4 MVP;
-
 void main()
 {
-    vec3  lightDir       = vec3(-10,-10,-10);
-    vec3  lightCol       = vec3(0.0,1.0,0.0);
-    float lightIntensity = 0.1;
+    vec3 lPos = vec3(6.0, 6.0, 0.0);
+    vec4 lCol = vec4(0.8, 0.8, 0.9, 1.0);
 
-    vec4 colour = vec4(0.9,0.9,0.9,1.0);
+    vec3 v_pos = vec4(M * vec4(out_pos,1.0)).xyz;
 
-    float brightness = max(0.0, dot(normalize(norm),lightDir));
+    vec3 ws_pos = lPos - v_pos;
 
+    float brightness = clamp(dot(out_norm,normalize(ws_pos)),0.0,1.0);
 
-    fragColour = colour * vec4(lightCol * (lightIntensity + brightness), 1.0);
+    fragColour = vec4(brightness * lCol.rgb * mCol.rgb,1.0);
+
 }
-
-

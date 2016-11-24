@@ -51,14 +51,12 @@ OBJECTS_DIR   = obj/
 SOURCES       = src/assimploader.cpp \
 		src/glwidget.cpp \
 		src/main.cpp \
-		src/mainwindow.cpp \
-		src/modelloader.cpp moc/moc_glwidget.cpp \
+		src/mainwindow.cpp moc/moc_glwidget.cpp \
 		moc/moc_mainwindow.cpp
 OBJECTS       = obj/assimploader.o \
 		obj/glwidget.o \
 		obj/main.o \
 		obj/mainwindow.o \
-		obj/modelloader.o \
 		obj/moc_glwidget.o \
 		obj/moc_mainwindow.o
 DIST          = shaders/vert.glsl \
@@ -219,12 +217,10 @@ DIST          = shaders/vert.glsl \
 		masterclass.pro include/assimploader.h \
 		include/glwidget.h \
 		include/mainwindow.h \
-		include/modelloader.h \
 		include/ui_mainwindow.h src/assimploader.cpp \
 		src/glwidget.cpp \
 		src/main.cpp \
-		src/mainwindow.cpp \
-		src/modelloader.cpp
+		src/mainwindow.cpp
 QMAKE_TARGET  = masterclass
 DESTDIR       = 
 TARGET        = masterclass
@@ -567,8 +563,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents include/assimploader.h include/glwidget.h include/mainwindow.h include/modelloader.h include/ui_mainwindow.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/assimploader.cpp src/glwidget.cpp src/main.cpp src/mainwindow.cpp src/modelloader.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/assimploader.h include/glwidget.h include/mainwindow.h include/ui_mainwindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/assimploader.cpp src/glwidget.cpp src/main.cpp src/mainwindow.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents forms/mainwindow.ui $(DISTDIR)/
 
 
@@ -2410,7 +2406,7 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtouchdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/qtabwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qicon.h \
-		include/ui_mainwindow.h \
+		ui_mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVariant \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QAction \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/qaction.h \
@@ -2661,84 +2657,6 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/mainwindow.o src/mainwindow.cpp
-
-obj/modelloader.o: src/modelloader.cpp include/modelloader.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector4D \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector4d.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qpoint.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnamespace.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobal.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qconfig.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfeatures.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsystemdetection.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qprocessordetection.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcompilerdetection.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypeinfo.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypetraits.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qisenum.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsysinfo.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlogging.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qflags.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbasicatomic.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_bootstrap.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qgenericatomic.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_cxx11.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_msvc.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobalstatic.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmutex.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnumeric.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qversiontagging.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmetatype.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbytearray.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qrefcount.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qarraydata.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstring.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qchar.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringbuilder.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcontainerfwd.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qalgorithms.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs_impl.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QString \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QMatrix4x4 \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qmatrix4x4.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qquaternion.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qgenericmatrix.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdebug.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qhash.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qiterator.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlist.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qhashfunctions.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qpair.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbytearraylist.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringlist.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qregexp.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringmatcher.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmap.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtextstream.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qiodevice.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcoreevent.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qscopedpointer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobject_impl.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlocale.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvariant.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qshareddata.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvector.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qset.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcontiguouscache.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsharedpointer.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsharedpointer_impl.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatastream.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qrect.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmargins.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsize.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QVector
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/modelloader.o src/modelloader.cpp
 
 obj/moc_glwidget.o: moc/moc_glwidget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_glwidget.o moc/moc_glwidget.cpp

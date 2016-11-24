@@ -14,7 +14,6 @@ GLWidget::GLWidget( QWidget* parent )
     //Enable a few flags for rendering later
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
 
     //Initialise variables for mouse control to 0
     m_xRot = 0;
@@ -22,7 +21,7 @@ GLWidget::GLWidget( QWidget* parent )
     m_zRot = 0;
     m_zDis = 0;
     m_mouseDelta = 0;
-    m_cameraPos = QVector3D(4,3,3);
+    m_cameraPos = QVector3D(5,5,5);
 }
 
 GLWidget::~GLWidget()
@@ -48,7 +47,7 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
      //Load a mesh using the assimp loader class
-     m_loader->loadMesh("objFiles/cube.obj");
+     m_loader->loadMesh("objFiles/teapot.obj");
 
 
      //Bind the shader program to the context
@@ -167,10 +166,7 @@ void GLWidget::paintGL()
 {
     // Clear the buffer with the current clearing color
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-    //Update the window
-    update();
-
+    glEnable(GL_DEPTH_TEST);
 
     //Now bind the shader program to the current context
     m_pgm.bind();
@@ -189,7 +185,7 @@ void GLWidget::paintGL()
 
     //Reset the view matrix and set to look at origin from the new position
     m_view.setToIdentity();
-    m_view.lookAt(newCamPos + m_dir, QVector3D(0,0,0), QVector3D(0,1,0));
+    m_view.lookAt(newCamPos + m_dir, QVector3D(0,1,0), QVector3D(0,1,0));
 
     //Reset the projection matrix and set to the right perspective
     m_proj.setToIdentity();
@@ -204,11 +200,13 @@ void GLWidget::paintGL()
     //Calculate the MVP
     m_mvp = m_proj * m_view * m_model;
 
-    m_pgm.setUniformValue("M",m_model);
-    m_pgm.setUniformValue("V",m_view);
 
     //Pass the MVP into the shader
+    m_pgm.setUniformValue("M",m_model);
     m_pgm.setUniformValue("MVP",m_mvp);
+
+    QVector4D colour(0.9,0.9,0.9,1.0);
+    m_pgm.setUniformValue("mCol", colour);
 
     // Draw stuff
 //    glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -229,6 +227,8 @@ void GLWidget::wheelEvent(QWheelEvent *e)
 
     //Add the steps to a member variable used in paintGL
     m_mouseDelta += numSteps;
+
+    update();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
@@ -256,6 +256,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 
     //Update the last position
     m_lastPos = e->pos();
+    update();
 }
 
 void GLWidget::qNormalizeAngle(int &angle)
