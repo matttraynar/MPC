@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+Mesh::Mesh(QVector4D colour)
+{
+    m_colour = colour;
+}
+
 Mesh::~Mesh()
 {
 
@@ -10,7 +15,6 @@ Mesh::~Mesh()
 void Mesh::loadMesh(const char *filepath)
 {
     m_wireframeMode = false;
-    m_colour = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
 
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filepath,
@@ -53,7 +57,6 @@ void Mesh::loadMesh(const char *filepath)
         }
     }
 
-    m_colour = QVector4D(m_verts[0][0],m_verts[0][1],m_verts[0][2],1.0f);
 }
 
 void Mesh::prepareMesh(QOpenGLShaderProgram& program)
@@ -117,4 +120,9 @@ void Mesh::setWireMode()
     {
         m_wireframeMode = true;
     }
+}
+
+void Mesh::setColour(QVector4D colour)
+{
+    m_colour = colour;
 }

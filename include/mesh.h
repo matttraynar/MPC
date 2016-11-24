@@ -17,6 +17,7 @@ class Mesh
 {
 public:
     Mesh() = default;
+    Mesh(QVector4D colour);
     ~Mesh();
 
     void loadMesh(const char* filepath);
@@ -24,6 +25,7 @@ public:
     void draw();
 
     void setWireMode();
+    void setColour(QVector4D colour);
 
     std::vector<QVector3D> m_verts;
     std::vector<QVector3D> m_norms;

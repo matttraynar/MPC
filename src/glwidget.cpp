@@ -3,8 +3,7 @@
 #include <iostream>
 
 GLWidget::GLWidget( QWidget* parent )
-    : QGLWidget(parent ),
-    m_loader(new Mesh)
+    : QGLWidget(parent )
 {
     //Setup the format for the window
     QSurfaceFormat glFormat;
@@ -47,20 +46,10 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
 
+     createGround();
 
-     //Bind the shader program to the context
-     if ( !m_pgm.bind() )
-     {
-         qWarning() << "Could not bind shader program to context";
-         return;
-     }
+     createTeapot();
 
-     //Load a mesh using the assimp loader class
-     m_loader->loadMesh("objFiles/teapot.obj");
-
-     m_loader->prepareMesh(m_pgm);
-
-     m_pgm.release();
 }
 
 bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath )
@@ -94,6 +83,35 @@ bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QStr
      }
 
      return result;
+}
+
+void GLWidget::createGround()
+{
+    m_pgm.bind();
+
+    m_ground.loadMesh("objFiles/ground.obj");
+
+    m_ground.setColour(QVector4D(0.9,0.9,0.9,1.0));
+    m_ground.prepareMesh(m_pgm);
+
+//    m_sceneObjects.push_back(groundPlane);
+
+    m_pgm.release();
+}
+
+void GLWidget::createTeapot()
+{
+    //--------------------------
+    // SET COLOUR ISNT WORKING
+    //--------------------------
+    m_pgm.bind();
+
+    m_teapot.loadMesh("objFiles/teapot.obj");
+    m_teapot.setColour(QVector4D(0.9,0.9,0.9,1.0));
+
+    m_teapot.prepareMesh(m_pgm);
+
+    m_pgm.release();
 }
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
@@ -150,7 +168,13 @@ void GLWidget::paintGL()
     m_pgm.setUniformValue("MVP",m_mvp);
 
     //Draw mesh
-    m_loader->draw();
+//    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+//    {
+//        m_sceneObjects[i].draw();
+//    }
+
+    m_ground.draw();
+    m_teapot.draw();
 
     m_pgm.release();
 }
@@ -198,8 +222,15 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     switch(e->key())
     {
     case Qt::Key_W:
-        m_loader->setWireMode();
+//        for(uint i = 0; i < m_sceneObjects.size(); ++i)
+//        {
+//            m_sceneObjects[i].setWireMode();
+//        }
+        m_ground.setWireMode();
+        m_teapot.setWireMode();
+
         break;
+
     default:
         break;
     }

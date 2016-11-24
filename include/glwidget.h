@@ -5,8 +5,6 @@
 #include <QGLWidget>
 #include <QTime>
 
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 
 #include <QKeyEvent>
@@ -49,7 +47,12 @@ protected:
 private:
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
 
-    std::unique_ptr<Mesh> m_loader;
+    void createGround();
+    void createTeapot();
+
+    Mesh m_ground;
+    Mesh m_teapot;
+//    std::vector<Mesh> m_sceneObjects;
 
     QOpenGLShaderProgram m_pgm;
 
@@ -58,16 +61,17 @@ private:
     QMatrix4x4 m_proj;
     QMatrix4x4 m_mvp;
 
-    int m_mouseDelta;
     QVector3D m_cameraPos;
     QVector3D m_dir;
 
+    int m_mouseDelta;
     int m_xRot;
     int m_yRot;
     int m_zRot;
     int m_xDis;
     int m_yDis;
     int m_zDis;
+
     QPoint m_lastPos;
 
 };
