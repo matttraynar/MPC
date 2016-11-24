@@ -1658,6 +1658,8 @@ obj/assimploader.o: src/assimploader.cpp include/assimploader.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/assimploader.o src/assimploader.cpp

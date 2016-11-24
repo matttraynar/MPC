@@ -46,8 +46,6 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 0.0f, 0.0f),    // Point camera looks towards
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
-     //Load a mesh using the assimp loader class
-     m_loader->loadMesh("objFiles/teapot.obj");
 
 
      //Bind the shader program to the context
@@ -57,61 +55,10 @@ void GLWidget::initializeGL()
          return;
      }
 
-     //Create the VAO if it hasn't been created already and then bind it to the current context
-     if(!m_vao.isCreated())
-     {
-         m_vao.create();
-     }
+     //Load a mesh using the assimp loader class
+     m_loader->loadMesh("objFiles/teapot.obj");
 
-     m_vao.bind();
-
-     //Create a VBO to store new data in
-     m_vbo.create();
-     m_vbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
-
-     //Bind the VBO to the context, if it fails print the warning and return
-     if ( !m_vbo.bind() )
-     {
-         qWarning() << "Could not bind vertex buffer to the context";
-         return;
-     }
-     //Allocate data to the VBO
-     m_vbo.allocate( &m_loader->m_verts[0], m_loader->m_verts.size() * sizeof(float) * 3);
-
-     //Pass the vbo data into the shader program
-     m_pgm.enableAttributeArray("vertexPos");
-     m_pgm.setAttributeArray("vertexPos", GL_FLOAT, 0, 3);
-
-     //Release the vertex buffer object
-     m_vbo.release();
-
-     //Create a buffer object for the normal data
-     m_nbo.create();
-     m_nbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-     m_nbo.bind();
-
-     //Allocate the data
-     m_nbo.allocate(&m_loader->m_norms[0], m_loader->m_norms.size() * sizeof(float) * 3);
-
-     //Pass the data into the shader program
-     m_pgm.enableAttributeArray("vertexNorm");
-     m_pgm.setAttributeArray("vertexNorm", GL_FLOAT, 0, 3);
-
-     //Release the normals buffer object
-     m_nbo.release();
-
-     //Create a final buffer object for the obj indices
-     m_ibo.create();
-     m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-     m_ibo.bind();
-
-     //Allocate the data
-     m_ibo.allocate(&m_loader->m_meshIndex[0], m_loader->m_meshIndex.size() * sizeof(uint));
-
-     //Release the index buffer and finally the VAO
-     m_vao.release();
-
-     //Then release the shader program
+     m_loader->prepareMesh(m_pgm);
 
      m_pgm.release();
 }
@@ -168,12 +115,9 @@ void GLWidget::paintGL()
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glEnable(GL_DEPTH_TEST);
 
+
     //Now bind the shader program to the current context
     m_pgm.bind();
-
-
-    //Bind the vao to the context
-    m_vao.bind();
 
     //Get vector from camera to the origin
     QVector3D o(0,0,0);
@@ -205,15 +149,9 @@ void GLWidget::paintGL()
     m_pgm.setUniformValue("M",m_model);
     m_pgm.setUniformValue("MVP",m_mvp);
 
-    QVector4D colour(0.9,0.9,0.9,1.0);
-    m_pgm.setUniformValue("mCol", colour);
+    //Draw mesh
+    m_loader->draw();
 
-    // Draw stuff
-//    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glDrawElements(GL_TRIANGLES, m_loader->m_meshIndex.size(), GL_UNSIGNED_INT, &m_loader->m_meshIndex[0]);
-
-    //Release the VAO and the shader program
-    m_vao.release();
     m_pgm.release();
 }
 
