@@ -13,9 +13,9 @@ TEMPLATE    = app
 MOC_DIR     = moc
 OBJECTS_DIR = obj
 
-SOURCES += $$PWD/src/*.cpp
+SOURCES += $$PWD/src/*.cpp \
 
-HEADERS  += $$PWD/include/*.h
+HEADERS  += $$PWD/include/*.h \
 
 FORMS    += $$PWD/forms/mainwindow.ui
 

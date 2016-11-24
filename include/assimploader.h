@@ -13,30 +13,14 @@
 
 #include <vector>
 
-struct Mesh
-{
-    uint numFaces;
-    uint numVerts;
-
-    std::vector<QVector3D> verts;
-    std::vector<QVector3D> norms;
-    std::vector<QVector3D> indices;
-
-    QOpenGLVertexArrayObject vao;
-    QOpenGLBuffer vbo;
-    QOpenGLBuffer nbo;
-    QOpenGLBuffer ibo;
-};
-
 class AssimpLoader
 {
 public:
-    AssimpLoader();
+    AssimpLoader() = default;
     ~AssimpLoader();
 
     void loadMesh(const char* filepath);
-    void prepareMesh();
-    void setShaderProgram(QOpenGLShaderProgram program);
+    void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
 
     std::vector<QVector3D> m_verts;
@@ -44,14 +28,12 @@ public:
     std::vector<uint> m_meshIndex;
 
 private:
-    QOpenGLShaderProgram m_pgm;
-
     QOpenGLVertexArrayObject m_vao;
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_ibo;
 
-    std::vector<Mesh> m_meshes;
+    QVector4D m_colour;
 };
 
 #endif // ASSIMPLOADER_H
