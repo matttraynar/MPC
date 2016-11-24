@@ -29,41 +29,50 @@ void AssimpLoader::loadMesh(const char *filepath)
 
     if(scene->HasMeshes())
     {
-        uint iOffset = 0;
-
         for(uint i = 0; i < scene->mNumMeshes; ++i)
         {
-            uint numFaces = scene->mMeshes[i]->mNumFaces;
+            Mesh newMesh;
+            newMesh.numFaces = scene->mMeshes[i]->mNumFaces;
+//            uint numFaces = scene->mMeshes[i]->mNumFaces;
 
-            for(uint j = 0; j < numFaces; ++j)
+//            for(uint j = 0; j < numFaces; ++j)
+            for(uint j = 0; j < newMesh.numFaces; ++j)
             {
                 auto face = scene->mMeshes[i]->mFaces[j];
-                m_meshIndex.push_back(face.mIndices[0]);
-                m_meshIndex.push_back(face.mIndices[1]);
-                m_meshIndex.push_back(face.mIndices[2]);
-
-                iOffset += 3;
+                newMesh.indices.push_back(face.mIndices[0]);
+                newMesh.indices.push_back(face.mIndices[1]);
+                newMesh.indices.push_back(face.mIndices[2]);
+//                m_meshIndex.push_back(face.mIndices[0]);
+//                m_meshIndex.push_back(face.mIndices[1]);
+//                m_meshIndex.push_back(face.mIndices[2]);
             }
 
-            uint numVerts = scene->mMeshes[i]->mNumVertices;
+            newMesh.numVerts = scene->mMeshes[i]->mNumVertices;
+//            uint numVerts = scene->mMeshes[i]->mNumVertices;
 
-            for(uint j = 0; j < numVerts; ++j)
+//            for(uint j = 0; j < numVerts; ++j)
+            for(uint j = 0; j < newMesh.numVerts; ++j)
             {
                 auto vert = scene->mMeshes[i]->mVertices[j];
                 auto norm = scene->mMeshes[i]->mNormals[j];
 
-                m_verts.push_back(QVector3D(vert.x,vert.y,vert.z));
-                m_norms.push_back(QVector3D(norm.x,norm.y,norm.z));
+                newMesh.verts.push_back(QVector3D(vert.x,vert.y,vert.z));
+                newMesh.norms.push_back(QVector3D(norm.x,norm.y,norm.z));
+//                m_verts.push_back(QVector3D(vert.x,vert.y,vert.z));
+//                m_norms.push_back(QVector3D(norm.x,norm.y,norm.z));
             }
+
+            m_meshes.push_back(newMesh);
         }
     }
 }
 
-void AssimpLoader::print()
+void AssimpLoader::prepareMesh()
 {
-    for(int i = 0; i < m_verts.size(); ++i)
+    m_pgm.bind();
+
+    for(uint i = 0; i < m_meshes.size(); ++i)
     {
-        QVector3D newVector = m_verts[i];
-        std::cout<<"New verts: "<<newVector.x()<<' '<<newVector.y()<<' '<<newVector.z()<<"\n--------------------\n";
+        m_meshes[i].vao.create();
     }
 }
