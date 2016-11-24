@@ -1,5 +1,5 @@
-#ifndef ASSIMPLOADER_H
-#define ASSIMPLOADER_H
+#ifndef MESH_H_
+#define MESH_H_
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -13,15 +13,17 @@
 
 #include <vector>
 
-class AssimpLoader
+class Mesh
 {
 public:
-    AssimpLoader() = default;
-    ~AssimpLoader();
+    Mesh() = default;
+    ~Mesh();
 
     void loadMesh(const char* filepath);
     void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
+
+    void setWireMode();
 
     std::vector<QVector3D> m_verts;
     std::vector<QVector3D> m_norms;
@@ -34,6 +36,8 @@ private:
     QOpenGLBuffer m_ibo;
 
     QVector4D m_colour;
+
+    bool m_wireframeMode;
 };
 
-#endif // ASSIMPLOADER_H
+#endif // MESH_H_

@@ -8,13 +8,14 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
+
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QMouseEvent>
 
 #include <memory>
 
-#include "assimploader.h"
+#include "mesh.h"
 
 class GLWidget : public QGLWidget
 {
@@ -32,6 +33,7 @@ protected:
     virtual void wheelEvent(QWheelEvent* e);
     virtual void mousePressEvent(QMouseEvent* e);
     virtual void mouseMoveEvent(QMouseEvent* e);
+    virtual void keyPressEvent(QKeyEvent* e);
 
     static void qNormalizeAngle(int &angle);
 
@@ -47,14 +49,9 @@ protected:
 private:
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
 
-    std::unique_ptr<AssimpLoader> m_loader;
+    std::unique_ptr<Mesh> m_loader;
 
     QOpenGLShaderProgram m_pgm;
-    QOpenGLVertexArrayObject m_vao;
-
-    QOpenGLBuffer m_vbo;
-    QOpenGLBuffer m_nbo;
-    QOpenGLBuffer m_ibo;
 
     QMatrix4x4 m_model;
     QMatrix4x4 m_view;
@@ -63,16 +60,7 @@ private:
 
     int m_mouseDelta;
     QVector3D m_cameraPos;
-
-    double m_lastTime;
-    bool m_mousePress;
-    int m_xPos;
-    int m_yPos;
-    float m_hAngle;
-    float m_vAngle;
     QVector3D m_dir;
-    QVector3D m_right;
-    QVector3D m_up;
 
     int m_xRot;
     int m_yRot;

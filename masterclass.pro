@@ -8,7 +8,7 @@ QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET      = masterclass
+TARGET      = MPC
 TEMPLATE    = app
 MOC_DIR     = moc
 OBJECTS_DIR = obj
@@ -16,6 +16,7 @@ OBJECTS_DIR = obj
 SOURCES += $$PWD/src/*.cpp \
 
 HEADERS  += $$PWD/include/*.h \
+    include/mesh.h
 
 FORMS    += $$PWD/forms/mainwindow.ui
 
