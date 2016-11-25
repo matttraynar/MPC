@@ -10,6 +10,10 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setVersion( 3, 3 );
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
+    m_bullet.reset(new BtWorld());
+    m_bullet->setGravity(0, -9.8, 0);
+    m_bullet->addGround();
+
     //Initialise variables for mouse control to 0
     m_xRot = 0;
     m_yRot = 0;
@@ -17,6 +21,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_zDis = 0;
     m_mouseDelta = 0;
     m_cameraPos = QVector3D(5,5,5);
+    m_trans = QMatrix4x4();
+    m_position = QVector3D();
 }
 
 GLWidget::~GLWidget()
@@ -38,6 +44,8 @@ void GLWidget::initializeGL()
          exit(1);
      }
 
+     m_pgm.bind();
+
      //Set an initial view matrix
      m_view.setToIdentity();
      m_view.lookAt(QVector3D(0.0f, 0.0f, 1.2f),    // Camera Position
@@ -45,11 +53,26 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
 
+//     createGround();
+
+//     createTeapot();
+
+     startTimer(10);
+
+     BtShape* shapes = BtShape::instance();
+     shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
+     shapes->addMesh("teapot","objFiles/teapot.obj",QVector3D(0.0,0.0,1.0));
+
+     m_bullet->addMesh("groundPlane",QVector3D(0,0,0));
      createGround();
 
+     m_bullet->addMesh("teapot",QVector3D(0,10,0));
      createTeapot();
 
+     m_pgm.release();
 }
+
+//----------------------------------------------------- PRIVATE METHODS -----------------------------------------------------//
 
 bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath )
 {
@@ -84,6 +107,41 @@ bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QStr
      return result;
 }
 
+void GLWidget::loadShaderMatrices()
+{
+    //Get vector from camera to the origin
+    QVector3D o(0,0,0);
+    QVector3D camToOrig = o - m_cameraPos;
+
+    //Normalize and calculate a new position somewhere along this vector
+    camToOrig.normalize();
+    QVector3D newCamPos = m_cameraPos + (m_mouseDelta * camToOrig);
+
+    //Reset the view matrix and set to look at origin from the new position
+    m_view.setToIdentity();
+    m_view.lookAt(newCamPos + m_dir, QVector3D(0,1,0), QVector3D(0,1,0));
+
+    //Reset the projection matrix and set to the right perspective
+    m_proj.setToIdentity();
+    m_proj.perspective(70.0f, float(width())/height(), 0.1f, 1000.0f);
+
+    //Reset the model matrix and set to the right matrix taking into account mouse movement
+    m_model.setToIdentity();
+
+    m_model.rotate(m_xRot / 16.0f, QVector3D(1, 0, 0));
+    m_model.rotate(m_yRot / 16.0f, QVector3D(0, 1, 0));
+
+    m_model.translate(m_position);
+    m_model.translate(0.0f, -1.0f, 0.0f);
+
+    //Calculate the MVP
+    m_mvp = m_proj * m_view * m_model;
+
+    //Pass the MVP into the shader
+    m_pgm.setUniformValue("M",m_model);
+    m_pgm.setUniformValue("MVP",m_mvp);
+}
+
 void GLWidget::createGround()
 {
      //Bind the shader program to the context
@@ -100,6 +158,7 @@ void GLWidget::createGround()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
+//    m_objs["groundPlane"].reset(ground);
 
     //Release the shader program
     m_pgm.release();
@@ -121,6 +180,7 @@ void GLWidget::createTeapot()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
+//    m_objs["teapot"].reset(teapot);
 
     //Release the shader program
     m_pgm.release();
@@ -147,42 +207,34 @@ void GLWidget::paintGL()
     //Now bind the shader program to the current context
     m_pgm.bind();
 
-    //Get vector from camera to the origin
-    QVector3D o(0,0,0);
-    QVector3D camToOrig = o - m_cameraPos;
-
-    //Normalize and calculate a new position somewhere along this vector
-    camToOrig.normalize();
-    QVector3D newCamPos = m_cameraPos + (m_mouseDelta * camToOrig);
-
-    //Reset the view matrix and set to look at origin from the new position
-    m_view.setToIdentity();
-    m_view.lookAt(newCamPos + m_dir, QVector3D(0,1,0), QVector3D(0,1,0));
-
-    //Reset the projection matrix and set to the right perspective
-    m_proj.setToIdentity();
-    m_proj.perspective(70.0f, float(width())/height(), 0.1f, 1000.0f);
-
-    //Reset the model matrix and set to the right matrix taking into account mouse movement
-    m_model.setToIdentity();
-    m_model.translate(QVector3D(0, 0, -0.1f*m_zDis));
-    m_model.rotate(m_xRot / 16.0f, QVector3D(1, 0, 0));
-    m_model.rotate(m_yRot / 16.0f, QVector3D(0, 1, 0));
-
-    //Calculate the MVP
-    m_mvp = m_proj * m_view * m_model;
-
-
-    //Pass the MVP into the shader
-    m_pgm.setUniformValue("M",m_model);
-    m_pgm.setUniformValue("MVP",m_mvp);
+    loadShaderMatrices();
 
     //Draw mesh
-    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+
+    uint nBodies = m_bullet->getNumCollisionObjects();
+
+    for(uint i = 0; i < nBodies; ++i)
     {
-        m_pgm.setUniformValue("mCol",m_sceneObjects[i]->m_colour);
-        m_sceneObjects[i]->draw();
+//        m_trans = m_bullet->getTransform(i);
+
+        m_position = m_bullet->getTransform(i);
+
+        loadShaderMatrices();
+
+        std::string name = m_bullet->getBodyNameAt(i);
+
+        if(name == "teapot")
+        {
+            m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
+            m_sceneObjects[1]->draw();
+        }
     }
+
+    m_position = QVector3D(0.0f, 0.0f, 0.0f);
+    loadShaderMatrices();
+
+    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->m_colour);
+    m_sceneObjects[0]->draw();
 
     m_pgm.release();
 }
@@ -236,6 +288,14 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         }
 
 //        m_teapot.setWireMode();
+
+        break;
+    case Qt::Key_T:
+        m_bullet->addMesh("teapot",QVector3D(0,10,0));
+
+        m_pgm.bind();
+        createTeapot();
+        m_pgm.release();
 
         break;
 
@@ -326,4 +386,8 @@ void GLWidget::setZRotation(int angle)
     }
 }
 
-
+void GLWidget::timerEvent(QTimerEvent *e)
+{
+    m_bullet->step(1.0f/60.0f, 10);
+    update();
+}

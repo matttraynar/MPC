@@ -102,7 +102,6 @@ void Mesh::draw()
     }
 
 
-
     glDrawElements(GL_TRIANGLES, m_meshIndex.size(), GL_UNSIGNED_INT, &m_meshIndex[0]);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

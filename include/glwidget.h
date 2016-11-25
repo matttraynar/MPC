@@ -1,19 +1,21 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
+//Files for Qt
 #include <QCoreApplication>
 #include <QGLWidget>
 #include <QTime>
-
 #include <QOpenGLShaderProgram>
-
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QMouseEvent>
 
+//Other needed includes
 #include <memory>
 
 #include "mesh.h"
+#include "btworld.h"
+#include "btshape.h"
 
 class GLWidget : public QGLWidget
 {
@@ -32,6 +34,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent* e);
     virtual void mouseMoveEvent(QMouseEvent* e);
     virtual void keyPressEvent(QKeyEvent* e);
+    virtual void timerEvent(QTimerEvent* e);
 
     static void qNormalizeAngle(int &angle);
 
@@ -46,12 +49,15 @@ protected:
 
 private:
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
+    void loadShaderMatrices();
 
     void createGround();
     void createTeapot();
 
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
-    Mesh m_teapot;
+    std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;
+
+    std::unique_ptr<BtWorld> m_bullet;
 
     QOpenGLShaderProgram m_pgm;
 
@@ -59,6 +65,9 @@ private:
     QMatrix4x4 m_view;
     QMatrix4x4 m_proj;
     QMatrix4x4 m_mvp;
+    QMatrix4x4 m_trans;
+
+    QVector3D m_position;
 
     QVector3D m_cameraPos;
     QVector3D m_dir;

@@ -27,6 +27,8 @@ public:
     void setWireMode();
     void setColour(QVector4D colour);
 
+    inline std::vector<QVector3D> getVerts() const { return m_verts; }
+
     std::vector<QVector3D> m_verts;
     std::vector<QVector3D> m_norms;
     std::vector<uint> m_meshIndex;

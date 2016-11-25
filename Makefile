@@ -15,7 +15,7 @@ CXX           = g++
 DEFINES       = -DQT_QML_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -Iinclude -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -Imoc -I. -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++
+INCPATH       = -I. -Iinclude -Ilibs/bullet/src -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -Imoc -I. -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++
 QMAKE         = /opt/Qt5.7.0/5.7/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -36,7 +36,7 @@ DISTNAME      = MPC1.0.0
 DISTDIR = /home/i7626944/Documents/masterclass/obj/MPC1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/opt/Qt5.7.0/5.7/gcc_64/lib
-LIBS          = $(SUBLIBS) -L/home/i7626944/Documents/masterclass/libs/assimp/lib/ -lassimp -L/opt/Qt5.7.0/5.7/gcc_64/lib -lQt5OpenGL -L/usr/lib64 -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/home/i7626944/Documents/masterclass/libs/assimp/lib/ -lassimp -L/home/i7626944/Documents/masterclass/libs/bullet/src -lBulletDynamics -lBulletCollision -lLinearMath -L/opt/Qt5.7.0/5.7/gcc_64/lib -lQt5OpenGL -L/usr/lib64 -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -48,12 +48,16 @@ OBJECTS_DIR   = obj/
 
 ####### Files
 
-SOURCES       = src/glwidget.cpp \
+SOURCES       = src/btshape.cpp \
+		src/btworld.cpp \
+		src/glwidget.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mesh.cpp moc/moc_glwidget.cpp \
 		moc/moc_mainwindow.cpp
-OBJECTS       = obj/glwidget.o \
+OBJECTS       = obj/btshape.o \
+		obj/btworld.o \
+		obj/glwidget.o \
 		obj/main.o \
 		obj/mainwindow.o \
 		obj/mesh.o \
@@ -214,11 +218,14 @@ DIST          = shaders/vert.glsl \
 		/opt/Qt5.7.0/5.7/gcc_64/mkspecs/features/exceptions.prf \
 		/opt/Qt5.7.0/5.7/gcc_64/mkspecs/features/yacc.prf \
 		/opt/Qt5.7.0/5.7/gcc_64/mkspecs/features/lex.prf \
-		masterclass.pro include/glwidget.h \
+		masterclass.pro include/btshape.h \
+		include/btworld.h \
+		include/glwidget.h \
 		include/mainwindow.h \
 		include/mesh.h \
-		include/ui_mainwindow.h \
-		include/mesh.h src/glwidget.cpp \
+		include/ui_mainwindow.h src/btshape.cpp \
+		src/btworld.cpp \
+		src/glwidget.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mesh.cpp
@@ -564,8 +571,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents include/glwidget.h include/mainwindow.h include/mesh.h include/ui_mainwindow.h include/mesh.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/glwidget.cpp src/main.cpp src/mainwindow.cpp src/mesh.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/btshape.h include/btworld.h include/glwidget.h include/mainwindow.h include/mesh.h include/ui_mainwindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/btshape.cpp src/btworld.cpp src/glwidget.cpp src/main.cpp src/mainwindow.cpp src/mesh.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents forms/mainwindow.ui $(DISTDIR)/
 
 
@@ -710,11 +717,6 @@ moc/moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
@@ -746,6 +748,7 @@ moc/moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileinfo.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdiriterator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileselector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QStringList \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfilesystemwatcher.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlockfile.h \
@@ -879,6 +882,7 @@ moc/moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QTransform \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsessionmanager.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qstylehints.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengldebug.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglextrafunctions.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglfunctions.h \
@@ -888,6 +892,7 @@ moc/moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QSharedDataPointer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltexture.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltimerquery.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qbackingstore.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagedpaintdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagelayout.h \
@@ -911,10 +916,111 @@ moc/moc_glwidget.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h \
 		include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/bin/moc
-	/opt/Qt5.7.0/5.7/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++ -I/home/i7626944/Documents/masterclass -I/home/i7626944/Documents/masterclass/include -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include include/glwidget.h -o moc/moc_glwidget.cpp
+	/opt/Qt5.7.0/5.7/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++ -I/home/i7626944/Documents/masterclass -I/home/i7626944/Documents/masterclass/include -I/home/i7626944/Documents/masterclass/libs/bullet/src -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include include/glwidget.h -o moc/moc_glwidget.cpp
 
 moc/moc_mainwindow.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QMainWindow \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/qmainwindow.h \
@@ -1018,7 +1124,7 @@ moc/moc_mainwindow.cpp: /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QMainWindow \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qicon.h \
 		include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/bin/moc
-	/opt/Qt5.7.0/5.7/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++ -I/home/i7626944/Documents/masterclass -I/home/i7626944/Documents/masterclass/include -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include include/mainwindow.h -o moc/moc_mainwindow.cpp
+	/opt/Qt5.7.0/5.7/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.7.0/5.7/gcc_64/mkspecs/linux-g++ -I/home/i7626944/Documents/masterclass -I/home/i7626944/Documents/masterclass/include -I/home/i7626944/Documents/masterclass/libs/bullet/src -I/opt/Qt5.7.0/5.7/gcc_64/include -I/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL -I/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets -I/opt/Qt5.7.0/5.7/gcc_64/include/QtGui -I/opt/Qt5.7.0/5.7/gcc_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include include/mainwindow.h -o moc/moc_mainwindow.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -1143,11 +1249,6 @@ ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
@@ -1179,6 +1280,7 @@ ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileinfo.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdiriterator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileselector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QStringList \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfilesystemwatcher.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlockfile.h \
@@ -1312,6 +1414,7 @@ ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QTransform \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsessionmanager.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qstylehints.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengldebug.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglextrafunctions.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglfunctions.h \
@@ -1321,6 +1424,7 @@ ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QSharedDataPointer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltexture.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltimerquery.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qbackingstore.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagedpaintdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagelayout.h \
@@ -1344,7 +1448,108 @@ ui_mainwindow.h: forms/mainwindow.ui \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h
 	/opt/Qt5.7.0/5.7/gcc_64/bin/uic forms/mainwindow.ui -o ui_mainwindow.h
 
 compiler_yacc_decl_make_all:
@@ -1356,6 +1561,148 @@ compiler_lex_clean:
 compiler_clean: compiler_moc_header_clean compiler_uic_clean 
 
 ####### Compile
+
+obj/btshape.o: src/btshape.cpp include/btshape.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/btshape.o src/btshape.cpp
+
+obj/btworld.o: src/btworld.cpp include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qpoint.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfeatures.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qtypetraits.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qisenum.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qatomic_msvc.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmutex.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qobjectdefs_impl.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/btworld.o src/btworld.cpp
 
 obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
@@ -1473,11 +1820,6 @@ obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
@@ -1509,6 +1851,7 @@ obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileinfo.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdiriterator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileselector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QStringList \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfilesystemwatcher.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlockfile.h \
@@ -1642,6 +1985,7 @@ obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QTransform \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsessionmanager.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qstylehints.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengldebug.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglextrafunctions.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglfunctions.h \
@@ -1651,6 +1995,7 @@ obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QSharedDataPointer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltexture.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltimerquery.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qbackingstore.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagedpaintdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagelayout.h \
@@ -1674,7 +2019,108 @@ obj/glwidget.o: src/glwidget.cpp include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/glwidget.o src/glwidget.cpp
 
 obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication \
@@ -1780,6 +2226,7 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtouchdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qguiapplication.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qinputmethod.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QDesktopWidget \
 		include/glwidget.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QCoreApplication \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtOpenGL/QGLWidget \
@@ -1798,11 +2245,6 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
@@ -1834,6 +2276,7 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileinfo.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdiriterator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileselector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QStringList \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfilesystemwatcher.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlockfile.h \
@@ -1965,6 +2408,7 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QTransform \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsessionmanager.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qstylehints.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengldebug.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglextrafunctions.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglfunctions.h \
@@ -1974,6 +2418,7 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QSharedDataPointer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltexture.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltimerquery.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qbackingstore.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagedpaintdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagelayout.h \
@@ -1997,7 +2442,108 @@ obj/main.o: src/main.cpp /opt/Qt5.7.0/5.7/gcc_64/include/QtWidgets/QApplication 
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvalidator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o src/main.cpp
 
 obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
@@ -2156,11 +2702,6 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsurfaceformat.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QTime \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdatetime.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLShaderProgram \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglshaderprogram.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qvector3d.h \
@@ -2192,6 +2733,7 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileinfo.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qdiriterator.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfileselector.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QStringList \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qfilesystemwatcher.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/qlockfile.h \
@@ -2319,6 +2861,7 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QTransform \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qsessionmanager.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qstylehints.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglbuffer.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengldebug.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglextrafunctions.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglfunctions.h \
@@ -2328,6 +2871,7 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtCore/QSharedDataPointer \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltexture.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopengltimerquery.h \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qopenglvertexarrayobject.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qbackingstore.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagedpaintdevice.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qpagelayout.h \
@@ -2350,7 +2894,108 @@ obj/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtexttable.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qdesktopservices.h \
 		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/qtguiversion.h \
-		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLVertexArrayObject \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QOpenGLBuffer \
+		/opt/Qt5.7.0/5.7/gcc_64/include/QtGui/QVector3D \
+		include/btworld.h \
+		libs/bullet/src/btBulletDynamicsCommon.h \
+		libs/bullet/src/btBulletCollisionCommon.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionWorld.h \
+		libs/bullet/src/LinearMath/btVector3.h \
+		libs/bullet/src/LinearMath/btScalar.h \
+		libs/bullet/src/LinearMath/btMinMax.h \
+		libs/bullet/src/LinearMath/btAlignedAllocator.h \
+		libs/bullet/src/LinearMath/btTransform.h \
+		libs/bullet/src/LinearMath/btMatrix3x3.h \
+		libs/bullet/src/LinearMath/btQuaternion.h \
+		libs/bullet/src/LinearMath/btQuadWord.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObject.h \
+		libs/bullet/src/LinearMath/btMotionState.h \
+		libs/bullet/src/LinearMath/btAlignedObjectArray.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionDispatcher.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDispatcher.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
+		libs/bullet/src/LinearMath/btTransformUtil.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btManifoldResult.h \
+		libs/bullet/src/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionCreateFunc.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBoxShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCollisionMargin.h \
+		libs/bullet/src/LinearMath/btAabbUtil2.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCapsuleShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCylinderShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConeShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStaticPlaneShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConcaveShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleCallback.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMesh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btStridingMeshInterface.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btOptimizedBvh.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btQuantizedBvh.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTriangleInfoMap.h \
+		libs/bullet/src/LinearMath/btHashMap.h \
+		libs/bullet/src/LinearMath/btSerializer.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btCompoundShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btEmptyShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btMultiSphereShape.h \
+		libs/bullet/src/BulletCollision/CollisionShapes/btUniformScalingShape.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/CollisionDispatch/btCollisionConfiguration.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btDbvt.h \
+		libs/bullet/src/LinearMath/btQuickprof.h \
+		libs/bullet/src/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h \
+		libs/bullet/src/LinearMath/btDefaultMotionState.h \
+		libs/bullet/src/LinearMath/btIDebugDraw.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btRigidBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btJacobianEntry.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btTypedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHingeConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btGearConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btFixedConstraint.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
+		libs/bullet/src/BulletDynamics/Vehicle/btWheelInfo.h \
+		libs/bullet/src/BulletDynamics/Dynamics/btActionInterface.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/mainwindow.o src/mainwindow.cpp
 
 obj/mesh.o: src/mesh.cpp include/mesh.h \
