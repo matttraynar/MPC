@@ -12,7 +12,7 @@ out vec4 fragColour;
 void main()
 {
     vec3 lPos = vec3(0.0, 20.0, 0.0);
-    vec4 lCol = vec4(0.8, 0.8, 0.9, 1.0);
+    vec4 lCol = vec4(1.0, 1.0, 1.0, 1.0);
 
     vec3 v_pos = vec4(M * vec4(out_pos,1.0)).xyz;
 

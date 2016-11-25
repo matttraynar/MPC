@@ -31,13 +31,14 @@ public:
     std::vector<QVector3D> m_norms;
     std::vector<uint> m_meshIndex;
 
+    QVector4D m_colour;
+
 private:
     QOpenGLVertexArrayObject m_vao;
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_ibo;
 
-    QVector4D m_colour;
 
     bool m_wireframeMode;
 };

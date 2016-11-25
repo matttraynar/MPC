@@ -10,10 +10,6 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setVersion( 3, 3 );
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
-    //Enable a few flags for rendering later
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
     //Initialise variables for mouse control to 0
     m_xRot = 0;
     m_yRot = 0;
@@ -32,6 +28,9 @@ void GLWidget::initializeGL()
 {
     //Set the background colour for the window
      glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );
+
+     //Enable depth testing for rendering later
+     glEnable(GL_DEPTH_TEST);
 
      //Create the correct shader program and if it fails immediately return
      if ( !prepareShaderProgram( "shaders/vert.glsl", "shaders/frag.glsl" ) )
@@ -87,30 +86,43 @@ bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QStr
 
 void GLWidget::createGround()
 {
+     //Bind the shader program to the context
     m_pgm.bind();
 
-    m_ground.loadMesh("objFiles/ground.obj");
+    //Create a new mesh shared pointer and use the colour constructor
+    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0)));
 
-    m_ground.setColour(QVector4D(0.9,0.9,0.9,1.0));
-    m_ground.prepareMesh(m_pgm);
+    //Load the ground plane obj
+    ground->loadMesh("objFiles/ground.obj");
 
-//    m_sceneObjects.push_back(groundPlane);
+    //Load the neccesary vaos and vbos
+    ground->prepareMesh(m_pgm);
 
+    //Add the pointer to the vector of scene objects
+    m_sceneObjects.push_back(ground);
+
+    //Release the shader program
     m_pgm.release();
 }
 
 void GLWidget::createTeapot()
 {
-    //--------------------------
-    // SET COLOUR ISNT WORKING
-    //--------------------------
+    //Bind the shader program to the context
     m_pgm.bind();
 
-    m_teapot.loadMesh("objFiles/teapot.obj");
-    m_teapot.setColour(QVector4D(0.9,0.9,0.9,1.0));
+    //Create a new mesh shared pointer and use the colour constructor
+    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9,1.0,1.0,1.0)));
 
-    m_teapot.prepareMesh(m_pgm);
+    //Load the teapot obj
+    teapot->loadMesh("objFiles/teapot.obj");
 
+    //Load the neccesary vaos and vbos
+    teapot->prepareMesh(m_pgm);
+
+    //Add the pointer to the vector of scene objects
+    m_sceneObjects.push_back(teapot);
+
+    //Release the shader program
     m_pgm.release();
 }
 
@@ -131,8 +143,6 @@ void GLWidget::paintGL()
 {
     // Clear the buffer with the current clearing color
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glEnable(GL_DEPTH_TEST);
-
 
     //Now bind the shader program to the current context
     m_pgm.bind();
@@ -168,13 +178,11 @@ void GLWidget::paintGL()
     m_pgm.setUniformValue("MVP",m_mvp);
 
     //Draw mesh
-//    for(uint i = 0; i < m_sceneObjects.size(); ++i)
-//    {
-//        m_sceneObjects[i].draw();
-//    }
-
-    m_ground.draw();
-    m_teapot.draw();
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        m_pgm.setUniformValue("mCol",m_sceneObjects[i]->m_colour);
+        m_sceneObjects[i]->draw();
+    }
 
     m_pgm.release();
 }
@@ -222,12 +230,12 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     switch(e->key())
     {
     case Qt::Key_W:
-//        for(uint i = 0; i < m_sceneObjects.size(); ++i)
-//        {
-//            m_sceneObjects[i].setWireMode();
-//        }
-        m_ground.setWireMode();
-        m_teapot.setWireMode();
+        for(uint i = 0; i < m_sceneObjects.size(); ++i)
+        {
+            m_sceneObjects[i]->setWireMode();
+        }
+
+//        m_teapot.setWireMode();
 
         break;
 

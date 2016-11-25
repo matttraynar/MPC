@@ -89,8 +89,6 @@ void Mesh::prepareMesh(QOpenGLShaderProgram& program)
     m_ibo.bind();
     m_ibo.allocate(&m_meshIndex[0], m_meshIndex.size() * sizeof(uint));
 
-    program.setUniformValue("mCol",m_colour);
-
     m_vao.release();
 }
 
@@ -102,6 +100,8 @@ void Mesh::draw()
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
+
+
 
     glDrawElements(GL_TRIANGLES, m_meshIndex.size(), GL_UNSIGNED_INT, &m_meshIndex[0]);
 

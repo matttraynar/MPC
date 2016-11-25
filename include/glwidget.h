@@ -50,9 +50,8 @@ private:
     void createGround();
     void createTeapot();
 
-    Mesh m_ground;
+    std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
     Mesh m_teapot;
-//    std::vector<Mesh> m_sceneObjects;
 
     QOpenGLShaderProgram m_pgm;
 
