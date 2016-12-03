@@ -61,7 +61,7 @@ void GLWidget::initializeGL()
 
      BtShape* shapes = BtShape::instance();
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/teapot.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/teapotLARGE.obj",QVector3D(0.0,0.0,1.0));
 
      m_bullet->addMesh("groundPlane",QVector3D(0,0,0));
      createGround();
@@ -173,14 +173,14 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9,1.0,1.0,1.0)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/teapot.obj");
+    teapot->loadMesh("objFiles/teapotLARGE.obj");
+    teapot->packSpheres();
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
-//    m_objs["teapot"].reset(teapot);
 
     //Release the shader program
     m_pgm.release();
@@ -210,13 +210,14 @@ void GLWidget::paintGL()
     loadShaderMatrices();
 
     //Draw mesh
+    Mesh sphere;
+    sphere.loadMesh("objFiles/sphere.obj");
+    sphere.prepareMesh(m_pgm);
 
     uint nBodies = m_bullet->getNumCollisionObjects();
 
     for(uint i = 0; i < nBodies; ++i)
     {
-//        m_trans = m_bullet->getTransform(i);
-
         m_position = m_bullet->getTransform(i);
 
         loadShaderMatrices();
@@ -227,6 +228,15 @@ void GLWidget::paintGL()
         {
             m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
             m_sceneObjects[1]->draw();
+
+            for(uint j = 0; j < m_sceneObjects[1]->m_spherePositions.size(); ++j)
+            {
+                m_position = m_sceneObjects[1]->m_spherePositions[j];
+
+                loadShaderMatrices();
+
+                sphere.draw();
+            }
         }
     }
 
@@ -297,6 +307,10 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         createTeapot();
         m_pgm.release();
 
+        break;
+
+    case Qt::Key_Escape:
+        close();
         break;
 
     default:

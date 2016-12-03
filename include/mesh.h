@@ -24,14 +24,16 @@ public:
     void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
 
+    void packSpheres();
+
     void setWireMode();
     void setColour(QVector4D colour);
 
     inline std::vector<QVector3D> getVerts() const { return m_verts; }
+    inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index];}
+    inline int getSphereNum() const                { return m_spherePositions.size(); }
 
-    std::vector<QVector3D> m_verts;
-    std::vector<QVector3D> m_norms;
-    std::vector<uint> m_meshIndex;
+    std::vector<QVector3D> m_spherePositions;
 
     QVector4D m_colour;
 
@@ -40,6 +42,10 @@ private:
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_ibo;
+
+    std::vector<QVector3D> m_verts;
+    std::vector<QVector3D> m_norms;
+    std::vector<uint> m_meshIndex;
 
 
     bool m_wireframeMode;

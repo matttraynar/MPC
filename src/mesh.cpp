@@ -125,3 +125,17 @@ void Mesh::setColour(QVector4D colour)
 {
     m_colour = colour;
 }
+
+void Mesh::packSpheres()
+{
+    QVector3D middlePos;
+
+    for(uint i = 0; i < m_verts.size(); ++i)
+    {
+        middlePos += m_verts[i];
+    }
+
+    middlePos /= m_verts.size();
+
+    m_spherePositions.push_back(middlePos);
+}
