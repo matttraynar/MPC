@@ -129,6 +129,7 @@ void Mesh::setColour(QVector4D colour)
 void Mesh::packSpheres()
 {
     QVector3D middlePos;
+    float radius = 1.0;
 
     for(uint i = 0; i < m_verts.size(); ++i)
     {
@@ -137,5 +138,11 @@ void Mesh::packSpheres()
 
     middlePos /= m_verts.size();
 
-    m_spherePositions.push_back(middlePos);
+    QVector3D p0 = middlePos;
+    QVector3D p1 = middlePos;
+    p0[0] += radius/2.0f;
+    p1[0] -= radius/2.0f;
+
+    m_spherePositions.push_back(p0);
+    m_spherePositions.push_back(p1);
 }

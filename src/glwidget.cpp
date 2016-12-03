@@ -213,6 +213,22 @@ void GLWidget::paintGL()
     Mesh sphere;
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
+    std::vector<QVector3D> verts = sphere.getVerts();
+
+    float radius = 0;
+    float length = 0;
+
+    for(uint i = 0; i < verts.size(); ++i)
+    {
+        length = (pow(verts[i][0],2) + pow(verts[i][1],2) + pow(verts[i][2],2));
+
+        radius += sqrt(length);
+    }
+
+    radius /= verts.size();
+
+    std::cout<<"Radius: "<<radius<<'\n';
+
 
     uint nBodies = m_bullet->getNumCollisionObjects();
 
