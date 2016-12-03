@@ -21,7 +21,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_zDis = 0;
     m_mouseDelta = 0;
     m_cameraPos = QVector3D(5,5,5);
-    m_trans = QMatrix4x4();
+
+    //Initialise the postition which will be used later
     m_position = QVector3D();
 }
 
@@ -44,6 +45,7 @@ void GLWidget::initializeGL()
          exit(1);
      }
 
+     //Bind the shader program to the current context
      m_pgm.bind();
 
      //Set an initial view matrix
@@ -52,23 +54,27 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 0.0f, 0.0f),    // Point camera looks towards
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
-
-//     createGround();
-
-//     createTeapot();
-
+     //Start the QTimer with a step of 10
      startTimer(10);
 
+     //Create an instance of the BtShape class
      BtShape* shapes = BtShape::instance();
+
+     //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
      shapes->addMesh("teapot","objFiles/teapotLARGE.obj",QVector3D(0.0,0.0,1.0));
 
+     //Add the ground plane to the bullet world and then
+     //create a ground plane in the scene objects so that
+     //it gets drawn
      m_bullet->addMesh("groundPlane",QVector3D(0,0,0));
      createGround();
 
+     //Do the same with the teapot
      m_bullet->addMesh("teapot",QVector3D(0,10,0));
      createTeapot();
 
+     //Release the shader program
      m_pgm.release();
 }
 
@@ -207,61 +213,60 @@ void GLWidget::paintGL()
     //Now bind the shader program to the current context
     m_pgm.bind();
 
-    loadShaderMatrices();
-
-    //Draw mesh
+    //Create a sphere we are going to draw in the correct places
     Mesh sphere;
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
-    std::vector<QVector3D> verts = sphere.getVerts();
 
-    float radius = 0;
-    float length = 0;
-
-    for(uint i = 0; i < verts.size(); ++i)
-    {
-        length = (pow(verts[i][0],2) + pow(verts[i][1],2) + pow(verts[i][2],2));
-
-        radius += sqrt(length);
-    }
-
-    radius /= verts.size();
-
-    std::cout<<"Radius: "<<radius<<'\n';
-
-
+    //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
 
+    //Iterate through them
     for(uint i = 0; i < nBodies; ++i)
     {
+        //Get the position of the bullet mesh
         m_position = m_bullet->getTransform(i);
 
+        //Load the viewing/positional matrices to the shader program
         loadShaderMatrices();
 
+        //Get the name of the bullet object
         std::string name = m_bullet->getBodyNameAt(i);
 
+        //Check for the teapot
         if(name == "teapot")
         {
+            //Set the colour of the object in the shader
             m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
+
+            //Draw the object
             m_sceneObjects[1]->draw();
 
-            for(uint j = 0; j < m_sceneObjects[1]->m_spherePositions.size(); ++j)
+            //Iterate for the number of spheres in the spherepack
+            for(uint j = 0; j < m_sceneObjects[1]->getSphereNum(); ++j)
             {
-                m_position = m_sceneObjects[1]->m_spherePositions[j];
-
+                //Set the position and load to the shader program again
+                m_position = m_sceneObjects[1]->getSphereAt(j);
                 loadShaderMatrices();
 
+                //Draw a sphere at this position
                 sphere.draw();
             }
         }
     }
 
+    //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
     loadShaderMatrices();
 
+    //Again set the shader colour for the plane
     m_pgm.setUniformValue("mCol",m_sceneObjects[1]->m_colour);
+
+    //The plane is always created first, so we can assume it's index
+    //which we can use to draw
     m_sceneObjects[0]->draw();
 
+    //Finally release the shader program
     m_pgm.release();
 }
 
@@ -308,15 +313,16 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     switch(e->key())
     {
     case Qt::Key_W:
+        //User pressed 'W' so update the wireframe mode
+        //of each mesh in the scene
         for(uint i = 0; i < m_sceneObjects.size(); ++i)
         {
             m_sceneObjects[i]->setWireMode();
         }
 
-//        m_teapot.setWireMode();
-
         break;
     case Qt::Key_T:
+        //The user pressed 'T' so add a new teapot to the world
         m_bullet->addMesh("teapot",QVector3D(0,10,0));
 
         m_pgm.bind();
@@ -326,6 +332,7 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         break;
 
     case Qt::Key_Escape:
+        //User pressed 'esc' so close the window
         close();
         break;
 
