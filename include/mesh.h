@@ -13,6 +13,27 @@
 
 #include <vector>
 
+enum IntersectionType
+{
+    Vertex,
+    Edge,
+    Face
+};
+
+struct Triangle
+{
+    QVector3D A;
+    QVector3D B;
+    QVector3D C;
+};
+
+struct Intersections
+{
+    Triangle tri;
+    QVector3D baryCentric;
+    IntersectionType type;
+};
+
 class Mesh
 {
 public:
@@ -50,6 +71,15 @@ private:
                                     float &yMin, float &yMax,
                                     float &zMin, float &zMax);
 
+    void createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ,
+                                QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ);
+
+    void getPotentialTriangles(QVector2D point, std::vector<Intersections> &intersectionHolder);
+
+    QVector3D getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C);
+
+    QVector3D calculateTriNorm(Triangle tri);
+
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
     QOpenGLBuffer m_vbo;
@@ -63,6 +93,10 @@ private:
 
     //Container with sphere positions
     std::vector<QVector3D> m_spherePositions;
+
+    float m_radius;
+
+    std::vector< std::vector< std::vector< int> > > m_distancePoints;
 
     //Wireframe state
     bool m_wireframeMode;
