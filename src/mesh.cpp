@@ -146,6 +146,32 @@ void Mesh::setColour(QVector4D colour)
     m_colour = colour;
 }
 
+void Mesh::generateDistanceField()
+{
+    float xMin, xMax;
+    float yMin, yMax;
+    float zMin, zMax;
+
+    calculateMAABB(xMin, xMax, yMin, yMax, zMin, zMax);
+
+}
+
+void Mesh::calculateMAABB(float &xMin, float &xMax, float &yMin, float &yMax, float &zMin, float &zMax)
+{
+    for(uint i = 0; i < m_verts.size(); ++i)
+    {
+        if(m_verts[i].x() < xMin)
+        {
+            xMin = m_verts[i].x();
+        }
+        else if(m_verts[i].x() > xMax)
+        {
+            xMax = m_verts[i].x();
+        }
+    }
+
+}
+
 void Mesh::packSpheres()
 {
     //Set some variables for later use

@@ -28,6 +28,8 @@ public:
     void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
 
+    void generateDistanceField();
+
     //Method which creates a sphere pack for the mesh
     void packSpheres();
 
@@ -44,6 +46,10 @@ public:
     QVector4D m_colour;
 
 private:
+    void calculateMAABB(float &xMin, float &xMax,
+                                    float &yMin, float &yMax,
+                                    float &zMin, float &zMax);
+
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
     QOpenGLBuffer m_vbo;
