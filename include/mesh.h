@@ -27,10 +27,17 @@ struct Triangle
     QVector3D C;
 };
 
+struct Ray
+{
+    QVector3D pos;
+    QVector3D dir;
+};
+
 struct Intersections
 {
     Triangle tri;
     QVector3D baryCentric;
+    QVector3D pos;
     IntersectionType type;
 };
 
@@ -48,6 +55,9 @@ public:
     void loadMesh(const char* filepath);
     void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
+
+    void preparePoints(QOpenGLShaderProgram &program);
+    void drawPoints();
 
     void generateDistanceField();
 
@@ -74,14 +84,24 @@ private:
     void createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ,
                                 QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ);
 
+    bool pointInTriBBox(QVector3D p, Triangle t);
+
+    int getIntersections(QVector3D p, QVector3D dir);
+
+    void getPotentialTriangles(QVector3D point, std::vector<Intersections> &intersectionHolder);
     void getPotentialTriangles(QVector2D point, std::vector<Intersections> &intersectionHolder);
 
+    float getXFromVec(QVector3D a, QVector3D b);
+
+    QVector3D getBarycentricCoordinates(QVector3D point, QVector3D A, QVector3D B, QVector3D C);
     QVector3D getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C);
 
     QVector3D calculateTriNorm(Triangle tri);
 
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
+    QOpenGLVertexArrayObject m_vaoP;
+    QOpenGLBuffer m_vboP;
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_ibo;
@@ -96,6 +116,7 @@ private:
 
     float m_radius;
 
+    std::vector<QVector3D> m_pointPositions;
     std::vector< std::vector< std::vector< int> > > m_distancePoints;
 
     //Wireframe state

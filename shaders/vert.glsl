@@ -10,6 +10,8 @@ out vec3 out_norm;
 
 void main()
 {
+	gl_PointSize =2.5;
+
     gl_Position = MVP * vec4(vertexPos,1.0);
 
     out_pos = vertexPos;

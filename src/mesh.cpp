@@ -138,6 +138,34 @@ void Mesh::draw()
     m_vao.release();
 }
 
+void Mesh::preparePoints(QOpenGLShaderProgram &program)
+{
+    m_vaoP.create();
+    m_vaoP.bind();
+
+    m_vboP.create();
+    m_vboP.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vboP.bind();
+
+    m_vboP.allocate(&m_pointPositions[0], m_pointPositions.size() * sizeof(GLfloat) * 3);
+
+    program.enableAttributeArray("vertexPos");
+    program.setAttributeArray("vertexPos", GL_FLOAT, 0, 3);
+
+    m_vboP.release();
+
+    m_vaoP.release();
+}
+
+void Mesh::drawPoints()
+{
+    m_vaoP.bind();
+
+    glDrawArrays(GL_POINTS, 0, m_pointPositions.size());
+
+    m_vaoP.release();
+}
+
 void Mesh::setWireMode()
 {
     //Swap the wireframe mode accordingly
@@ -149,6 +177,13 @@ void Mesh::setColour(QVector4D colour)
     //Method for setting the colour of the mesh
     m_colour = colour;
 }
+
+
+bool vecEquals(QVector3D a, QVector3D b)
+{
+    return ((a.x() == b.x()) && (a.y() == b.y()) && (a.z() == b.z()));
+}
+
 
 void Mesh::generateDistanceField()
 {
@@ -167,154 +202,53 @@ void Mesh::generateDistanceField()
     //Calculate the MAABB
     calculateMAABB(xMin, xMax, yMin, yMax, zMin, zMax);
 
+    std::cout<<"xMin: "<<xMin<<" xMax: "<<xMax<<'\n';
+    std::cout<<"yMin: "<<yMin<<" yMax: "<<yMax<<'\n';
+    std::cout<<"zMin: "<<zMin<<" zMax: "<<zMax<<'\n';
+
+    int count= 0 ;
     //Iterate through every unit point in the MAABB, essentially creating a 3D grid
-    for(float y = yMin; y <= yMax; ++y)
+    for(int y = (int)yMin; y < (int)yMax; ++y)
     {
         std::vector< std::vector< int> > zDistances;
-        for(float z = zMin; z <= zMax; ++z)
+
+        for(int z = (int)zMin; z < (int)zMax; ++z)
         {
             std::vector<int> xDistances;
-            for(float x = xMin; x <= xMax; ++x)
+
+            for(int x = (int)xMin; x < (int)xMax; ++x)
             {
+                count++;
                 //Create a new point and a container to store intersections in
-                QVector2D point(y,z);
-                std::vector<Intersections> pointHits;
 
                 //Initialise the intersection count for this point to 0
                 int intersectionCount = 0;
 
                 //Look for triangles which have a 2D intersection (so might have a 3D one)
-                getPotentialTriangles(point, pointHits);
-
-                //There was at least one intersection, need to check 3D intersection
-                if(pointHits.size() > 0)
-                {
-                    //Make a container for storing dot products later
-                    std::vector<float> vertsDotContainer;
-                    std::vector<float> edgeDotContainer;
-
-                    //Iterate throught the intersections
-                    for(uint i = 0; i < pointHits.size(); ++i)
-                    {
-                        //Store the data locally for ease of use
-                        Intersections currentInter = pointHits[i];
-                        Triangle currentTriangle = currentInter.tri;
-
-                        //Calculate the normal of the current triangle
-                        QVector3D triNorm = calculateTriNorm(currentTriangle);
-
-                        //Store the barycentric coordinates locally too
-                        float u = currentInter.baryCentric.x();
-                        float v = currentInter.baryCentric.y();
-                        float w = currentInter.baryCentric.z();
-
-                        //If the intersection was on a vertex and the vertex x value is greater
-                        //(i.e. along the (1,0,0) ray from the current grid position) store the
-                        //dot product of the triangle norm and the ray direction vector. As the
-                        //ray direction vector is (1,0,0) this equates to just the x component
-                        if((currentInter.type = Vertex) &&
-                                ((currentTriangle.C.x() >= x) ||
-                                 (currentTriangle.B.x() >= x) ||
-                                 (currentTriangle.A.x() >= x)))
-                        {
-                            vertsDotContainer.push_back(triNorm.x());
-                        }
-
-                        //Do the same with edges but store the dot product in a different container
-                        else if((currentInter.type == Edge) &&
-                                ((currentTriangle.C.x() >= x) ||
-                                 (currentTriangle.B.x() >= x) ||
-                                 (currentTriangle.A.x() >= x)))
-                        {
-                            edgeDotContainer.push_back(triNorm.x());
-                        }
-                        //Easy, the intersection was with a face, mark an intersection
-                        else if((currentInter.type == Face) &&
-                                (triNorm.x() >= x))
-                        {
-                            intersectionCount++;
-                        }
-                    }
-
-                    //Next we need to test the intersections which were with vertices or
-                    //edges to make sure we don't double count them. This will be important
-                    //later. Basically if the sign of every value in the container is the same
-                    //as the direction through the mesh:
-                    //
-                    //              Positive dot  = leaving the mesh
-                    //              Negative dot = entering the mesh
-                    //
-                    //However in some cases (e.g. on an edge or vertex) multiple values
-                    //can be recorded, by checking the signs are all the same errors like
-                    //this can be avoided
-
-                    bool allSame = true;
-                    int lastSign = 0;
-
-                    //First check if there were any vert intersections
-                    if(vertsDotContainer.size() > 0)
-                    {
-                        //Check the sign of the first vertex dot product
-                        ((vertsDotContainer[0] < 0) ? lastSign = -1 : lastSign = 1);
-
-                        //Iterate through the container checking signs
-                        for(uint i = 0; i < vertsDotContainer.size(); ++i)
-                        {
-                            if(((vertsDotContainer[i] < 0) && (lastSign > 0)) ||
-                                    ((vertsDotContainer[i] > 0) && (lastSign < 0)))
-                            {
-                                //A value with a different sign was detected, mark this and
-                                //break immediately (no need to continue looking)
-                                allSame = false;
-                                break;
-                            }
-                        }
-
-                        //There was a correct intersection so increment the count
-                        if(allSame)
-                        {
-                            intersectionCount++;
-                        }
-                    }
-
-                    //Reset the boolean value for the next container
-                    allSame = true;
-
-                    //Now we do exactly the same, first checking if
-                    //there were edge intersections
-                    if(edgeDotContainer.size() > 0)
-                    {
-                        ((edgeDotContainer[0] < 0) ? lastSign = -1 : lastSign = 1);
-
-                        for(uint i = 1; i < edgeDotContainer.size(); ++i)
-                        {
-                            if(((edgeDotContainer[i] < 0) && (lastSign > 0)) ||
-                                    ((edgeDotContainer[i] > 0) && (lastSign < 0)))
-                            {
-                                allSame = false;
-                                break;
-                            }
-                        }
-                        if(allSame)
-                        {
-                            intersectionCount++;
-                        }
-                    }
-                }
+                //getPotentialTriangles(QVector3D(x, y, z), pointHits);
+                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(0,0,1));
 
                 //After all that we can check the intersection count.
                 //An even number means the point is outside the mesh,
                 //this is marked by storing a large positive value there
                 //for now. If the intersection count is odd the point
                 //is inside so a large negative value is stored
-                if((intersectionCount % 2) == 0)
+
+                if((intersectionCount % 2) !=0)
                 {
+                    qInfo()<<"a thing\n";
+                }
+
+                if(((intersectionCount % 2) == 0) || (intersectionCount == 0))
+                {
+                    m_pointPositions.push_back(QVector3D(x, y, z));
                     xDistances.push_back(LARGE_PVE);
                 }
                 else
                 {
                     xDistances.push_back(-LARGE_PVE);
                 }
+
             }
             //Add the row of distance values that have been created
             //to the current 'z' row
@@ -363,17 +297,16 @@ void Mesh::calculateMAABB(float &xMin, float &xMax, float &yMin, float &yMax, fl
         }
     }
 
-    //Add a margin of 3 * sphere radius to the bounding box
-    float r3 = m_radius * 3;
+    //Add a margin of 1 sphere radius to the bounding box
 
-    xMin -= r3;
-    xMax += r3;
+    xMin -= m_radius;
+    xMax += m_radius;
 
-    yMin -= r3;
-    yMax += r3;
+    yMin -= m_radius;
+    yMax += m_radius;
 
-    zMin -= r3;
-    zMax +=r3;
+    zMin -= m_radius;
+    zMax +=m_radius;
 }
 
 void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ, QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ)
@@ -413,6 +346,135 @@ void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D
     xYZ = QVector3D(xMin, yMax, zMax);
 }
 
+int Mesh::getIntersections(QVector3D p, QVector3D dir)
+{
+    int hitCount = 0;
+
+    for(uint i = 0; i < m_meshIndex.size(); i+=3)
+    {
+        Triangle t = {m_verts[m_meshIndex[i]], m_verts[m_meshIndex[i + 1]], m_verts[m_meshIndex[i + 2]]};
+
+        Ray test = {p, dir};
+        QVector3D end = p + (test.dir * 50);
+
+        QVector3D e1 = t.B - t.A;
+        QVector3D e2 = t.C - t.A;
+
+        QVector3D N = QVector3D::crossProduct(e1, e2);
+
+        QVector3D q = QVector3D::crossProduct(test.dir, e2);
+        float a = QVector3D::dotProduct(q, e1);
+
+        if( (fabs(a) <= 0.00001f))
+        {
+            continue;
+        }
+
+//        QVector3D s = (p - t.A) / a;
+        QVector3D s = p - t.A;
+        QVector3D r = QVector3D::crossProduct(s, e1);
+
+        float u = QVector3D::dotProduct(s, q) / a;
+
+        if( u < 0.0001f || u > 1.0f)
+        {
+            continue;
+        }
+
+        float v = QVector3D::dotProduct(r, test.dir) / a;
+
+        if( v < 0.00001f || u + v > 1.0f)
+        {
+            continue;
+        }
+
+        float tParam = QVector3D::dotProduct(e2, r) / a;
+
+        if((tParam > 0.00001f))
+        {
+            hitCount++;
+        }
+    }
+    return hitCount;
+}
+
+void Mesh::getPotentialTriangles(QVector3D point, std::vector<Intersections> &intersectionHolder)
+{
+    //Loop through the vertex indices (incrementing by 3
+    //so actually looping through faces). Mesh was triangulated
+    //on load so faces with 3 vertices can be assumed
+    for(uint i = 0; i < m_meshIndex.size(); i+=3)
+    {
+        QVector3D A = m_verts[m_meshIndex[i]];
+        QVector3D B = m_verts[m_meshIndex[i + 1]];
+        QVector3D C = m_verts[m_meshIndex[i + 2]];
+
+        Triangle T = {A, B, C};
+
+//        A.setX(point.x());
+//        B.setX(point.x());
+//        C.setX(point.x());
+
+        if(pointInTriBBox(point, T))
+        {
+
+            //Get the barycentric coordiantes of the point
+            QVector3D bCentric = getBarycentricCoordinates(point, A, B, C);
+
+            //Check if the bCentric coordinates indicate an intersection
+//            if(  ((0 <= bCentric.x()) && (bCentric.x() <= 1)) &&
+//                 ((0 <= bCentric.y()) && (bCentric.y() <= 1)) &&
+//                 ((0 <= bCentric.z()) && (bCentric.z() <= 1))    )
+//            {
+                //There is an intersection so create a new struct instance
+                Intersections inter;
+
+                //Store the bCentric data for later
+                inter.baryCentric = bCentric;
+
+                //Store the vertex indicies of the face intersected with
+                inter.tri = T;
+//                inter.tri.A = m_verts[m_meshIndex[i]];
+//                inter.tri.B = m_verts[m_meshIndex[i + 1]];
+//                inter.tri.C = m_verts[m_meshIndex[i + 2]];
+
+                //Finally check to see if the coordinates indicate:
+                //      - Vertex intersection (2 coordinates = 0)
+                //      - Edge intersection (1 coordinate = 0)
+                //      - Face intersection (everything else)
+
+                if(((bCentric.x() == 0) && (bCentric.y() == 0)) ||
+                        ((bCentric.x() == 0) && (bCentric.z() == 0)) ||
+                        ((bCentric.y() == 0) && (bCentric.z() == 0)))
+                {
+                    //Set the intersection type accordingly
+                    inter.type = Vertex;
+                }
+                else if ((bCentric.x() == 0) ||
+                         (bCentric.y() == 0) ||
+                         (bCentric.z() == 0))
+                {
+                    inter.type = Edge;
+                }
+                else
+                {
+                    inter.type = Face;
+                }
+
+                //Finally add the intersection to the container
+                //that was passed in
+                inter.pos = (inter.tri.A * bCentric.x()) + (inter.tri.B * bCentric.y()) * (inter.tri.C * bCentric.z());
+
+                intersectionHolder.push_back(inter);
+//            }
+        }
+        else
+        {
+            continue;
+        }
+    }
+}
+
 void Mesh::getPotentialTriangles(QVector2D point, std::vector<Intersections> &intersectionHolder)
 {
     //Loop through the vertex indices (incrementing by 3
@@ -430,7 +492,9 @@ void Mesh::getPotentialTriangles(QVector2D point, std::vector<Intersections> &in
         QVector3D bCentric = getBarycentricCoordinates(point, A, B, C);
 
         //Check if the bCentric coordinates indicate an intersection
-        if(((0 <= bCentric.x()) && (bCentric.x() <= 1)) && ((0 <= bCentric.y()) && (bCentric.y() <= 1)) && ((0 <= bCentric.z()) && (bCentric.z() <= 1)))
+        if(  ((0 <= bCentric.x()) && (bCentric.x() <= 1)) &&
+             ((0 <= bCentric.y()) && (bCentric.y() <= 1)) &&
+             ((0 <= bCentric.z()) && (bCentric.z() <= 1))    )
         {
             //There is an intersection so create a new struct instance
             Intersections inter;
@@ -440,8 +504,8 @@ void Mesh::getPotentialTriangles(QVector2D point, std::vector<Intersections> &in
 
             //Store the vertex indicies of the face intersected with
             inter.tri.A = m_verts[m_meshIndex[i]];
-            inter.tri.A = m_verts[m_meshIndex[i + 1]];
-            inter.tri.A = m_verts[m_meshIndex[i + 2]];
+            inter.tri.B = m_verts[m_meshIndex[i + 1]];
+            inter.tri.C = m_verts[m_meshIndex[i + 2]];
 
             //Finally check to see if the coordinates indicate:
             //      - Vertex intersection (2 coordinates = 0)
@@ -468,26 +532,119 @@ void Mesh::getPotentialTriangles(QVector2D point, std::vector<Intersections> &in
 
             //Finally add the intersection to the container
             //that was passed in
+
+            inter.pos = (inter.tri.A * bCentric.x()) + (inter.tri.B * bCentric.y()) * (inter.tri.C * bCentric.z());
             intersectionHolder.push_back(inter);
         }
     }
 }
 
-QVector3D Mesh::getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C)
+float Mesh::getXFromVec(QVector3D a, QVector3D b)
 {
-    QVector2D a(0,0);
-    QVector2D b = QVector2D(B.x() - A.x(), B.y() - A.y());
-    QVector2D c = QVector2D(C.x() - A.x(), C.y() - A.y());
-    QVector2D p = QVector2D(point.x() - A.x(), point.y() - A.y());
+    return ((a + b)/2.0f).x();
+}
 
-    float d = b.x() * c.y() - c.y() * b.y();
+bool Mesh::pointInTriBBox(QVector3D p, Triangle t)
+{
+    float xMin = LARGE_PVE;
+    float xMax = -LARGE_PVE;
 
-    float u = (p.x() * (b.y() -c.y()) + p.y() * (c.x() - b.x()) + d) / d;
-    float v = (p.x() * c.y() - p.y() * c.x()) / d;
-    float w = (p.y() * b.x() - p.x() * b.y()) / d;
+    float yMin = LARGE_PVE;
+    float yMax = -LARGE_PVE;
+
+    float zMin = LARGE_PVE;
+    float zMax = -LARGE_PVE;
+
+    std::vector<QVector3D> triangle = {t.A, t.B, t.C};
+
+    for(uint i = 0; i < 3; ++i)
+    {
+        if(triangle[i].x() < xMin)
+        {
+            xMin = triangle[i].x();
+        }
+
+        if(triangle[i].x() > xMax)
+        {
+            xMax = triangle[i].x();
+        }
+
+        if(triangle[i].y() < yMin)
+        {
+            yMin = triangle[i].y();
+        }
+
+        if(triangle[i].y() > yMax)
+        {
+            yMax = triangle[i].y();
+        }
+
+        if(triangle[i].z() < zMin)
+        {
+            zMin = triangle[i].z();
+        }
+
+        if(triangle[i].z() > zMax)
+        {
+            zMax = triangle[i].z();
+        }
+    }
+
+    xMin -= 0.1f;
+    xMax += 0.1f;
+
+    yMin -=0.1f;
+    yMax += 0.1f;
+
+    zMin -= 0.1f;
+    zMax += 0.1f;
+
+    if(p.x() < xMin || p.x() > xMax ||
+        p.y() < yMin || p.y() > yMax ||
+        p.z() < zMin || p.z() > zMax)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+QVector3D Mesh::getBarycentricCoordinates(QVector3D point, QVector3D A, QVector3D B, QVector3D C)
+{
+    QVector3D noHit(LARGE_PVE, LARGE_PVE, LARGE_PVE);
+
+    QVector3D v0 = C - A;
+    QVector3D v1 = B - A;
+    QVector3D v2 = point - A;
+
+    float dot00 = QVector3D::dotProduct(v0, v0);
+    float dot01 = QVector3D::dotProduct(v0, v1);
+    float dot02 = QVector3D::dotProduct(v0, v2);
+    float dot11 = QVector3D::dotProduct(v1, v1);
+    float dot12 = QVector3D::dotProduct(v1, v2);
+
+    float d = (dot00 * dot11) - (dot01 * dot01);
+    float u = ((dot11 * dot02) - (dot01*dot12))/d;
+    float v = ((dot00 * dot12) - (dot01*dot02))/d;
+
+    float w = 1.0f - u - v;
 
     return QVector3D(u, v, w);
+}
 
+QVector3D Mesh::getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C)
+{
+    float det = (B.y() - C.y())*(A.x() - C.x()) + (C.x() - B.x())*(A.y() - C.y());
+
+    float uFactor = (point.x() - C.x())*(B.y() - C.y()) + (point.y() - C.y())*(C.x() - B.x());
+    float vFactor = (point.x() - C.x())*(C.y() - A.y()) + (point.y() - C.y())*(A.x() - C.x());
+    float wFactor = (point.x() - C.x())*(A.y() - B.y()) + (point.y() - C.y())*(A.x() - B.x());
+
+    float u = uFactor / det;
+    float v = vFactor / det;
+    float w = 1 - u - v;
+
+    return QVector3D(u, v, w);
 }
 
 QVector3D Mesh::calculateTriNorm(Triangle tri)

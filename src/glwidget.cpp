@@ -38,6 +38,7 @@ void GLWidget::initializeGL()
 
      //Enable depth testing for rendering later
      glEnable(GL_DEPTH_TEST);
+     glEnable(GL_PROGRAM_POINT_SIZE);
 
      //Create the correct shader program and if it fails immediately return
      if ( !prepareShaderProgram( "shaders/vert.glsl", "shaders/frag.glsl" ) )
@@ -62,7 +63,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/teapotLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
 
      //Add the ground plane to the bullet world and then
      //create a ground plane in the scene objects so that
@@ -179,11 +180,14 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9,1.0,1.0,1.0)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/teapotLARGE.obj");
-    teapot->packSpheres();
+    teapot->loadMesh("objFiles/cubeLARGE.obj");
+//    teapot->packSpheres();
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
+
+    teapot->generateDistanceField();
+    teapot->preparePoints(m_pgm);
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
@@ -240,7 +244,9 @@ void GLWidget::paintGL()
             m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
 
             //Draw the object
-            m_sceneObjects[1]->draw();
+//            m_sceneObjects[1]->draw();
+
+            m_sceneObjects[1]->drawPoints();
 
             //Iterate for the number of spheres in the spherepack
             for(uint j = 0; j < m_sceneObjects[1]->getSphereNum(); ++j)
