@@ -199,32 +199,31 @@ void Mesh::generateDistanceField()
     std::cout<<"yMin: "<<yMin<<" yMax: "<<yMax<<'\n';
     std::cout<<"zMin: "<<zMin<<" zMax: "<<zMax<<'\n';
 
+    float resolution = 1.0f;
+
     //Iterate through every unit point in the MAABB, essentially creating a 3D grid
-    for(float y = (float)yMin; y <= (float)yMax; y+=.5f)
+    for(float y = (float)yMin; y <= (float)yMax; y+=resolution)
     {
         std::vector< std::vector< int> > zDistances;
 
-        for(float z = (float)zMin; z <= (float)zMax; z+=.5f)
+        for(float z = (float)zMin; z <= (float)zMax; z+=resolution)
         {
             std::vector<int> xDistances;
 
-            for(float x = (float)xMin; x <= (float)xMax; x+=.5f)
+            for(float x = (float)xMin; x <= (float)xMax; x+=resolution)
             {
                 //Create a new point and a container to store intersections in
 
                 //Initialise the intersection count for this point to 0
                 int intersectionCount = 0;
 
-                //Look for triangles which have a 2D intersection (so might have a 3D one)
-                //getPotentialTriangles(QVector3D(x, y, z), pointHits);
+                //Get the number of intersections between a ray starting at the current
+                //point with a direction vector of (1,0,0) and the mesh
                 intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(1,0,0));
 
-                //After all that we can check the intersection count.
-                //An even number means the point is outside the mesh,
-                //this is marked by storing a large positive value there
-                //for now. If the intersection count is odd the point
-                //is inside so a large negative value is stored
-
+                //Do a simple test to see if the number of intersections is odd or not,
+                //if it is the point is inside the mesh. This is marked with a large negative
+                //number, points outside are marked with a large positive number
                 if(((intersectionCount % 2) == 0) || (intersectionCount == 0))
                 {
                     xDistances.push_back(LARGE_PVE);
@@ -334,85 +333,143 @@ void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D
 
 int Mesh::getIntersections(QVector3D p, QVector3D dir)
 {
+    //Initialise the intersection counter and a boolean for later
     int hitCount = 0;
     bool isOnFace = false;
 
+    //Initialise two new vectors for containing values when an
+    //intersection occurs on a vertex or edge
     std::vector<float> vertHits;
     std::vector<float> edgeHits;
 
+    //Iterate through each face in the mesh
     for(uint i = 0; i < m_meshIndex.size(); i+=3)
     {
+        //Get the vertex data from the face and add it to a triangle. The
+        //mesh was triangulated upon load so faces with 3 vertices can be
+        //assumed
         Triangle t = {m_verts[m_meshIndex[i]], m_verts[m_meshIndex[i + 1]], m_verts[m_meshIndex[i + 2]]};
 
+        //Create a new ray instance with starting position at the point and
+        //the passed in direction vector
         Ray test = {p, dir};
-        QVector3D end = p + (test.dir * 50);
 
+        //Calculate the vectors describing two of the face edges
         QVector3D e1 = t.B - t.A;
         QVector3D e2 = t.C - t.A;
 
+        //By taking the cross product of these two edges a normal
+        //for the face is obtained
         QVector3D N = QVector3D::crossProduct(e1, e2);
 
+        //Take the cross between an edge and the ray direction
         QVector3D q = QVector3D::crossProduct(test.dir, e2);
+
+        //By taking the dot product between this vector and the
+        //other edge we can check to see if the face is actually
+        //parallel to the ray.
         float a = QVector3D::dotProduct(q, e1);
 
+        //Allow for a small error but if the absolute value of this
+        //dot product is 0 we can ignore this face because it is
+        //parallel
         if( (fabs(a) < 0.0001f))
         {
             continue;
         }
 
+        //Next we do inside/outside tests with an edge
         QVector3D s = p - t.A;
         QVector3D r = QVector3D::crossProduct(s, e1);
 
+        //Calculate the area of the triangle formed by the
+        //intersection point and two verts relative to the
+        //entire face
         float u = QVector3D::dotProduct(s, q) / a;
 
+        //If the area is less than 0 or greater than 1 the
+        //intersection point is not inside the current face
         if( u < 0.0f || u > 1.0f)
         {
             continue;
         }
 
+        //Do the same for a new edge
         float v = QVector3D::dotProduct(r, test.dir) / a;
 
+        //Do the same inside/outside test
         if( v < 0.0f || u + v > 1.0f)
         {
             continue;
         }
 
+        //Calculate the t parameter of the intersection point
+        //equation:
+        //      Intersection = StartPoint + t * RayDirection
         float tParam = QVector3D::dotProduct(e2, r) / a;
 
+        //If the parameter is 0 this means the ray actually
+        //starts on the current face, mark this and break
+        //from the for loop
         if(tParam == 0.0f)
         {
             isOnFace = true;
             break;
         }
 
+        //Check that the t parameter is greater than 0, if it
+        //isn't the face can be ignored because the intersection
+        //point is behind the ray origin
         if((tParam > 0.0f))
         {
+            //Calculate the final barycentric coordinate
             float w = 1.0f - u - v;
 
+            //If either of the two coordinates are 0 this
+            //means the intersection is with a vertex.
+            //By checking the dot product of each hit
+            //triangle's normal with the ray direction we
+            //can determine if the ray is leaving or entering
+            //the mesh.
             if(((u == 0) && (v == 0)) ||
                     ((u == 0) && (w == 0)) ||
                     ((v == 0) && (w == 0)))
             {
+                //As the current direction is (1,0,0)
+                //the x component of the normal is the only
+                //value that matters
                 vertHits.push_back(N.x());
                 continue;
             }
+            //At this point we know that 2 of the coordinates
+            //do not equal 0, so check if 1 of them does
+            //because this signifies an edge hit
             else if((u == 0) || (v == 0) || (w == 0))
             {
                 edgeHits.push_back(N.x());
                 continue;
             }
 
+            //If all the tests have passed the intersection is
+            //on a face and the hit counter can be incremented
             hitCount++;
         }
     }
 
+    //Set two variables, one for signifying whether the hit
+    //is valid and one for storing the sign of the data
     bool isHit = true;
     float sign = 0;
 
+    //Check if there were any vertex hits
     if(vertHits.size() > 0)
     {
+        //Check the sign of the normal of the first hit
+        //triangle
         vertHits[0] < 0.0f ? sign = -1 : sign = 1;
 
+        //Iterate through the data, if any of the signs
+        //are different then the hit can be ignored
         for(uint i = 0; i < vertHits.size(); ++i)
         {
             if((vertHits[i] < 0 && sign == 1) ||
@@ -423,15 +480,19 @@ int Mesh::getIntersections(QVector3D p, QVector3D dir)
             }
         }
 
+        //Check for a valid hit and increment the hit counter
         if(isHit)
         {
             hitCount++;
         }
     }
 
+    //Reset the variables for the edge checks
     isHit = true;
     sign = 0;
 
+    //Do the same process for any possible edge
+    //intersections
     if(edgeHits.size() > 0)
     {
         edgeHits[0] < 0.0f ? sign = -1 : sign = 1;
@@ -452,11 +513,16 @@ int Mesh::getIntersections(QVector3D p, QVector3D dir)
         }
     }
 
+    //Finally see if there were any intersections
+    //on a face. If there were and the hit count is
+    //currently even (signifying outside the mesh)
+    //then make sure the hit counter is odd
     if(isOnFace && ((hitCount % 2) == 0))
     {
         hitCount++;
     }
 
+    //Finally return the number of intersections
     return hitCount;
 }
 
