@@ -11,7 +11,7 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
     m_bullet.reset(new BtWorld());
-    m_bullet->setGravity(0, -9.8, 0);
+    m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
     //Initialise variables for mouse control to 0
@@ -63,7 +63,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/dragonREDUCED.obj",QVector3D(0.0,0.0,1.0));
 
      //Add the ground plane to the bullet world and then
      //create a ground plane in the scene objects so that
@@ -177,10 +177,10 @@ void GLWidget::createTeapot()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9,1.0,1.0,1.0)));
+    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/cubeLARGE.obj");
+    teapot->loadMesh("objFiles/dragonREDUCED.obj");
 //    teapot->packSpheres();
 
     //Load the neccesary vaos and vbos

@@ -178,13 +178,6 @@ void Mesh::setColour(QVector4D colour)
     m_colour = colour;
 }
 
-
-bool vecEquals(QVector3D a, QVector3D b)
-{
-    return ((a.x() == b.x()) && (a.y() == b.y()) && (a.z() == b.z()));
-}
-
-
 void Mesh::generateDistanceField()
 {
     //Intialise the bounding box minimum and maximum values
@@ -206,19 +199,17 @@ void Mesh::generateDistanceField()
     std::cout<<"yMin: "<<yMin<<" yMax: "<<yMax<<'\n';
     std::cout<<"zMin: "<<zMin<<" zMax: "<<zMax<<'\n';
 
-    int count= 0 ;
     //Iterate through every unit point in the MAABB, essentially creating a 3D grid
-    for(int y = (int)yMin; y < (int)yMax; ++y)
+    for(float y = (float)yMin; y <= (float)yMax; y+=.5f)
     {
         std::vector< std::vector< int> > zDistances;
 
-        for(int z = (int)zMin; z < (int)zMax; ++z)
+        for(float z = (float)zMin; z <= (float)zMax; z+=.5f)
         {
             std::vector<int> xDistances;
 
-            for(int x = (int)xMin; x < (int)xMax; ++x)
+            for(float x = (float)xMin; x <= (float)xMax; x+=.5f)
             {
-                count++;
                 //Create a new point and a container to store intersections in
 
                 //Initialise the intersection count for this point to 0
@@ -226,7 +217,7 @@ void Mesh::generateDistanceField()
 
                 //Look for triangles which have a 2D intersection (so might have a 3D one)
                 //getPotentialTriangles(QVector3D(x, y, z), pointHits);
-                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(0,0,1));
+                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(1,0,0));
 
                 //After all that we can check the intersection count.
                 //An even number means the point is outside the mesh,
@@ -234,18 +225,13 @@ void Mesh::generateDistanceField()
                 //for now. If the intersection count is odd the point
                 //is inside so a large negative value is stored
 
-                if((intersectionCount % 2) !=0)
-                {
-                    qInfo()<<"a thing\n";
-                }
-
                 if(((intersectionCount % 2) == 0) || (intersectionCount == 0))
                 {
-                    m_pointPositions.push_back(QVector3D(x, y, z));
                     xDistances.push_back(LARGE_PVE);
                 }
                 else
                 {
+                    m_pointPositions.push_back(QVector3D(x, y, z));
                     xDistances.push_back(-LARGE_PVE);
                 }
 
@@ -299,14 +285,14 @@ void Mesh::calculateMAABB(float &xMin, float &xMax, float &yMin, float &yMax, fl
 
     //Add a margin of 1 sphere radius to the bounding box
 
-    xMin -= m_radius;
+    xMin -=  m_radius;
     xMax += m_radius;
 
     yMin -= m_radius;
     yMax += m_radius;
 
     zMin -= m_radius;
-    zMax +=m_radius;
+    zMax += m_radius;
 }
 
 void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ, QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ)
@@ -349,6 +335,10 @@ void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D
 int Mesh::getIntersections(QVector3D p, QVector3D dir)
 {
     int hitCount = 0;
+    bool isOnFace = false;
+
+    std::vector<float> vertHits;
+    std::vector<float> edgeHits;
 
     for(uint i = 0; i < m_meshIndex.size(); i+=3)
     {
@@ -365,36 +355,108 @@ int Mesh::getIntersections(QVector3D p, QVector3D dir)
         QVector3D q = QVector3D::crossProduct(test.dir, e2);
         float a = QVector3D::dotProduct(q, e1);
 
-        if( (fabs(a) <= 0.00001f))
+        if( (fabs(a) < 0.0001f))
         {
             continue;
         }
 
-//        QVector3D s = (p - t.A) / a;
         QVector3D s = p - t.A;
         QVector3D r = QVector3D::crossProduct(s, e1);
 
         float u = QVector3D::dotProduct(s, q) / a;
 
-        if( u < 0.0001f || u > 1.0f)
+        if( u < 0.0f || u > 1.0f)
         {
             continue;
         }
 
         float v = QVector3D::dotProduct(r, test.dir) / a;
 
-        if( v < 0.00001f || u + v > 1.0f)
+        if( v < 0.0f || u + v > 1.0f)
         {
             continue;
         }
 
         float tParam = QVector3D::dotProduct(e2, r) / a;
 
-        if((tParam > 0.00001f))
+        if(tParam == 0.0f)
+        {
+            isOnFace = true;
+            break;
+        }
+
+        if((tParam > 0.0f))
+        {
+            float w = 1.0f - u - v;
+
+            if(((u == 0) && (v == 0)) ||
+                    ((u == 0) && (w == 0)) ||
+                    ((v == 0) && (w == 0)))
+            {
+                vertHits.push_back(N.x());
+                continue;
+            }
+            else if((u == 0) || (v == 0) || (w == 0))
+            {
+                edgeHits.push_back(N.x());
+                continue;
+            }
+
+            hitCount++;
+        }
+    }
+
+    bool isHit = true;
+    float sign = 0;
+
+    if(vertHits.size() > 0)
+    {
+        vertHits[0] < 0.0f ? sign = -1 : sign = 1;
+
+        for(uint i = 0; i < vertHits.size(); ++i)
+        {
+            if((vertHits[i] < 0 && sign == 1) ||
+                    (vertHits[i] > 0 && sign == -1))
+            {
+                isHit = false;
+                break;
+            }
+        }
+
+        if(isHit)
         {
             hitCount++;
         }
     }
+
+    isHit = true;
+    sign = 0;
+
+    if(edgeHits.size() > 0)
+    {
+        edgeHits[0] < 0.0f ? sign = -1 : sign = 1;
+
+        for(uint i = 0; i < edgeHits.size(); ++i)
+        {
+            if((edgeHits[i] < 0 && sign == 1) ||
+                    (edgeHits[i] > 0 && sign == -1))
+            {
+                isHit = false;
+                break;
+            }
+        }
+
+        if(isHit)
+        {
+            hitCount++;
+        }
+    }
+
+    if(isOnFace && ((hitCount % 2) == 0))
+    {
+        hitCount++;
+    }
+
     return hitCount;
 }
 
