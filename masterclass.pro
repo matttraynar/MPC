@@ -14,8 +14,10 @@ MOC_DIR     = moc
 OBJECTS_DIR = obj
 
 SOURCES += $$PWD/src/*.cpp \
+    src/prism.cpp
 
 HEADERS  += $$PWD/include/*.h \
+    include/prism.h
 
 FORMS    += $$PWD/forms/mainwindow.ui
 

@@ -201,15 +201,20 @@ void Mesh::generateDistanceField()
 
     float resolution = 1.0f;
 
+    Triangle defaultTri;
+
+    qInfo() << "Creating distance point grid\n";
+
     //Iterate through every unit point in the MAABB, essentially creating a 3D grid
     for(float y = (float)yMin; y <= (float)yMax; y+=resolution)
     {
         std::vector< std::vector< int> > zDistances;
+        std::vector< std::vector<Triangle> > zTriangles;
 
         for(float z = (float)zMin; z <= (float)zMax; z+=resolution)
         {
             std::vector<int> xDistances;
-
+            std::vector<Triangle> xTriangles;
             for(float x = (float)xMin; x <= (float)xMax; x+=resolution)
             {
                 //Create a new point and a container to store intersections in
@@ -234,15 +239,106 @@ void Mesh::generateDistanceField()
                     xDistances.push_back(-LARGE_PVE);
                 }
 
+                xTriangles.push_back(defaultTri);
+
             }
             //Add the row of distance values that have been created
             //to the current 'z' row
             zDistances.push_back(xDistances);
+            zTriangles.push_back(xTriangles);
         }
         //Finally add the container of z distance values to our class
         //member to create a 3x3 data structure containing the
         //distance values
         m_distancePoints.push_back(zDistances);
+        m_distanceTriangles.push_back(zTriangles);
+    }
+
+    qInfo() << "Initial distance point grid creation completed\n";
+
+    for(uint i = 0; i < m_meshIndex.size(); i += 3)
+    {
+        //Create the shells for the distance field. This is done
+        //by taking each triangle face and extruding it into a prism
+        //using the normal of the triangle face.
+        Triangle t;
+        t.A = m_verts[m_meshIndex[i]];
+        t.B = m_verts[m_meshIndex[i + 1]];
+        t.C = m_verts[m_meshIndex[i + 2]];
+
+        //The constructor generates the prism and a bounding box
+        //for later
+        Prism p(t);
+
+        //Add this new prism to the shell container
+        m_shell.push_back(p);
+    }
+
+    qInfo() << "Shell size: "<<m_shell.size()<<'\n';
+
+    //Set some indices for accessing our distance points grid
+    int yIndex = 0;
+    int zIndex = 0;
+    int xIndex = 0;
+
+    qInfo()<<"Sizes: "<<m_distancePoints[0][0].size()<<' '<<m_distancePoints[0].size()<<' '<<m_distancePoints.size()<<'\n';
+
+    //Iterate throught the grid as before
+    for(float y = yMin; y < yMax; y += resolution)
+    {
+        //Reset the indices used for accessing the grid point container
+        zIndex = 0;
+
+        for(float z = zMin; z < zMax; z += resolution)
+        {
+            xIndex = 0;
+
+            for(float x = xMin; x < xMax; x += resolution)
+            {
+                //This time we also iterate through the mesh shell
+                for(uint i = 0; i < m_shell.size(); ++i)
+                {
+                    //Store the current prism locally
+                    Prism prism = m_shell[i];
+
+                    //And also get the current grid point
+                    QVector3D curPoint(x, y, z);
+
+                    //Check if the grid point is within the vaccinity
+                    //of the prism's bounding box
+                    if(prism.bBoxContains(curPoint))
+                    {
+                        //Calcualte the closest point on the triangle face
+                        //the prism was formed from to the grid point
+                        QVector3D closestPoint = prism.checkWhere(curPoint);
+
+                        //Then get the distance to that point
+                        float distance = (closestPoint - curPoint).length();
+
+                        //Check what the current value for 'closest distance'
+                        //is
+                        if(m_distancePoints[yIndex][zIndex][xIndex] > fabs(distance))
+                        {
+                            //The distance is a closer one so we need to get the sign
+                            //of the distance (simple dot product)
+                            int sign = 0;
+                            QVector3D::dotProduct(closestPoint, prism.getNormal()) < 0 ? sign = -1 : sign = 1;
+
+                            //The distance is converted to a signed distance and replaces
+                            //the old value
+                            m_distancePoints[yIndex][zIndex][xIndex] = distance * sign;
+
+                            //The triangle that forms the closest distance is also marked
+                            m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                        }
+                    }
+                }
+                //Increment the indices used for accesing the grid points
+                xIndex++;
+            }
+            zIndex++;
+        }
+        yIndex++;
     }
 }
 
@@ -348,7 +444,10 @@ int Mesh::getIntersections(QVector3D p, QVector3D dir)
         //Get the vertex data from the face and add it to a triangle. The
         //mesh was triangulated upon load so faces with 3 vertices can be
         //assumed
-        Triangle t = {m_verts[m_meshIndex[i]], m_verts[m_meshIndex[i + 1]], m_verts[m_meshIndex[i + 2]]};
+        Triangle t;
+        t.A = m_verts[m_meshIndex[i]];
+        t.B = m_verts[m_meshIndex[i + 1]];
+        t.C = m_verts[m_meshIndex[i + 2]];
 
         //Create a new ray instance with starting position at the point and
         //the passed in direction vector
@@ -537,7 +636,7 @@ void Mesh::getPotentialTriangles(QVector3D point, std::vector<Intersections> &in
         QVector3D B = m_verts[m_meshIndex[i + 1]];
         QVector3D C = m_verts[m_meshIndex[i + 2]];
 
-        Triangle T = {A, B, C};
+        Triangle T;
 
 //        A.setX(point.x());
 //        B.setX(point.x());

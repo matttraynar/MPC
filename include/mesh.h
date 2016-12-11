@@ -13,18 +13,13 @@
 
 #include <vector>
 
+#include "prism.h"
+
 enum IntersectionType
 {
     Vertex,
     Edge,
     Face
-};
-
-struct Triangle
-{
-    QVector3D A;
-    QVector3D B;
-    QVector3D C;
 };
 
 struct Ray
@@ -118,6 +113,9 @@ private:
 
     std::vector<QVector3D> m_pointPositions;
     std::vector< std::vector< std::vector< int> > > m_distancePoints;
+    std::vector< std::vector< std::vector<Triangle> > > m_distanceTriangles;
+
+    std::vector<Prism> m_shell;
 
     //Wireframe state
     bool m_wireframeMode;
