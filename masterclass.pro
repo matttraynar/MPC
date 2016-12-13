@@ -1,62 +1,54 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2016-11-16T14:15:13
-#
-#-------------------------------------------------
-
+#Specify the Qt type
 QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+#Specify where to put the various files during make/build
 TARGET      = MPC
 TEMPLATE    = app
 MOC_DIR     = moc
 OBJECTS_DIR = obj
 
-SOURCES += $$PWD/src/*.cpp \
-    src/prism.cpp
+#Include all source files
+SOURCES += $$PWD/src/*.cpp
 
-HEADERS  += $$PWD/include/*.h \
-    include/prism.h
+#Include all header files
+HEADERS  += $$PWD/include/*.h
 
+#Specify where the UI form is
 FORMS    += $$PWD/forms/mainwindow.ui
 
+#Include the shaders
 DISTFILES += \
         shaders/vert.glsl \
         shaders/frag.glsl
 
-#unix
-#{
-##Assimp libraries
-#LIBS += -L$$PWD/libs/assimp/lib/ -lassimp
+#Unix paths
+#Assimp library
+unix::LIBS += -L$$PWD/libs/assimp/lib/ -lassimp
 
 #Bullet libraries
-#LIBS += -L$$PWD/libs/bullet/src -lBulletDynamics -lBulletCollision -lLinearMath
-#}
+unix::LIBS += -L$$PWD/libs/bullet/src -lBulletDynamics -lBulletCollision -lLinearMath
 
-#win32
-#{
-#Assimp libraries
-LIBS += -L"E:\mattt\Documents\MPCLibraries\assimp-3.3.1\lib\Debug" -lassimp-vc140-mt
+
+#Windows paths
+#Assimp library
+win32::LIBS += -L"E:\mattt\Documents\MPCLibraries\assimp-3.3.1\lib\Debug" -lassimp-vc140-mt
 
 #Bullet Libraries
-LIBS += -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lBulletDynamics \ # -lBulletDynamics \
-			 -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lBulletCollision \# -lBulletCollision \
-			 -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lLinearMath #-lLinearMath
+win32::LIBS += -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lBulletDynamics \
+			 -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lBulletCollision \
+			 -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lLinearMath
 
-LIBS += -lopengl32
+#Windows explicitly needs OpenGL
+win32::LIBS += -lopengl32
 
-INCLUDEPATH += $$PWD\libs\bullet\src\BulletDynamics\ \
+#Include the bullet source file paths we need
+win32::INCLUDEPATH += $$PWD\libs\bullet\src\BulletDynamics\ \
 							$$PWD\libs\bullet\src\BulletCollision\  \
-							$$PWD\libs\bullet\src\LinearMath\
+							$$PWD\libs\bullet\src\LinearMath
 
-INCLUDEPATH += "E:\mattt\Documents\MPCLibraries\bullet/src/"
-#}
-
-
-
-#LIBS += -L$$PWD/libs/bullet/src -lBulletDynamics -lBulletCollision -lLinearMath
-
+#Final include paths for other files
 INCLUDEPATH += $$PWD/include/ \
 				$$PWD/libs/bullet/src/ \
 				$$PWD/libs/assimp/include/
