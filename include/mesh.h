@@ -12,6 +12,8 @@
 #include <QVector3D>
 
 #include <vector>
+#include <iostream>
+#include <algorithm>
 
 #include "prism.h"
 
@@ -20,6 +22,14 @@ enum IntersectionType
     Vertex,
     Edge,
     Face
+};
+
+
+enum HaloIntersections
+{
+    NoHit,
+    OneHit,
+    TwoHits
 };
 
 struct Ray
@@ -72,14 +82,10 @@ public:
     QVector4D m_colour;
 
 private:
-    void calculateMAABB(float &xMin, float &xMax,
-                                    float &yMin, float &yMax,
-                                    float &zMin, float &zMax);
-
-    void createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ,
-                                QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ);
+    void calculateMAABB();
 
     bool pointInTriBBox(QVector3D p, Triangle t);
+    bool triangleEquals(Triangle a, Triangle b);
 
     int getIntersections(QVector3D p, QVector3D dir);
 
@@ -92,6 +98,16 @@ private:
     QVector3D getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C);
 
     QVector3D calculateTriNorm(Triangle tri);
+
+    BBox makeNeighbourhood(QVector3D p);
+    bool bBoxContains(BBox box, QVector3D point);
+    void haloIntersection(QVector3D a, QVector3D b, QVector3D c, QVector3D &hit1, QVector3D &hit2, HaloIntersections &intersectionType);
+    void validatePoints(std::vector<QVector3D> &points);
+
+    float interpolateLinear(float x, float x1, float x2, float c00, float c01);
+    float interpolateTrilinear(QVector3D p);
+
+    int getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points);
 
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
@@ -108,12 +124,17 @@ private:
 
     //Container with sphere positions
     std::vector<QVector3D> m_spherePositions;
+    std::vector<QVector3D> m_activeSpheres;
 
     float m_radius;
+
+    BBox m_meshAABB;
+    float m_boxResolution;
 
     std::vector<QVector3D> m_pointPositions;
     std::vector< std::vector< std::vector< int> > > m_distancePoints;
     std::vector< std::vector< std::vector<Triangle> > > m_distanceTriangles;
+
 
     std::vector<Prism> m_shell;
 

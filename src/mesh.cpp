@@ -1,8 +1,11 @@
 #include "mesh.h"
 
-#include <iostream>
-
 #define LARGE_PVE 1000000000
+
+void printVector(QVector3D p)
+{
+    qInfo()<<"Vec "<<p.x()<<' '<<p.y()<<' '<<p.z();
+}
 
 Mesh::Mesh(QVector4D colour)
 {
@@ -178,11 +181,8 @@ void Mesh::setColour(QVector4D colour)
     m_colour = colour;
 }
 
-void Mesh::generateDistanceField()
+void Mesh::calculateMAABB()
 {
-    //Intialise the bounding box minimum and maximum values
-    //to large numbers to ensure no errors when calculating the
-    //Margined Axis Aligned Bouding Box (MAABB)
     float xMin = LARGE_PVE;
     float xMax = -LARGE_PVE;
 
@@ -192,158 +192,6 @@ void Mesh::generateDistanceField()
     float zMin = LARGE_PVE;
     float zMax = -LARGE_PVE;
 
-    //Calculate the MAABB
-    calculateMAABB(xMin, xMax, yMin, yMax, zMin, zMax);
-
-    std::cout<<"xMin: "<<xMin<<" xMax: "<<xMax<<'\n';
-    std::cout<<"yMin: "<<yMin<<" yMax: "<<yMax<<'\n';
-    std::cout<<"zMin: "<<zMin<<" zMax: "<<zMax<<'\n';
-
-    float resolution = 1.0f;
-
-    Triangle defaultTri;
-
-    qInfo() << "Creating distance point grid\n";
-
-    //Iterate through every unit point in the MAABB, essentially creating a 3D grid
-    for(float y = (float)yMin; y <= (float)yMax; y+=resolution)
-    {
-        std::vector< std::vector< int> > zDistances;
-        std::vector< std::vector<Triangle> > zTriangles;
-
-        for(float z = (float)zMin; z <= (float)zMax; z+=resolution)
-        {
-            std::vector<int> xDistances;
-            std::vector<Triangle> xTriangles;
-            for(float x = (float)xMin; x <= (float)xMax; x+=resolution)
-            {
-                //Create a new point and a container to store intersections in
-
-                //Initialise the intersection count for this point to 0
-                int intersectionCount = 0;
-
-                //Get the number of intersections between a ray starting at the current
-                //point with a direction vector of (1,0,0) and the mesh
-                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(1,0,0));
-
-                //Do a simple test to see if the number of intersections is odd or not,
-                //if it is the point is inside the mesh. This is marked with a large negative
-                //number, points outside are marked with a large positive number
-                if(((intersectionCount % 2) == 0) || (intersectionCount == 0))
-                {
-                    xDistances.push_back(LARGE_PVE);
-                }
-                else
-                {
-                    m_pointPositions.push_back(QVector3D(x, y, z));
-                    xDistances.push_back(-LARGE_PVE);
-                }
-
-                xTriangles.push_back(defaultTri);
-
-            }
-            //Add the row of distance values that have been created
-            //to the current 'z' row
-            zDistances.push_back(xDistances);
-            zTriangles.push_back(xTriangles);
-        }
-        //Finally add the container of z distance values to our class
-        //member to create a 3x3 data structure containing the
-        //distance values
-        m_distancePoints.push_back(zDistances);
-        m_distanceTriangles.push_back(zTriangles);
-    }
-
-    qInfo() << "Initial distance point grid creation completed\n";
-
-    for(uint i = 0; i < m_meshIndex.size(); i += 3)
-    {
-        //Create the shells for the distance field. This is done
-        //by taking each triangle face and extruding it into a prism
-        //using the normal of the triangle face.
-        Triangle t;
-        t.A = m_verts[m_meshIndex[i]];
-        t.B = m_verts[m_meshIndex[i + 1]];
-        t.C = m_verts[m_meshIndex[i + 2]];
-
-        //The constructor generates the prism and a bounding box
-        //for later
-        Prism p(t);
-
-        //Add this new prism to the shell container
-        m_shell.push_back(p);
-    }
-
-    qInfo() << "Shell size: "<<m_shell.size()<<'\n';
-
-    //Set some indices for accessing our distance points grid
-    int yIndex = 0;
-    int zIndex = 0;
-    int xIndex = 0;
-
-    qInfo()<<"Sizes: "<<m_distancePoints[0][0].size()<<' '<<m_distancePoints[0].size()<<' '<<m_distancePoints.size()<<'\n';
-
-    //Iterate throught the grid as before
-    for(float y = yMin; y < yMax; y += resolution)
-    {
-        //Reset the indices used for accessing the grid point container
-        zIndex = 0;
-
-        for(float z = zMin; z < zMax; z += resolution)
-        {
-            xIndex = 0;
-
-            for(float x = xMin; x < xMax; x += resolution)
-            {
-                //This time we also iterate through the mesh shell
-                for(uint i = 0; i < m_shell.size(); ++i)
-                {
-                    //Store the current prism locally
-                    Prism prism = m_shell[i];
-
-                    //And also get the current grid point
-                    QVector3D curPoint(x, y, z);
-
-                    //Check if the grid point is within the vaccinity
-                    //of the prism's bounding box
-                    if(prism.bBoxContains(curPoint))
-                    {
-                        //Calcualte the closest point on the triangle face
-                        //the prism was formed from to the grid point
-                        QVector3D closestPoint = prism.checkWhere(curPoint);
-
-                        //Then get the distance to that point
-                        float distance = (closestPoint - curPoint).length();
-
-                        //Check what the current value for 'closest distance'
-                        //is
-                        if(m_distancePoints[yIndex][zIndex][xIndex] > fabs(distance))
-                        {
-                            //The distance is a closer one so we need to get the sign
-                            //of the distance (simple dot product)
-                            int sign = 0;
-                            QVector3D::dotProduct(closestPoint, prism.getNormal()) < 0 ? sign = -1 : sign = 1;
-
-                            //The distance is converted to a signed distance and replaces
-                            //the old value
-                            m_distancePoints[yIndex][zIndex][xIndex] = distance * sign;
-
-                            //The triangle that forms the closest distance is also marked
-                            m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
-                        }
-                    }
-                }
-                //Increment the indices used for accesing the grid points
-                xIndex++;
-            }
-            zIndex++;
-        }
-        yIndex++;
-    }
-}
-
-void Mesh::calculateMAABB(float &xMin, float &xMax, float &yMin, float &yMax, float &zMin, float &zMax)
-{
     //Iterate through every vertex that was loaded
     for(uint i = 0; i < m_verts.size(); ++i)
     {
@@ -388,43 +236,13 @@ void Mesh::calculateMAABB(float &xMin, float &xMax, float &yMin, float &yMax, fl
 
     zMin -= m_radius;
     zMax += m_radius;
-}
 
-void Mesh::createMAABB(QVector3D &xyz, QVector3D &Xyz, QVector3D &XyZ, QVector3D &xyZ, QVector3D &xYz, QVector3D &XYz, QVector3D &XYZ, QVector3D &xYZ)
-{
-    //The parameters are not very sensibly named but lowercase represents MINIMUM value and uppercase represent MAXIMUM
-
-    //such that the bottom face is:
-    //xyz--------------Xyz
-    //  -                  -
-    //  -                  -
-    //  -                  -
-    //xyZ--------------XyZ
-
-    //and the top face is:
-    //xYz--------------XYz
-    //  -                  -
-    //  -                  -
-    //  -                  -
-    //xYZ--------------XYZ
-
-    float xMin, xMax;
-    float yMin, yMax;
-    float zMin, zMax;
-
-    calculateMAABB(xMin, xMax, yMin, yMax, zMin, zMax);
-
-    //The four vertices at the bottom of the box (clockwise)
-    xyz = QVector3D(xMin, yMin, zMin);
-    Xyz = QVector3D(xMax, yMin, zMin);
-    XyZ = QVector3D(xMax, yMin, zMax);
-    xyZ = QVector3D(xMin, yMin, zMax);
-
-    //The four at the top (clockwise)
-    xYz = QVector3D(xMin, yMax, zMin);
-    XYz = QVector3D(xMax, yMax, zMin);
-    XYZ = QVector3D(xMax, yMax, zMax);
-    xYZ = QVector3D(xMin, yMax, zMax);
+    m_meshAABB.xMin = xMin;
+    m_meshAABB.xMax = xMax;
+    m_meshAABB.yMin = yMin;
+    m_meshAABB.yMax = yMax;
+    m_meshAABB.zMin = zMin;
+    m_meshAABB.zMax = zMax;
 }
 
 int Mesh::getIntersections(QVector3D p, QVector3D dir)
@@ -836,6 +654,18 @@ bool Mesh::pointInTriBBox(QVector3D p, Triangle t)
     return true;
 }
 
+bool Mesh::triangleEquals(Triangle a, Triangle b)
+{
+    if(((a.A.x() == b.A.x() && a.A.y() == b.A.y() && a.A.z() == b.A.z()) ) &&
+        ((a.B.x() == b.B.x() && a.B.y() == b.B.y() && a.B.z() == b.B.z()) ) &&
+        ((a.C.x() == b.C.x() && a.C.y() == b.C.y() && a.C.z() == b.C.z()) ))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 QVector3D Mesh::getBarycentricCoordinates(QVector3D point, QVector3D A, QVector3D B, QVector3D C)
 {
     QVector3D noHit(LARGE_PVE, LARGE_PVE, LARGE_PVE);
@@ -885,6 +715,245 @@ QVector3D Mesh::calculateTriNorm(Triangle tri)
     return QVector3D::crossProduct(e1, e2).normalized();
 }
 
+//-------------------------SPHERE PACKING STUFF ----------------------------------//
+
+void Mesh::generateDistanceField()
+{
+    //Intialise the bounding box minimum and maximum values
+    //to large numbers to ensure no errors when calculating the
+    //Margined Axis Aligned Bouding Box (MAABB)
+
+    //Calculate the MAABB
+    calculateMAABB();
+
+//    std::cout<<"xMin: "<<xMin<<" xMax: "<<xMax<<'\n';
+//    std::cout<<"yMin: "<<yMin<<" yMax: "<<yMax<<'\n';
+//    std::cout<<"zMin: "<<zMin<<" zMax: "<<zMax<<'\n';
+
+    m_boxResolution = 1.0f;
+
+    float deltaPercent = (m_boxResolution/(m_meshAABB.yMax - m_meshAABB.yMin)) * 100;
+    float totalPercent = 0.0f;
+
+    Triangle defaultTri;
+
+    qInfo() << "Creating distance point grid\n";
+
+    //Iterate through every unit point in the MAABB, essentially creating a 3D grid
+    for(float y = m_meshAABB.yMin; y <= m_meshAABB.yMax; y+=m_boxResolution)
+    {
+        std::vector< std::vector< int> > zDistances;
+        std::vector< std::vector<Triangle> > zTriangles;
+
+        for(float z = m_meshAABB.zMin; z <= m_meshAABB.zMax; z+=m_boxResolution)
+        {
+            std::vector<int> xDistances;
+            std::vector<Triangle> xTriangles;
+            for(float x = m_meshAABB.xMin; x <= m_meshAABB.xMax; x+=m_boxResolution)
+            {
+                //Create a new point and a container to store intersections in
+
+                //Initialise the intersection count for this point to 0
+                int intersectionCount = 0;
+
+                //Get the number of intersections between a ray starting at the current
+                //point with a direction vector of (1,0,0) and the mesh
+                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(1,0,0));
+
+                //Do a simple test to see if the number of intersections is odd or not,
+                //if it is the point is inside the mesh. This is marked with a large negative
+                //number, points outside are marked with a large positive number
+                if(((intersectionCount % 2) == 0) || (intersectionCount == 0))
+                {
+                    xDistances.push_back(LARGE_PVE);
+                }
+                else
+                {
+                    m_pointPositions.push_back(QVector3D(x, y, z));
+                    xDistances.push_back(-LARGE_PVE);
+                }
+
+                xTriangles.push_back(defaultTri);
+
+            }
+            //Add the row of distance values that have been created
+            //to the current 'z' row
+            zDistances.push_back(xDistances);
+            zTriangles.push_back(xTriangles);
+        }
+        //Finally add the container of z distance values to our class
+        //member to create a 3x3 data structure containing the
+        //distance values
+        m_distancePoints.push_back(zDistances);
+        m_distanceTriangles.push_back(zTriangles);
+
+        totalPercent += deltaPercent;
+        qInfo() << "Distance points are "<<(int)totalPercent<<"% done\n";
+    }
+
+    qInfo() << "Initial distance point grid creation completed\n";
+
+    for(uint i = 0; i < m_meshIndex.size(); i += 3)
+    {
+        //Create the shells for the distance field. This is done
+        //by taking each triangle face and extruding it into a prism
+        //using the normal of the triangle face.
+        Triangle t;
+        t.A = m_verts[m_meshIndex[i]];
+        t.B = m_verts[m_meshIndex[i + 1]];
+        t.C = m_verts[m_meshIndex[i + 2]];
+
+        //The constructor generates the prism and a bounding box
+        //for later
+        Prism p(t);
+
+        //Add this new prism to the shell container
+        m_shell.push_back(p);
+    }
+
+    qInfo() << "Shell size: "<<m_shell.size()<<'\n';
+
+    //Set some indices for accessing our distance points grid
+    int yIndex = 0;
+    int zIndex = 0;
+    int xIndex = 0;
+
+//    qInfo()<<"Sizes: "<<m_distancePoints[0][0].size()<<' '<<m_distancePoints[0].size()<<' '<<m_distancePoints.size()<<'\n';
+
+    //Iterate throught the grid as before
+    for(float y = m_meshAABB.yMin; y < m_meshAABB.yMax; y += m_boxResolution)
+    {
+        //Reset the indices used for accessing the grid point container
+        zIndex = 0;
+
+        for(float z = m_meshAABB.zMin; z < m_meshAABB.zMax; z += m_boxResolution)
+        {
+            xIndex = 0;
+
+            for(float x = m_meshAABB.xMin; x < m_meshAABB.xMax; x += m_boxResolution)
+            {
+                //This time we also iterate through the mesh shell
+                for(uint i = 0; i < m_shell.size(); ++i)
+                {
+                    //Store the current prism locally
+                    Prism prism = m_shell[i];
+
+                    //And also get the current grid point
+                    QVector3D curPoint(x, y, z);
+
+                    //Check if the grid point is within the vaccinity
+                    //of the prism's bounding box
+                    if(prism.bBoxContains(curPoint))
+                    {
+                        //Calcualte the closest point on the triangle face
+                        //the prism was formed from to the grid point
+                        QVector3D closestPoint = prism.checkWhere(curPoint);
+
+                        //Then get the distance to that point
+                        float distance = (closestPoint - curPoint).length();
+
+                        //Check what the current value for 'closest distance'
+                        //is
+                        if(fabs(m_distancePoints[yIndex][zIndex][xIndex]) > fabs(distance))
+                        {
+                            //The distance is a closer one so we need to get the sign
+                            //of the distance (simple dot product)
+                            int sign = 0;
+                            QVector3D::dotProduct(closestPoint, prism.getNormal()) < 0 ? sign = -1 : sign = 1;
+
+                            //The distance is converted to a signed value
+                            distance *= sign;
+
+                            //A check is done to see if the currently stored triangle for this point
+                            //is the default triangle inserted in the points generation stage
+                            if(!triangleEquals(m_distanceTriangles[yIndex][zIndex][xIndex], defaultTri))
+                            {
+                                //The centers of the currently marked triangle and the potential new
+                                //one are calculated
+                                QVector3D aCenter = (m_distanceTriangles[yIndex][zIndex][xIndex].A +
+                                                                m_distanceTriangles[yIndex][zIndex][xIndex].B +
+                                                                m_distanceTriangles[yIndex][zIndex][xIndex].C) / 3.0f;
+
+                                QVector3D bCenter = (prism.getTriangle().A +
+                                                                prism.getTriangle().B +
+                                                                prism.getTriangle().C) / 3.0f;
+
+                                //The vector between the two centers is next calculated
+                                QVector3D connectVector = bCenter - aCenter;
+
+                                //By checking the dot of this connection vector with one of the triangle
+                                //normals the check for concave/convex faces is made
+                                float connectType = QVector3D::dotProduct(calculateTriNorm(m_distanceTriangles[yIndex][zIndex][xIndex]), connectVector);
+
+                                if(connectType >= 0.0f)
+                                {
+                                    //Two faces are concave, make sure the signs are different
+                                    //distance change is ONLY from negative to positive
+                                    if((distance > 0.0f) && (m_distancePoints[yIndex][zIndex][xIndex] <= 0.0f))
+                                    {
+                                        qInfo()<<"Distance updated: "<<distance;
+                                        //Set the new distance
+                                        m_distancePoints[yIndex][zIndex][xIndex] = distance;
+
+                                        //The triangle that forms the closest distance is also marked
+                                        m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                                    }
+                                    else if((distance <= 0.0f && m_distancePoints[yIndex][zIndex][xIndex] <= 0.0f) ||
+                                             (distance > 0.0f && m_distancePoints[yIndex][zIndex][xIndex] > 0.0f))
+                                    {
+                                        qInfo()<<"Distance updated: "<<distance;
+                                        //The distances have the same sign, set the new distance
+                                        m_distancePoints[yIndex][zIndex][xIndex] = distance;
+
+                                        //And mark the triangle
+                                        m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                                    }
+                                }
+
+                                if(connectType < 0.0f)
+                                {
+                                    //Two faces are convex. Ensure if the distances have different signs
+                                    //change can only be made going from positive to negative
+                                    if((distance <= 0.0f) && (m_distancePoints[yIndex][zIndex][xIndex] > 0.0f))
+                                    {
+                                        qInfo()<<"Distance updated: "<<distance;
+                                        //Same storing process
+                                        m_distancePoints[yIndex][zIndex][xIndex] = distance;
+                                        m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                                    }
+                                    else if((distance <= 0.0f && m_distancePoints[yIndex][zIndex][xIndex] <= 0.0f) ||
+                                             (distance > 0.0f && m_distancePoints[yIndex][zIndex][xIndex] > 0.0f))
+                                    {
+                                        qInfo()<<"Distance updated: "<<distance;
+                                        //Check again for distance with the same sign
+                                        m_distancePoints[yIndex][zIndex][xIndex] = distance;
+                                        m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+//                                qInfo()<<"Distance updated: "<<distance;
+                                m_distancePoints[yIndex][zIndex][xIndex] = distance;
+
+                                //The triangle that forms the closest distance is also marked
+                                m_distanceTriangles[yIndex][zIndex][xIndex] = prism.getTriangle();
+                            }
+                        }
+                    }
+                }
+                //Increment the indices used for accesing the grid points
+                xIndex++;
+            }
+            zIndex++;
+        }
+        yIndex++;
+    }
+
+    qInfo()<<"Distance field creation is complete\n";
+}
+
 void Mesh::packSpheres()
 {
     //Set some variables for later use
@@ -894,9 +963,12 @@ void Mesh::packSpheres()
     for(uint i = 0; i < m_verts.size(); ++i)
     {
         middlePos += m_verts[i];
+        middlePos.setY(middlePos.y() + 5);
     }
 
     middlePos /= m_verts.size();
+    qInfo()<<"Mesh COM: "<<middlePos.x()<<' '<<middlePos.y()<<' '<<middlePos.z()<<'\n';
+
 
     //Create the start positions for the first 3 spheres
     QVector3D p0 = middlePos;
@@ -912,4 +984,336 @@ void Mesh::packSpheres()
     m_spherePositions.push_back(p0);
     m_spherePositions.push_back(p1);
     m_spherePositions.push_back(p2);
+
+    //ALSO NEEDS GRID INDEX
+
+    std::vector<QVector3D> frontQueue;
+    std::vector<QVector3D> prevRejected;
+    std::vector<QVector3D> newRejected;
+
+    frontQueue.push_back(p0);
+    frontQueue.push_back(p1);
+    frontQueue.push_back(p2);
+
+    int count = 0;
+
+    while(frontQueue.size() != 0)
+    {
+        if(count >= 1000 || frontQueue.size() >= 100)
+        {
+            qWarning()<<"Recursion guard reached\n";
+            break;
+        }
+
+        QVector3D currentSphere = frontQueue[0];
+        BBox neighbourhood = makeNeighbourhood(currentSphere);
+
+        std::vector<QVector3D> neighbors;
+
+        for(uint i = 0; i < frontQueue.size(); ++i)
+        {
+            if(i == 0)
+            {
+                continue;
+            }
+            else
+            {
+                if(bBoxContains(neighbourhood, currentSphere))
+                {
+                    neighbors.push_back(frontQueue[i]);
+                }
+            }
+        }
+
+
+        std::vector<QVector3D> candidatePoints;
+
+        for(uint i = 0; i < neighbors.size(); ++i)
+        {
+            for(uint j = 0; j < neighbors.size(); ++j)
+            {
+                if(i == j)
+                {
+                    continue;
+                }
+
+                QVector3D validPoint1;
+                QVector3D validPoint2;
+                HaloIntersections pointType;
+
+                haloIntersection(currentSphere, neighbors[i], neighbors[j],
+                                        validPoint1, validPoint2,
+                                        pointType);
+
+                if(pointType != NoHit)
+                {
+                    candidatePoints.push_back(validPoint1);
+
+                    if(pointType == TwoHits)
+                    {
+                        candidatePoints.push_back(validPoint2);
+                    }
+                }
+            }
+        }
+
+        validatePoints(candidatePoints);/*
+        qInfo()<<"candidatePoints: "<<candidatePoints.size();*/
+
+        if(candidatePoints.size() > 0)
+        {
+            int bestPoint = getBestPoint(currentSphere, candidatePoints);
+
+            m_spherePositions.push_back(candidatePoints[bestPoint]);
+            frontQueue.push_back(candidatePoints[bestPoint]);
+        }
+
+        if(candidatePoints.size() < 2)
+        {
+            frontQueue.erase(frontQueue.begin());
+        }
+
+        count++;
+    }
+
+    qInfo()<<"Finished packing spheres";
+}
+
+BBox Mesh::makeNeighbourhood(QVector3D p)
+{
+    BBox nBBox;
+
+    float margin = 5 * m_radius;
+    //THIS MIGHT NEED CHANGING?? PAGE 4
+    nBBox.xMin = p.x() - margin;
+    nBBox.xMax = p.x() + margin;
+
+    nBBox.yMin = p.y() - margin;
+    nBBox.yMax = p.y() + margin;
+
+    nBBox.zMin = p.z() - margin;
+    nBBox.zMax = p.z() + margin;
+
+    return nBBox;
+}
+
+bool Mesh::bBoxContains(BBox box, QVector3D point)
+{
+    if((point.x() >= box.xMin && point.x() <= box.xMax) &&
+        (point.y() >= box.yMin && point.y() <= box.yMax) &&
+        (point.z() >= box.zMin && point.z() <= box.zMax))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void Mesh::haloIntersection(QVector3D a, QVector3D b, QVector3D c,
+                                        QVector3D &hit1, QVector3D &hit2,
+                                        HaloIntersections &intersectionType)
+{
+    float separationSQRD = (a - b).lengthSquared();
+
+    float alpha = (1.0f - (((m_radius * m_radius) - (m_radius * m_radius)) / separationSQRD)) / 2.0f;
+
+    QVector3D intCenter = ((1 - alpha) * a) + (alpha * b);
+    float intRadius = sqrt((separationSQRD - (m_radius * m_radius)));
+    QVector3D intNormal = (a - b).normalized();
+
+    float smallestComponent = std::min({ intNormal.x(), intNormal.y(), intNormal.z() });
+
+    QVector3D cross;
+    QVector3D u;
+    QVector3D v;
+
+    if(intNormal.x() == smallestComponent)
+    {
+        cross = QVector3D::crossProduct(intNormal, QVector3D(1.0f, 0.0f, 0.0f));
+    }
+    else if(intNormal.y() == smallestComponent)
+    {
+        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 1.0f, 0.0f));
+    }
+    else if(intNormal.z() == smallestComponent)
+    {
+        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 0.0f, 1.0f));
+    }
+    else
+    {
+        qWarning() <<"Smallest component wasnt in the intersection normal\n";
+        exit(1);
+    }
+
+    u = cross / cross.length();
+    v = QVector3D::crossProduct(intNormal, u);
+
+    float distance = QVector3D::dotProduct(c - intCenter, intNormal);
+
+    if(fabs(distance) > m_radius)
+    {
+        intersectionType = NoHit;
+        return;
+    }
+
+    QVector3D int2Center = c - (distance * intNormal);
+    float int2Radius = sqrt((m_radius * m_radius) - (distance * distance));
+
+    float finalCheck = m_radius + m_radius - (int2Center - intCenter).length();
+
+    if(finalCheck < 0.0f)
+    {
+        intersectionType = NoHit;
+        return;
+    }
+
+    if(finalCheck == 0.0f)
+    {
+        intersectionType = OneHit;
+        hit1 = intCenter + ((int2Center - intCenter).normalized() * m_radius);
+        return;
+    }
+
+    alpha = (1.0f - (((int2Radius * int2Radius) - (intRadius * intRadius)) / ((int2Center - intCenter).length()))) / 2.0f;
+
+    QVector3D int3Center = ((1 - alpha) * intCenter) + (alpha * int2Center);
+    QVector3D circleSeparation = (int3Center - intCenter);
+
+    float circleHeight = sqrt((circleSeparation.length() * circleSeparation.length()) - (m_radius * m_radius));
+    QVector3D finalCross = QVector3D::crossProduct(intNormal, circleSeparation);
+
+    intersectionType = TwoHits;
+
+    hit1 = int3Center + (circleHeight * (finalCross / finalCross.length()));
+    hit2 = int3Center - (circleHeight * (finalCross / finalCross.length()));
+
+}
+
+void Mesh::validatePoints(std::vector<QVector3D> &points)
+{
+    int numPoints = points.size();
+    std::vector<QVector3D> acceptedPoints;
+
+    for(uint i = 0; i < numPoints; ++i)
+    {
+        float distance = interpolateTrilinear(points[i]);
+
+        if(distance < 100.0f && distance > -100.0f)
+        {
+            qInfo()<<"Signed distance: "<<distance;
+        }
+
+        if(distance <= -m_radius)
+        {
+            acceptedPoints.push_back(points[i]);
+        }
+    }
+
+    points = acceptedPoints;
+}
+
+float Mesh::interpolateLinear(float x, float x1, float x2, float c00, float c01)
+{
+    return ( ((x2 - x) / (x2 - x1)) * c00 ) + ( ((x - x1) / (x2 - x1)) * c01 );
+}
+
+float Mesh::interpolateTrilinear(QVector3D p)
+{
+    int yIndex = 0;
+
+    int zIndex = 0;
+
+    int xIndex = 0;
+
+    for(float y = m_meshAABB.yMin; y < m_meshAABB.yMax; y += m_boxResolution)
+    {
+        //Reset the indices used for accessing the grid point container
+        zIndex = 0;
+
+        for(float z = m_meshAABB.zMin; z < m_meshAABB.zMax; z += m_boxResolution)
+        {
+            xIndex = 0;
+
+            for(float x = m_meshAABB.xMin; x < m_meshAABB.xMax; x += m_boxResolution)
+            {
+                if((p.x() >= x && p.x() <= (x + m_boxResolution)) &&
+                    (p.y() >= y && p.y() <= (y + m_boxResolution)) &&
+                    (p.z() >= z && p.z() <= (z + m_boxResolution)) )
+                {
+                    //                QVector3D c000(x, y, z);
+                    //                QVector3D c001(x, y, (z + m_boxResolution));
+                    //                QVector3D c100((x + m_boxResolution), y, z);
+                    //                QVector3D c101((x + m_boxResolution), y, (z + m_boxResolution));
+
+                    //                QVector3D c010(x, (y + m_boxResolution), z);
+                    //                QVector3D c011(x, (y + m_boxResolution), (z + m_boxResolution));
+                    //                QVector3D c110((x + m_boxResolution), (y + m_boxResolution), z);
+                    //                QVector3D c111((x + m_boxResolution), (y + m_boxResolution), (z + m_boxResolution));
+
+                    float x00 = interpolateLinear(p.x(), x, (x + m_boxResolution),
+                                                            m_distancePoints[yIndex][zIndex][xIndex],
+                                                            m_distancePoints[yIndex][zIndex][xIndex + 1]);
+
+                    float x10 = interpolateLinear(p.x(), x, (x + m_boxResolution),
+                                                            m_distancePoints[yIndex + 1][zIndex][xIndex],
+                                                            m_distancePoints[yIndex + 1][zIndex][xIndex + 1]);
+
+                    float x01 = interpolateLinear(p.x(), x, (x + m_boxResolution),
+                                                            m_distancePoints[yIndex][zIndex + 1][xIndex],
+                                                            m_distancePoints[yIndex][zIndex + 1][xIndex + 1]);
+
+                    float x11 = interpolateLinear(p.x(), x, (x + m_boxResolution),
+                                                            m_distancePoints[yIndex + 1][zIndex + 1][xIndex],
+                                                            m_distancePoints[yIndex + 1][zIndex + 1][xIndex + 1]);
+
+                    float y0 = interpolateLinear(p.y(), y, (y + m_boxResolution),
+                                                             x00,
+                                                             x01);
+
+                    float y1 = interpolateLinear(p.y(), y, (y + m_boxResolution),
+                                                             x10,
+                                                             x11);
+
+                    float value = interpolateLinear(p.z(), z, (z + m_boxResolution),
+                                                                y0,
+                                                                y1);
+
+
+//                    qInfo()<<"Value: "<<value;
+
+                    return value;
+                }
+
+                //Increment the indices used for accesing the grid points
+                xIndex++;
+            }
+            zIndex++;
+        }
+        yIndex++;
+    }
+
+//    qWarning()<<"Point not inside Mesh AABB, triliear interpolation didn't happen\n"
+//                    "Point: "<<p.x()<<", "<<p.y()<<", "<<p.z()<<'\n';
+
+    return 100000000.0f;
+
+}
+
+int Mesh::getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points)
+{
+    float distance = LARGE_PVE;
+    int index = 0;
+
+    for(uint i = 0; i < points.size(); ++i)
+    {
+        float tmpDistance = (points[i] - currentSphere).length();
+
+        if(tmpDistance < distance)
+        {
+            distance = tmpDistance;
+            index = i;
+        }
+    }
+
+    return index;
 }
