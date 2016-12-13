@@ -3,6 +3,8 @@
 
 #include <QVector3D>
 
+#include <stdlib.h>
+
 struct Triangle
 {
     QVector3D A = QVector3D(1000000, 1000000, 1000000);

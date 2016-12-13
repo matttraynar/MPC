@@ -656,6 +656,8 @@ bool Mesh::pointInTriBBox(QVector3D p, Triangle t)
 
 bool Mesh::triangleEquals(Triangle a, Triangle b)
 {
+
+
     if(((a.A.x() == b.A.x() && a.A.y() == b.A.y() && a.A.z() == b.A.z()) ) &&
         ((a.B.x() == b.B.x() && a.B.y() == b.B.y() && a.B.z() == b.B.z()) ) &&
         ((a.C.x() == b.C.x() && a.C.y() == b.C.y() && a.C.z() == b.C.z()) ))
@@ -845,6 +847,7 @@ void Mesh::generateDistanceField()
                     //of the prism's bounding box
                     if(prism.bBoxContains(curPoint))
                     {
+
                         //Calcualte the closest point on the triangle face
                         //the prism was formed from to the grid point
                         QVector3D closestPoint = prism.checkWhere(curPoint);
@@ -866,7 +869,7 @@ void Mesh::generateDistanceField()
 
                             //A check is done to see if the currently stored triangle for this point
                             //is the default triangle inserted in the points generation stage
-                            if(!triangleEquals(m_distanceTriangles[yIndex][zIndex][xIndex], defaultTri))
+                            if(triangleEquals(m_distanceTriangles[yIndex][zIndex][xIndex], defaultTri) == false)
                             {
                                 //The centers of the currently marked triangle and the potential new
                                 //one are calculated

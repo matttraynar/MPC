@@ -10,13 +10,13 @@ Prism::Prism(Triangle middle)
     m_normal = QVector3D::crossProduct(e1, e2);
     m_normal.normalize();
 
-    m_inner.A = m_middle.A - (m_normal * (1.5f + 1.5f));
-    m_inner.B = m_middle.B - (m_normal * (1.5f + 1.5f));
-    m_inner.C = m_middle.C - (m_normal * (1.5f + 1.5f));
+    m_inner.A = m_middle.A - (m_normal);// * (1.5f + 1.5f));
+    m_inner.B = m_middle.B - (m_normal);// * (1.5f + 1.5f));
+    m_inner.C = m_middle.C - (m_normal);// * (1.5f + 1.5f));
 
-    m_outer.A = m_middle.A + (m_normal * 1.5f);
-    m_outer.B = m_middle.B + (m_normal * 1.5f);
-    m_outer.C = m_middle.C + (m_normal * 1.5f);
+    m_outer.A = m_middle.A + (m_normal);// * 1.5f);
+    m_outer.B = m_middle.B + (m_normal);// * 1.5f);
+    m_outer.C = m_middle.C + (m_normal);// * 1.5f);
 
     BBox inBBox    = triangleBoundingBox(m_inner);
     BBox midBBox = triangleBoundingBox(m_middle);
@@ -44,25 +44,128 @@ bool Prism::bBoxContains(QVector3D point)
     return false;
 }
 
+int compare(const void *a, const void *b)
+{
+    return ( *(float *)a - *(float *)b );
+}
+
 QVector3D Prism::checkWhere(QVector3D point)
 {
     QVector3D closestPoint;
 
     float v = point.x();
-    if(v < m_boundingBox.xMin)  { v = m_boundingBox.xMin; }
-    if(v > m_boundingBox.xMax) { v = m_boundingBox.xMax; }
+
+    float xValues[] = { m_middle.A.x(), m_middle.B.x(), m_middle.C.x() };
+    xValues[0];
+
+    qsort(xValues, 3, sizeof(float), compare);
+
+    if(v < xValues[0])
+    {
+        if(xValues[0] == m_middle.A.x())
+        {
+            v = m_middle.A.x();
+        }
+        else if(xValues[0] == m_middle.B.x())
+        {
+            v = m_middle.B.x();
+        }
+        else if(xValues[0] == m_middle.C.x())
+        {
+            v = m_middle.C.x();
+        }
+    }
+    else if(v > xValues[2])
+    {
+        if(xValues[2] == m_middle.A.x())
+        {
+            v = m_middle.A.x();
+        }
+        else if(xValues[2] == m_middle.B.x())
+        {
+            v = m_middle.B.x();
+        }
+        else if(xValues[2] == m_middle.C.x())
+        {
+            v = m_middle.C.x();
+        }
+    }
 
     closestPoint.setX(v);
 
     v = point.y();
-    if(v < m_boundingBox.yMin)  { v = m_boundingBox.yMin; }
-    if(v > m_boundingBox.yMax) { v = m_boundingBox.yMax; }
+
+    float yValues[] = { m_middle.A.y(), m_middle.B.y(), m_middle.C.y() };
+    qsort(yValues, 3, sizeof(float), compare);
+
+    if(v < yValues[0])
+    {
+        if(yValues[0] == m_middle.A.y())
+        {
+            v = m_middle.A.y();
+        }
+        else if(yValues[0] == m_middle.B.y())
+        {
+            v = m_middle.B.y();
+        }
+        else if(yValues[0] == m_middle.C.y())
+        {
+            v = m_middle.C.y();
+        }
+    }
+    else if(v > yValues[2])
+    {
+        if(yValues[2] == m_middle.A.y())
+        {
+            v = m_middle.A.y();
+        }
+        else if(yValues[2] == m_middle.B.y())
+        {
+            v = m_middle.B.y();
+        }
+        else if(yValues[2] == m_middle.C.y())
+        {
+            v = m_middle.C.y();
+        }
+    }
 
     closestPoint.setY(v);
 
     v = point.z();
-    if(v < m_boundingBox.zMin)  { v = m_boundingBox.zMin; }
-    if(v > m_boundingBox.zMax) { v = m_boundingBox.zMax; }
+
+    float zValues[] = { m_middle.A.z(), m_middle.B.z(), m_middle.C.z() };
+    qsort(zValues, 3, sizeof(float), compare);
+
+    if(v < zValues[0])
+    {
+        if(zValues[0] == m_middle.A.z())
+        {
+            v = m_middle.A.z();
+        }
+        else if(zValues[0] == m_middle.B.z())
+        {
+            v = m_middle.B.z();
+        }
+        else if(zValues[0] == m_middle.C.z())
+        {
+            v = m_middle.C.z();
+        }
+    }
+    else if(v > zValues[2])
+    {
+        if(zValues[2] == m_middle.A.z())
+        {
+            v = m_middle.A.z();
+        }
+        else if(zValues[2] == m_middle.B.z())
+        {
+            v = m_middle.B.z();
+        }
+        else if(zValues[2] == m_middle.C.z())
+        {
+            v = m_middle.C.z();
+        }
+    }
 
     closestPoint.setZ(v);
 
@@ -73,23 +176,9 @@ BBox Prism::triangleBoundingBox(Triangle tri)
 {
     BBox triBBox;
 
-    for(uint i = 0; i < 3; ++i)
-    {
-        switch(i)
-        {
-        case 0:
-            updateValues(tri.A, triBBox);
-            break;
-
-        case 1:
-            updateValues(tri.B, triBBox);
-            break;
-
-        case 2:
-            updateValues(tri.C, triBBox);
-            break;
-        }
-    }
+    updateValues(tri.A, triBBox);
+    updateValues(tri.B, triBBox);
+    updateValues(tri.C, triBBox);
 
     return triBBox;
 }

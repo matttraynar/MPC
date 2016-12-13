@@ -30,7 +30,6 @@ unix::LIBS += -L$$PWD/libs/assimp/lib/ -lassimp
 #Bullet libraries
 unix::LIBS += -L$$PWD/libs/bullet/src -lBulletDynamics -lBulletCollision -lLinearMath
 
-
 #Windows paths
 #Assimp library
 win32::LIBS += -L"E:\mattt\Documents\MPCLibraries\assimp-3.3.1\lib\Debug" -lassimp-vc140-mt
@@ -44,9 +43,9 @@ win32::LIBS += -L"E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release" -lB
 win32::LIBS += -lopengl32
 
 #Include the bullet source file paths we need
-win32::INCLUDEPATH += $$PWD\libs\bullet\src\BulletDynamics\ \
-							$$PWD\libs\bullet\src\BulletCollision\  \
-							$$PWD\libs\bullet\src\LinearMath
+INCLUDEPATH += $$PWD\libs\bullet\src\BulletDynamics\ \
+                $$PWD\libs\bullet\src\BulletCollision\  \
+                $$PWD\libs\bullet\src\LinearMath
 
 #Final include paths for other files
 INCLUDEPATH += $$PWD/include/ \
