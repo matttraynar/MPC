@@ -64,6 +64,7 @@ void GLWidget::initializeGL()
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
      shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("sphere", "objFiles/sphere.obj", QVector3D(1.0f, 0.0f, 0.0f));
 
      //Add the ground plane to the bullet world and then
      //create a ground plane in the scene objects so that
@@ -72,7 +73,7 @@ void GLWidget::initializeGL()
      createGround();
 
      //Do the same with the teapot
-     m_bullet->addMesh("teapot",QVector3D(0,10,0));
+//     m_bullet->addMesh("teapot",QVector3D(0,10,0));
      createTeapot();
 
      //Release the shader program
@@ -192,6 +193,12 @@ void GLWidget::createTeapot()
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
 
+    for(uint i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
+    {
+        //Set the position and load to the shader program again
+        m_bullet->addMesh("sphere", m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0));
+    }
+
     //Release the shader program
     m_pgm.release();
 }
@@ -221,6 +228,7 @@ void GLWidget::paintGL()
     Mesh sphere;
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
+    sphere.m_colour = QVector4D(1.0,0.0,0.0,1.0);
 
     //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
@@ -245,20 +253,15 @@ void GLWidget::paintGL()
 
             //Draw the object
             m_sceneObjects[1]->draw();
+        }
+        else if(name == "sphere")
+        {
+            //Set the colour of the object in the shader
+            m_pgm.setUniformValue("mCol",sphere.m_colour);
 
-//            m_sceneObjects[1]->drawPoints();
+            //Draw the object
+            sphere.draw();
 
-//            sphere.setWireMode();
-            //Iterate for the number of spheres in the spherepack
-            for(uint j = 0; j < m_sceneObjects[1]->getSphereNum(); ++j)
-            {
-                //Set the position and load to the shader program again
-                m_position = m_sceneObjects[1]->getSphereAt(j);
-                loadShaderMatrices();
-
-                //Draw a sphere at this position
-                sphere.draw();
-            }
         }
     }
 

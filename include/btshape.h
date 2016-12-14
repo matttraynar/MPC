@@ -12,7 +12,7 @@
 class BtShape
 {
 public:
-    static BtShape *instance();
+    static BtShape* instance();
 
     void addMesh(const std::string name, const char* filepath, QVector3D colour);
 

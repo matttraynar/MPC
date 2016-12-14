@@ -1035,7 +1035,6 @@ void Mesh::generateDistanceField()
                                     //distance change is ONLY from negative to positive
                                     if((distance > 0.0f) && (m_distancePoints[yI][zI][xI] <= 0.0f))
                                     {
-                                        qInfo()<<"Distance updated: "<<distance;
                                         //Set the new distance
                                         m_distancePoints[yI][zI][xI] = distance;
 
@@ -1045,7 +1044,6 @@ void Mesh::generateDistanceField()
                                     else if((distance <= 0.0f && m_distancePoints[yI][zI][xI] <= 0.0f) ||
                                              (distance > 0.0f && m_distancePoints[yI][zI][xI] > 0.0f))
                                     {
-                                        qInfo()<<"Distance updated: "<<distance;
                                         //The distances have the same sign, set the new distance
                                         m_distancePoints[yI][zI][xI] = distance;
 
@@ -1060,7 +1058,6 @@ void Mesh::generateDistanceField()
                                     //change can only be made going from positive to negative
                                     if((distance <= 0.0f) && (m_distancePoints[yI][zI][xI] > 0.0f))
                                     {
-                                        qInfo()<<"Distance updated: "<<distance;
                                         //Same storing process
                                         m_distancePoints[yI][zI][xI] = distance;
                                         m_distanceTriangles[yI][zI][xI] = prism.getTriangle();
@@ -1068,7 +1065,6 @@ void Mesh::generateDistanceField()
                                     else if((distance <= 0.0f && m_distancePoints[yI][zI][xI] <= 0.0f) ||
                                              (distance > 0.0f && m_distancePoints[yI][zI][xI] > 0.0f))
                                     {
-                                        qInfo()<<"Distance updated: "<<distance;
                                         //Check again for distance with the same sign
                                         m_distancePoints[yI][zI][xI] = distance;
                                         m_distanceTriangles[yI][zI][xI] = prism.getTriangle();
@@ -1078,7 +1074,6 @@ void Mesh::generateDistanceField()
                             }
                             else
                             {
-//                                qInfo()<<"Distance updated: "<<distance;
                                 m_distancePoints[yI][zI][xI] = distance;
 
                                 //The triangle that forms the closest distance is also marked
@@ -1173,7 +1168,7 @@ void Mesh::packSpheres()
 
     while(frontQueue.size() != 0)
     {
-        if(frontQueue.size() >= 200)
+        if(frontQueue.size() >= 100)
         {
             qWarning()<<"Recursion guard reached\n";
             break;
@@ -1234,16 +1229,11 @@ void Mesh::packSpheres()
 
         validatePoints(candidatePoints, neighbors);
 
-//        if(count == 2)
-//        {
-//            break;
-//        }
         if(candidatePoints.size() > 0)
         {
             int bestPoint = getBestPoint(currentSphere, candidatePoints);
 
-            m_spherePositions.push_back(candidatePoints[bestPoint]);// + QVector3D(count, 0 ,0));
-//            frontQueue.insert(frontQueue.begin(), candidatePoints[bestPoint]);// + QVector3D(count, 0 ,0));
+            m_spherePositions.push_back(candidatePoints[bestPoint]);
             frontQueue.push_back( candidatePoints[bestPoint]);
         }
 
@@ -1255,100 +1245,12 @@ void Mesh::packSpheres()
         count++;
     }
 
-//    m_spherePositions.clear();
-//    m_spherePositions.push_back(frontQueue[0]);
-//    qInfo()<<"Size: "<<candidatePoints.size();
-//    for(uint i = 0; i < candidatePoints.size(); ++i)
-//    {
-//        m_spherePositions.push_back(candidatePoints[i]);
-//    }
-
     for(uint i =0; i < m_spherePositions.size(); ++i)
     {
-        m_spherePositions[i] += QVector3D(0,5,0);
+        m_spherePositions[i] += QVector3D(0,10,0);
     }
 
     qInfo()<<"Finished packing spheres";
-}
-
-void Mesh::packSpheres2D()
-{
-    //Set some variables for later use
-    QVector3D middlePos;
-
-    //Calculate the middle of the mesh
-    for(uint i = 0; i < m_verts.size(); ++i)
-    {
-        middlePos += m_verts[i];
-        middlePos.setY(middlePos.y());
-    }
-
-    middlePos /= m_verts.size();
-    qInfo()<<"Mesh COM: "<<middlePos.x()<<' '<<middlePos.y()<<' '<<middlePos.z()<<'\n';
-
-
-    //Create the start positions for the first 3 spheres
-    QVector3D p0 = middlePos;
-    QVector3D p1 = p0;
-    QVector3D p2 = p0;
-    p0[0] += m_radius;
-    p1[0] -= m_radius;
-    p2[2] += m_radius;
-
-    p2[2] += m_radius * 0.75f;
-
-    //Add these intial positions to the position container
-//    m_spherePositions.push_back(p0);
-//    m_spherePositions.push_back(p1);
-//    m_spherePositions.push_back(p2);
-
-    std::vector<QVector3D> frontQueue;
-
-    frontQueue.push_back(p0);
-    frontQueue.push_back(p1);
-    frontQueue.push_back(p2);
-
-    int count = 0;
-
-
-    std::vector<QVector3D> neighbors;
-
-    while(frontQueue.size() != 0)
-    {
-        if(count >= 1000)
-        {
-            break;
-        }
-
-        QVector3D currentSphere = frontQueue[0];
-        BBox neighbourhood = makeNeighbourhood(currentSphere);
-
-        std::vector<QVector3D> neighbors;
-
-        for(uint i = 0; i < frontQueue.size(); ++i)
-        {
-            if(i == 0)
-            {
-                continue;
-            }
-            else
-            {
-                if(bBoxContains(neighbourhood, currentSphere))
-                {
-                    neighbors.push_back(frontQueue[i]);
-                }
-            }
-        }
-
-        break;
-    }
-
-    qInfo()<<"Size "<<frontQueue.size();
-    m_spherePositions.clear();
-    for(uint i = 0; i < neighbors.size(); ++i)
-    {
-        m_spherePositions.push_back(neighbors[i]);
-    }
 }
 
 BBox Mesh::makeNeighbourhood(QVector3D p)
@@ -1660,7 +1562,6 @@ float Mesh::interpolateTrilinear(QVector3D p)
                                                                 y1);
 
 
-//                    qInfo()<<"Value: "<<value;
 
                     return value;
                 }
