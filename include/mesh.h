@@ -68,6 +68,7 @@ public:
 
     //Method which creates a sphere pack for the mesh
     void packSpheres();
+    void packSpheres2D();
 
     //Setter methods
     void setWireMode();
@@ -102,7 +103,7 @@ private:
     BBox makeNeighbourhood(QVector3D p);
     bool bBoxContains(BBox box, QVector3D point);
     void haloIntersection(QVector3D a, QVector3D b, QVector3D c, QVector3D &hit1, QVector3D &hit2, HaloIntersections &intersectionType);
-    void validatePoints(std::vector<QVector3D> &points);
+    void validatePoints(std::vector<QVector3D> &points, const std::vector<QVector3D> &neighbourhood);
 
     float interpolateLinear(float x, float x1, float x2, float c00, float c01);
     float interpolateTrilinear(QVector3D p);

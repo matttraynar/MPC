@@ -51,125 +51,62 @@ int compare(const void *a, const void *b)
 
 QVector3D Prism::checkWhere(QVector3D point)
 {
-    QVector3D closestPoint;
+    QVector3D e1 = m_middle.B - m_middle.A;
+    QVector3D e2 = m_middle.C - m_middle.A;
+    QVector3D e3 = m_middle.C - m_middle.B;
 
-    float v = point.x();
+    float sN = QVector3D::dotProduct(point - m_middle.A, e1);
+    float sD = QVector3D::dotProduct(point - m_middle.B, m_middle.A - m_middle.B);
 
-    float xValues[] = { m_middle.A.x(), m_middle.B.x(), m_middle.C.x() };
-    xValues[0];
+    float tN = QVector3D::dotProduct(point - m_middle.A, e2);
+    float tD = QVector3D::dotProduct(point - m_middle.C, m_middle.A - m_middle.C);
 
-    qsort(xValues, 3, sizeof(float), compare);
-
-    if(v < xValues[0])
+    if(sN <= 0.0f && tN <= 0.0f)
     {
-        if(xValues[0] == m_middle.A.x())
-        {
-            v = m_middle.A.x();
-        }
-        else if(xValues[0] == m_middle.B.x())
-        {
-            v = m_middle.B.x();
-        }
-        else if(xValues[0] == m_middle.C.x())
-        {
-            v = m_middle.C.x();
-        }
-    }
-    else if(v > xValues[2])
-    {
-        if(xValues[2] == m_middle.A.x())
-        {
-            v = m_middle.A.x();
-        }
-        else if(xValues[2] == m_middle.B.x())
-        {
-            v = m_middle.B.x();
-        }
-        else if(xValues[2] == m_middle.C.x())
-        {
-            v = m_middle.C.x();
-        }
+        return m_middle.A;
     }
 
-    closestPoint.setX(v);
+    float uN = QVector3D::dotProduct(point - m_middle.B, e3);
+    float uD = QVector3D::dotProduct(point - m_middle.C, m_middle.B - m_middle.C);
 
-    v = point.y();
-
-    float yValues[] = { m_middle.A.y(), m_middle.B.y(), m_middle.C.y() };
-    qsort(yValues, 3, sizeof(float), compare);
-
-    if(v < yValues[0])
+    if(sD <= 0.0f && uN <= 0.0f)
     {
-        if(yValues[0] == m_middle.A.y())
-        {
-            v = m_middle.A.y();
-        }
-        else if(yValues[0] == m_middle.B.y())
-        {
-            v = m_middle.B.y();
-        }
-        else if(yValues[0] == m_middle.C.y())
-        {
-            v = m_middle.C.y();
-        }
-    }
-    else if(v > yValues[2])
-    {
-        if(yValues[2] == m_middle.A.y())
-        {
-            v = m_middle.A.y();
-        }
-        else if(yValues[2] == m_middle.B.y())
-        {
-            v = m_middle.B.y();
-        }
-        else if(yValues[2] == m_middle.C.y())
-        {
-            v = m_middle.C.y();
-        }
+        return m_middle.B;
     }
 
-    closestPoint.setY(v);
-
-    v = point.z();
-
-    float zValues[] = { m_middle.A.z(), m_middle.B.z(), m_middle.C.z() };
-    qsort(zValues, 3, sizeof(float), compare);
-
-    if(v < zValues[0])
+    if(tD <= 0.0f && uD <= 0.0f)
     {
-        if(zValues[0] == m_middle.A.z())
-        {
-            v = m_middle.A.z();
-        }
-        else if(zValues[0] == m_middle.B.z())
-        {
-            v = m_middle.B.z();
-        }
-        else if(zValues[0] == m_middle.C.z())
-        {
-            v = m_middle.C.z();
-        }
-    }
-    else if(v > zValues[2])
-    {
-        if(zValues[2] == m_middle.A.z())
-        {
-            v = m_middle.A.z();
-        }
-        else if(zValues[2] == m_middle.B.z())
-        {
-            v = m_middle.B.z();
-        }
-        else if(zValues[2] == m_middle.C.z())
-        {
-            v = m_middle.C.z();
-        }
+        return m_middle.C;
     }
 
-    closestPoint.setZ(v);
+    QVector3D n = QVector3D::crossProduct(e1, e2);
+    float vc = QVector3D::dotProduct(n, QVector3D::crossProduct(m_middle.A - point, m_middle.B - point));
 
-    return closestPoint;
+    if(vc <= 0.0f && sN >= 0.0f && sD >= 0.0f)
+    {
+        return (m_middle.A + sN/(sN + sD) * e1);
+    }
+
+    float va = QVector3D::dotProduct(n, QVector3D::crossProduct(m_middle.B - point, m_middle.C - point));
+
+    if(va <= 0.0f && uN >= 0.0f && uD >= 0.0f)
+    {
+        return(m_middle.B + uN/(uN + uD) * e3);
+    }
+
+    float vb = QVector3D::dotProduct(n, QVector3D::crossProduct(m_middle.C - point, m_middle.A - point));
+
+    if(vb <= 0.0f && tN >= 0.0f && tD >= 0.0f)
+    {
+        return(m_middle.A + tN/(tN + tD) * e2);
+    }
+
+    float u = va/(va +vb + vc);
+    float v = vb/(va + vb + vc);
+    float w = 1.0f - u -v;
+
+    return (u * m_middle.A) + (v * m_middle.B) + (w * m_middle.C);
+
 }
 
 BBox Prism::triangleBoundingBox(Triangle tri)

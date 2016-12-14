@@ -12,7 +12,7 @@ Mesh::Mesh(QVector4D colour)
     //Set the colour to the specified value
     m_colour = colour;
 
-    m_radius = 1.0;
+    m_radius = 1.0f;
 }
 
 Mesh::~Mesh()
@@ -991,18 +991,16 @@ void Mesh::packSpheres()
     //ALSO NEEDS GRID INDEX
 
     std::vector<QVector3D> frontQueue;
-    std::vector<QVector3D> prevRejected;
-    std::vector<QVector3D> newRejected;
 
-    frontQueue.push_back(p0);
     frontQueue.push_back(p1);
+    frontQueue.push_back(p0);
     frontQueue.push_back(p2);
 
     int count = 0;
 
     while(frontQueue.size() != 0)
     {
-        if(count >= 1000 || frontQueue.size() >= 100)
+        if(count >= 100 || frontQueue.size() >= 50)
         {
             qWarning()<<"Recursion guard reached\n";
             break;
@@ -1027,7 +1025,6 @@ void Mesh::packSpheres()
                 }
             }
         }
-
 
         std::vector<QVector3D> candidatePoints;
 
@@ -1060,15 +1057,14 @@ void Mesh::packSpheres()
             }
         }
 
-        validatePoints(candidatePoints);/*
-        qInfo()<<"candidatePoints: "<<candidatePoints.size();*/
+        validatePoints(candidatePoints, neighbors);
 
         if(candidatePoints.size() > 0)
         {
             int bestPoint = getBestPoint(currentSphere, candidatePoints);
 
             m_spherePositions.push_back(candidatePoints[bestPoint]);
-            frontQueue.push_back(candidatePoints[bestPoint]);
+            frontQueue.insert(frontQueue.begin(), candidatePoints[bestPoint]);
         }
 
         if(candidatePoints.size() < 2)
@@ -1079,7 +1075,95 @@ void Mesh::packSpheres()
         count++;
     }
 
+//    m_spherePositions.clear();
+//    m_spherePositions.push_back(frontQueue[0]);
+//    qInfo()<<"Size: "<<candidatePoints.size();
+//    for(uint i = 0; i < candidatePoints.size(); ++i)
+//    {
+//        m_spherePositions.push_back(candidatePoints[i]);
+//    }
+
     qInfo()<<"Finished packing spheres";
+}
+
+void Mesh::packSpheres2D()
+{
+    //Set some variables for later use
+    QVector3D middlePos;
+
+    //Calculate the middle of the mesh
+    for(uint i = 0; i < m_verts.size(); ++i)
+    {
+        middlePos += m_verts[i];
+        middlePos.setY(middlePos.y());
+    }
+
+    middlePos /= m_verts.size();
+    qInfo()<<"Mesh COM: "<<middlePos.x()<<' '<<middlePos.y()<<' '<<middlePos.z()<<'\n';
+
+
+    //Create the start positions for the first 3 spheres
+    QVector3D p0 = middlePos;
+    QVector3D p1 = p0;
+    QVector3D p2 = p0;
+    p0[0] += m_radius;
+    p1[0] -= m_radius;
+    p2[2] += m_radius;
+
+    p2[2] += m_radius * 0.75f;
+
+    //Add these intial positions to the position container
+//    m_spherePositions.push_back(p0);
+//    m_spherePositions.push_back(p1);
+//    m_spherePositions.push_back(p2);
+
+    std::vector<QVector3D> frontQueue;
+
+    frontQueue.push_back(p0);
+    frontQueue.push_back(p1);
+    frontQueue.push_back(p2);
+
+    int count = 0;
+
+
+    std::vector<QVector3D> neighbors;
+
+    while(frontQueue.size() != 0)
+    {
+        if(count >= 1000)
+        {
+            break;
+        }
+
+        QVector3D currentSphere = frontQueue[0];
+        BBox neighbourhood = makeNeighbourhood(currentSphere);
+
+        std::vector<QVector3D> neighbors;
+
+        for(uint i = 0; i < frontQueue.size(); ++i)
+        {
+            if(i == 0)
+            {
+                continue;
+            }
+            else
+            {
+                if(bBoxContains(neighbourhood, currentSphere))
+                {
+                    neighbors.push_back(frontQueue[i]);
+                }
+            }
+        }
+
+        break;
+    }
+
+    qInfo()<<"Size "<<frontQueue.size();
+    m_spherePositions.clear();
+    for(uint i = 0; i < neighbors.size(); ++i)
+    {
+        m_spherePositions.push_back(neighbors[i]);
+    }
 }
 
 BBox Mesh::makeNeighbourhood(QVector3D p)
@@ -1116,31 +1200,41 @@ void Mesh::haloIntersection(QVector3D a, QVector3D b, QVector3D c,
                                         QVector3D &hit1, QVector3D &hit2,
                                         HaloIntersections &intersectionType)
 {
-    float separationSQRD = (a - b).lengthSquared();
+    float dist = (a - b).length();
 
-    float alpha = (1.0f - (((m_radius * m_radius) - (m_radius * m_radius)) / separationSQRD)) / 2.0f;
+    float haloRadius = m_radius + m_radius;
 
-    QVector3D intCenter = ((1 - alpha) * a) + (alpha * b);
-    float intRadius = sqrt((separationSQRD - (m_radius * m_radius)));
-    QVector3D intNormal = (a - b).normalized();
+    if((dist + haloRadius) < haloRadius)
+    {
+        intersectionType = NoHit;
+        return;
+    }
 
-    float smallestComponent = std::min({ intNormal.x(), intNormal.y(), intNormal.z() });
+    float alpha = 0.5;//(dist * dist);
+
+    QVector3D circleCenter = a + alpha*(b - a);
+
+    float circleRadius = sqrt((haloRadius * haloRadius) - ((alpha * dist) * (alpha * dist)));
+
+    QVector3D circleN = (a - b).normalized();
+
+    float smallestComponent = std::min({ circleN.x(), circleN.y(), circleN.z() });
 
     QVector3D cross;
     QVector3D u;
     QVector3D v;
 
-    if(intNormal.x() == smallestComponent)
+    if(circleN.x() == smallestComponent)
     {
-        cross = QVector3D::crossProduct(intNormal, QVector3D(1.0f, 0.0f, 0.0f));
+        cross = QVector3D::crossProduct(QVector3D(1.0f, 0.0f, 0.0f), circleN);
     }
-    else if(intNormal.y() == smallestComponent)
+    else if(circleN.y() == smallestComponent)
     {
-        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 1.0f, 0.0f));
+        cross = QVector3D::crossProduct(QVector3D(0.0f, 1.0f, 0.0f), circleN);
     }
-    else if(intNormal.z() == smallestComponent)
+    else if(circleN.z() == smallestComponent)
     {
-        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 0.0f, 1.0f));
+        cross = QVector3D::crossProduct(QVector3D(0.0f, 0.0f, 1.0f), circleN);
     }
     else
     {
@@ -1148,63 +1242,148 @@ void Mesh::haloIntersection(QVector3D a, QVector3D b, QVector3D c,
         exit(1);
     }
 
-    u = cross / cross.length();
-    v = QVector3D::crossProduct(intNormal, u);
+    u = cross.normalized();
 
-    float distance = QVector3D::dotProduct(c - intCenter, intNormal);
+    v = QVector3D::crossProduct(u, circleN);
+    v.normalize();
 
-    if(fabs(distance) > m_radius)
+    float dotDist = QVector3D::dotProduct(circleN, circleCenter - c);
+
+    if(fabs(dotDist) > haloRadius)
     {
         intersectionType = NoHit;
         return;
     }
 
-    QVector3D int2Center = c - (distance * intNormal);
-    float int2Radius = sqrt((m_radius * m_radius) - (distance * distance));
+    QVector3D circleCenter2 = c + (dotDist * circleN);
 
-    float finalCheck = m_radius + m_radius - (int2Center - intCenter).length();
-
-    if(finalCheck < 0.0f)
-    {
-        intersectionType = NoHit;
-        return;
-    }
-
-    if(finalCheck == 0.0f)
+    if(dotDist == haloRadius)
     {
         intersectionType = OneHit;
-        hit1 = intCenter + ((int2Center - intCenter).normalized() * m_radius);
         return;
     }
 
-    alpha = (1.0f - (((int2Radius * int2Radius) - (intRadius * intRadius)) / ((int2Center - intCenter).length()))) / 2.0f;
-
-    QVector3D int3Center = ((1 - alpha) * intCenter) + (alpha * int2Center);
-    QVector3D circleSeparation = (int3Center - intCenter);
-
-    float circleHeight = sqrt((circleSeparation.length() * circleSeparation.length()) - (m_radius * m_radius));
-    QVector3D finalCross = QVector3D::crossProduct(intNormal, circleSeparation);
+    float circleRadius2 = sqrt((haloRadius * haloRadius) - (dotDist * dotDist));
 
     intersectionType = TwoHits;
 
-    hit1 = int3Center + (circleHeight * (finalCross / finalCross.length()));
-    hit2 = int3Center - (circleHeight * (finalCross / finalCross.length()));
+    QVector3D circleN2 = QVector3D::crossProduct(circleCenter2 - circleCenter, circleN).normalized();
+
+    hit1 = circleCenter - (circleN2 * circleRadius);
+    hit2 = circleCenter + (circleN2 * circleRadius);
+
+
+//    float separationSQRD = (a - b).lengthSquared();
+
+//    float alpha = (1.0f - (m_radius * m_radius) - (m_radius * m_radius) / separationSQRD) / 2.0f;
+
+//    QVector3D intCenter = ((1 - alpha) * a) + (alpha * b);
+
+//    float intRadius = sqrt((separationSQRD - (m_radius * m_radius)));
+
+//    QVector3D intNormal = (a - b).normalized();
+
+//    float smallestComponent = std::min({ intNormal.x(), intNormal.y(), intNormal.z() });
+
+//    QVector3D cross;
+//    QVector3D u;
+//    QVector3D v;
+
+//    if(intNormal.x() == smallestComponent)
+//    {
+//        cross = QVector3D::crossProduct(intNormal, QVector3D(1.0f, 0.0f, 0.0f));
+//    }
+//    else if(intNormal.y() == smallestComponent)
+//    {
+//        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 1.0f, 0.0f));
+//    }
+//    else if(intNormal.z() == smallestComponent)
+//    {
+//        cross = QVector3D::crossProduct(intNormal, QVector3D(0.0f, 0.0f, 1.0f));
+//    }
+//    else
+//    {
+//        qWarning() <<"Smallest component wasnt in the intersection normal\n";
+//        exit(1);
+//    }
+
+//    u = cross.normalized();
+
+//    v = QVector3D::crossProduct(u, intNormal);
+//    v.normalize();
+
+//    float distance = QVector3D::dotProduct(c - intCenter, intNormal);
+
+//    if(fabs(distance) > m_radius)
+//    {
+//        intersectionType = NoHit;
+//        return;
+//    }
+
+//    QVector3D int2Center = c - (distance * intNormal);
+//    float int2Radius = sqrt((m_radius * m_radius) - (distance * distance));
+
+//    float finalCheck = m_radius + m_radius - (int2Center - intCenter).length();
+
+//    if(finalCheck < 0.0f)
+//    {
+//        intersectionType = NoHit;
+//        return;
+//    }
+
+//    if(finalCheck == 0.0f)
+//    {
+//        intersectionType = OneHit;
+//        hit1 = intCenter + ((int2Center - intCenter).normalized() * m_radius);
+//        return;
+//    }
+
+//    alpha = (1.0f - (((int2Radius * int2Radius) - (intRadius * intRadius)) / ((int2Center - intCenter).length()))) / 2.0f;
+
+//    QVector3D int3Center = ((1 - alpha) * intCenter) + (alpha * int2Center);
+//    QVector3D circleSeparation = (int3Center - intCenter);
+
+//    float circleHeight = sqrt((circleSeparation.length() * circleSeparation.length()) - (m_radius * m_radius));
+//    QVector3D finalCross = QVector3D::crossProduct(intNormal, circleSeparation);
+
+//    intersectionType = TwoHits;
+
+//    hit1 = int3Center + (circleHeight * (finalCross / finalCross.length()));
+//    hit2 = int3Center - (circleHeight * (finalCross / finalCross.length()));
 
 }
 
-void Mesh::validatePoints(std::vector<QVector3D> &points)
+void Mesh::validatePoints(std::vector<QVector3D> &points, const std::vector<QVector3D> &neighbourhood)
 {
     int numPoints = points.size();
     std::vector<QVector3D> acceptedPoints;
 
     for(uint i = 0; i < numPoints; ++i)
     {
-        float distance = interpolateTrilinear(points[i]);
-
-        if(distance < 100.0f && distance > -100.0f)
+        for(uint j = 0; j < neighbourhood.size(); ++j)
         {
-            qInfo()<<"Signed distance: "<<distance;
+            QVector3D dif = neighbourhood[j] - points[i];
+
+            float distSQRD = QVector3D::dotProduct(dif,dif);
+
+            float rSQRD = m_radius * 2;
+
+            if(distSQRD > rSQRD)
+            {
+                acceptedPoints.push_back(points[i]);
+            }
         }
+    }
+
+    points = acceptedPoints;
+
+    acceptedPoints.clear();
+
+    numPoints = points.size();
+
+    for(uint i = 0; i < numPoints; ++i)
+    {
+        float distance = interpolateTrilinear(points[i]);
 
         if(distance <= -m_radius)
         {
@@ -1213,6 +1392,7 @@ void Mesh::validatePoints(std::vector<QVector3D> &points)
     }
 
     points = acceptedPoints;
+
 }
 
 float Mesh::interpolateLinear(float x, float x1, float x2, float c00, float c01)
@@ -1320,3 +1500,6 @@ int Mesh::getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points)
 
     return index;
 }
+
+
+

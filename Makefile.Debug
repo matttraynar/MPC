@@ -14,7 +14,7 @@ CXX           = cl
 DEFINES       = -DUNICODE -DWIN32 -DWIN64 -DQT_QML_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -nologo -Zc:wchar_t -FS -Zc:strictStrings -Zi -MDd -W3 -w44456 -w44457 -w44458 /Fddebug\MPC.pdb $(DEFINES)
 CXXFLAGS      = -nologo -Zc:wchar_t -FS -Zc:strictStrings -Zc:throwingNew -Zi -MDd -GR -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -EHsc /Fddebug\MPC.pdb $(DEFINES)
-INCPATH       = -I. -IE:/mattt/Documents/MPC\libs\bullet\src\BulletDynamics -IE:/mattt/Documents/MPC\libs\bullet\src\BulletCollision -IE:/mattt/Documents/MPC\libs\bullet\src\LinearMath -Iinclude -IE:/mattt/Documents/MPC/libs/bullet/src/ -Ilibs\assimp\include -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtOpenGL -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtANGLE -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore -Imoc -I. -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\win32-msvc2015 
+INCPATH       = -I. -Ilibs\bullet\src\BulletDynamics -Ilibs\bullet\src\BulletCollision -Ilibs\bullet\src\LinearMath -Iinclude -Ilibs\bullet\src -Ilibs\assimp\include -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtOpenGL -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtANGLE -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore -Imoc -I. -IC:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\win32-msvc2015 
 LINKER        = link
 LFLAGS        = /NOLOGO /DYNAMICBASE /NXCOMPAT /DEBUG /SUBSYSTEM:WINDOWS "/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'"
 LIBS          = /LIBPATH:C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\qtmaind.lib /LIBPATH:C:\utils\postgresql\pgsql\lib /LIBPATH:C:\utils\my_sql\my_sql\lib shell32.lib /LIBPATH:E:\mattt\Documents\MPCLibraries\assimp-3.3.1\lib\Debug E:\mattt\Documents\MPCLibraries\assimp-3.3.1\lib\Debug\assimp-vc140-mt.lib /LIBPATH:E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release\BulletDynamics.lib E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release\BulletCollision.lib E:\mattt\Documents\MPCLibraries\bullet\build3\lib\Release\LinearMath.lib opengl32.lib C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5OpenGLd.lib C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Widgetsd.lib C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Guid.lib C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Cored.lib 
@@ -49,7 +49,6 @@ SOURCES       = src\btshape.cpp \
 		src\main.cpp \
 		src\mainwindow.cpp \
 		src\mesh.cpp \
-		src\prism.cpp \
 		src\prism.cpp moc\moc_glwidget.cpp \
 		moc\moc_mainwindow.cpp
 OBJECTS       = obj\btshape.obj \
@@ -58,7 +57,6 @@ OBJECTS       = obj\btshape.obj \
 		obj\main.obj \
 		obj\mainwindow.obj \
 		obj\mesh.obj \
-		obj\prism.obj \
 		obj\prism.obj \
 		obj\moc_glwidget.obj \
 		obj\moc_mainwindow.obj
@@ -70,14 +68,12 @@ DIST          = shaders/vert.glsl \
 		include\mainwindow.h \
 		include\mesh.h \
 		include\prism.h \
-		include\ui_mainwindow.h \
-		include\prism.h src\btshape.cpp \
+		include\ui_mainwindow.h src\btshape.cpp \
 		src\btworld.cpp \
 		src\glwidget.cpp \
 		src\main.cpp \
 		src\mainwindow.cpp \
 		src\mesh.cpp \
-		src\prism.cpp \
 		src\prism.cpp
 QMAKE_TARGET  = MPC
 DESTDIR        = debug\ #avoid trailing-slash linebreak
@@ -167,7 +163,7 @@ dist:
 	$(ZIP) MPC.zip $(SOURCES) $(DIST) masterclass.pro C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\spec_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\angle.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\msvc-base.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\msvc-desktop.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\qconfig.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dcore.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dcore_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dinput.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dinput_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dlogic.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dlogic_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquick.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquick_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickinput.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickinput_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickrender.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickrender_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3drender.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3drender_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axbase.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axbase_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axcontainer.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axcontainer_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axserver.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axserver_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bluetooth.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bluetooth_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bootstrap_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_clucene_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_concurrent.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_concurrent_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_core.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_core_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_dbus.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_dbus_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designer.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designer_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designercomponents_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_enginio.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_enginio_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_gui.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_gui_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_help.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_help_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_labscontrols_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_labstemplates_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_location.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_location_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimedia.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimedia_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimediawidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimediawidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_network.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_network_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_nfc.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_nfc_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_opengl.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_opengl_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_openglextensions.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_openglextensions_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_platformsupport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_positioning.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_positioning_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_printsupport.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_printsupport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qml.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qml_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmldevtools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmltest.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmltest_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qtmultimediaquicktools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quick.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quick_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickparticles_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickwidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickwidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_script.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_script_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_scripttools.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_scripttools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sensors.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sensors_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_serialport.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_serialport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sql.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sql_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_svg.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_svg_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_testlib.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_testlib_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uiplugin.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uitools.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uitools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webchannel.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webchannel_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webengine.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webengine_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginecore.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginecore_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginewidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginewidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_websockets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_websockets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webview.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webview_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_widgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_widgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_winextras.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_winextras_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xml.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xml_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xmlpatterns.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xmlpatterns_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_zlib_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt_functions.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\qt_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\win32-msvc2015\qmake.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\spec_post.prf .qmake.stash C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exclusive_builds.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\default_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\default_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\resolve_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exclusive_builds_post.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\default_post.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\build_pass.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qml_debug.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\rtti.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\precompile_header.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\warn_on.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\resources.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\moc.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\opengl.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\uic.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\windows.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\testcase_targets.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exceptions.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\yacc.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\lex.prf masterclass.pro C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\qtmaind.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5OpenGLd.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Widgetsd.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Guid.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Cored.prl  NO_PCH_SOURCES RESOURCES HEADERS SOURCES OBJECTIVE_SOURCES FORMS YACCSOURCES YACCSOURCES LEXSOURCES 
 
 clean: compiler_clean 
-	-$(DEL_FILE) obj\btshape.obj obj\btworld.obj obj\glwidget.obj obj\main.obj obj\mainwindow.obj obj\mesh.obj obj\prism.obj obj\prism.obj obj\moc_glwidget.obj obj\moc_mainwindow.obj
+	-$(DEL_FILE) obj\btshape.obj obj\btworld.obj obj\glwidget.obj obj\main.obj obj\mainwindow.obj obj\mesh.obj obj\prism.obj obj\moc_glwidget.obj obj\moc_mainwindow.obj
 	-$(DEL_FILE) debug\MPC.exp debug\MPC.ilk debug\MPC.idb
 
 distclean: clean 
@@ -343,6 +339,104 @@ moc\moc_glwidget.cpp: C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\QCoreApplicat
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl \
 		include\btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include\btshape.h \
 		include\mesh.h \
@@ -824,6 +918,104 @@ ui_mainwindow.h: forms\mainwindow.ui \
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl \
 		include\btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include\btshape.h \
 		include\mesh.h \
@@ -1045,6 +1237,104 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 ####### Compile
 
 obj\btshape.obj: src\btshape.cpp include/btshape.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		include/mesh.h \
 		libs\assimp\include\assimp\Importer.hpp \
 		libs\assimp\include\assimp\types.h \
@@ -1395,6 +1685,104 @@ obj\btshape.obj: src\btshape.cpp include/btshape.h \
 		include/prism.h
 
 obj\btworld.obj: src\btworld.cpp include/btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qvector3d.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qpoint.h \
@@ -1901,6 +2289,104 @@ obj\glwidget.obj: src\glwidget.cpp include/glwidget.h \
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl \
 		include/btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -2270,6 +2756,104 @@ obj\main.obj: src\main.cpp C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QAppl
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl \
 		include/btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -2583,7 +3167,7 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtouchdevice.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qtabwidget.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qicon.h \
-		ui_mainwindow.h \
+		include/ui_mainwindow.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\QVariant \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QAction \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qaction.h \
@@ -2597,11 +3181,6 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qinputmethod.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QButtonGroup \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qbuttongroup.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QHBoxLayout \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qboxlayout.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qlayout.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qlayoutitem.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qgridlayout.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QHeaderView \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qheaderview.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qabstractitemview.h \
@@ -2619,6 +3198,11 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qstyle.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qtabbar.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qrubberband.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QVBoxLayout \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qboxlayout.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qlayout.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qlayoutitem.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\qgridlayout.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QWidget \
 		include/glwidget.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\QCoreApplication \
@@ -2671,6 +3255,104 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl \
 		include/btworld.h \
+		libs\bullet\src\btBulletDynamicsCommon.h \
+		libs\bullet\src\btBulletCollisionCommon.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionWorld.h \
+		libs\bullet\src\LinearMath\btVector3.h \
+		libs\bullet\src\LinearMath\btScalar.h \
+		libs\bullet\src\LinearMath\btMinMax.h \
+		libs\bullet\src\LinearMath\btAlignedAllocator.h \
+		libs\bullet\src\LinearMath\btTransform.h \
+		libs\bullet\src\LinearMath\btMatrix3x3.h \
+		libs\bullet\src\LinearMath\btQuaternion.h \
+		libs\bullet\src\LinearMath\btQuadWord.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObject.h \
+		libs\bullet\src\LinearMath\btMotionState.h \
+		libs\bullet\src\LinearMath\btAlignedObjectArray.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDispatcher.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h \
+		libs\bullet\src\LinearMath\btTransformUtil.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btManifoldResult.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionObjectWrapper.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBoxShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexInternalShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCollisionMargin.h \
+		libs\bullet\src\LinearMath\btAabbUtil2.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCapsuleShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCylinderShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConeShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConcaveShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleCallback.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexHullShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMesh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btOptimizedBvh.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleInfoMap.h \
+		libs\bullet\src\LinearMath\btHashMap.h \
+		libs\bullet\src\LinearMath\btSerializer.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btCompoundShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTetrahedronShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btEmptyShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btMultiSphereShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btUniformScalingShape.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btDbvt.h \
+		libs\bullet\src\LinearMath\btQuickprof.h \
+		libs\bullet\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h \
+		libs\bullet\src\LinearMath\btDefaultMotionState.h \
+		libs\bullet\src\LinearMath\btIDebugDraw.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btRigidBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSolverBody.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpringConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btUniversalConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btHinge2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGeneric6DofSpring2Constraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btGearConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btFixedConstraint.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btRaycastVehicle.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
+		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
+		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -2888,53 +3570,6 @@ obj\mesh.obj: src\mesh.cpp libs\assimp\include\assimp\mesh.h \
 		libs\assimp\include\assimp\quaternion.inl \
 		libs\assimp\include\assimp\matrix3x3.inl \
 		libs\assimp\include\assimp\matrix4x4.inl
-
-obj\prism.obj: src\prism.cpp include/prism.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qvector3d.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qpoint.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnamespace.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobal.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qconfig.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qfeatures.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsystemdetection.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qprocessordetection.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcompilerdetection.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypeinfo.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypetraits.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qisenum.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsysinfo.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qlogging.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qflags.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbasicatomic.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_bootstrap.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qgenericatomic.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_cxx11.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_gcc.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_msvc.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv7.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv6.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv5.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_ia64.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_x86.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_unix.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobalstatic.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmutex.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnumeric.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qversiontagging.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmetatype.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbytearray.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qrefcount.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qarraydata.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstring.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qchar.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstringbuilder.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qvarlengtharray.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcontainerfwd.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qalgorithms.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs.h \
-		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs_impl.h
 
 obj\prism.obj: src\prism.cpp include/prism.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
