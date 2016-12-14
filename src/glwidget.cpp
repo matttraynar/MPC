@@ -181,14 +181,13 @@ void GLWidget::createTeapot()
 
     //Load the teapot obj
     teapot->loadMesh("objFiles/cubeLARGE.obj");
-//    teapot->packSpheres();
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
 
     teapot->generateDistanceField();
     teapot->packSpheres();
-    teapot->preparePoints(m_pgm);
+//    teapot->preparePoints(m_pgm);
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
@@ -247,9 +246,9 @@ void GLWidget::paintGL()
             //Draw the object
             m_sceneObjects[1]->draw();
 
-            m_sceneObjects[1]->drawPoints();
+//            m_sceneObjects[1]->drawPoints();
 
-            sphere.setWireMode();
+//            sphere.setWireMode();
             //Iterate for the number of spheres in the spherepack
             for(uint j = 0; j < m_sceneObjects[1]->getSphereNum(); ++j)
             {
