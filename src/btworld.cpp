@@ -79,6 +79,34 @@ void BtWorld::addMesh(const std::string name, QVector3D pos)
     m_bodies.push_back(mesh);
 }
 
+void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia)
+{
+    btCollisionShape* sphere = BtShape::instance()->getShape("sphere");
+
+    btTransform startPos;
+    startPos.setIdentity();
+
+    btScalar m(mass);
+
+    btVector3 sphereInertia(inertia.x(), inertia.y(), inertia.z());
+    sphere->calculateLocalInertia(m, sphereInertia);
+    startPos.setOrigin(btVector3(pos.x(), pos.y(), pos.z()));
+
+    btDefaultMotionState* sphereMotionState = new btDefaultMotionState(startPos);
+    btRigidBody::btRigidBodyConstructionInfo sphereCI(m, sphereMotionState, sphere, sphereInertia);
+    btRigidBody* body = new btRigidBody(sphereCI);
+
+    body->setFriction(1.0);
+    body->setRollingFriction(1.0);
+
+    m_dynamicsWorld->addRigidBody(body);
+    Body rbSphere;
+    rbSphere.name = "sphere";
+    rbSphere.body = body;
+
+    m_bodies.push_back(rbSphere);
+}
+
 uint BtWorld::getNumCollisionObjects() const
 {
     return m_dynamicsWorld->getNumCollisionObjects();

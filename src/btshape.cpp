@@ -31,6 +31,13 @@ void BtShape::addMesh(const std::string name, const char* filepath, QVector3D co
 
 }
 
+void BtShape::addSphere(const std::string name, float radius)
+{
+    btCollisionShape* shape = new btSphereShape(btScalar(radius));
+
+    m_shapes[name].reset(shape);
+}
+
 btCollisionShape* BtShape::getShape(const std::string name)
 {
     btCollisionShape *shape = nullptr;

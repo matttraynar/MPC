@@ -64,7 +64,7 @@ void GLWidget::initializeGL()
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
      shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
-     shapes->addMesh("sphere", "objFiles/sphere.obj", QVector3D(1.0f, 0.0f, 0.0f));
+     shapes->addSphere("sphere",1.0f);
 
      //Add the ground plane to the bullet world and then
      //create a ground plane in the scene objects so that
@@ -196,7 +196,8 @@ void GLWidget::createTeapot()
     for(uint i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
         //Set the position and load to the shader program again
-        m_bullet->addMesh("sphere", m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0));
+//        m_bullet->addMesh("sphere", m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0));
+        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
     }
 
     //Release the shader program

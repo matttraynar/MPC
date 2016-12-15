@@ -20,6 +20,7 @@ public:
 
     void addGround();
     void addMesh(const std::string name, QVector3D pos);
+    void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia);
 
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;
