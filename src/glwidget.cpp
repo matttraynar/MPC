@@ -196,7 +196,6 @@ void GLWidget::createTeapot()
     for(uint i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
         //Set the position and load to the shader program again
-//        m_bullet->addMesh("sphere", m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0));
         m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
     }
 
