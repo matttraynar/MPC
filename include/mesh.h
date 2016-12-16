@@ -14,6 +14,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 
 #include "prism.h"
 
@@ -77,7 +78,9 @@ public:
     //Get methods
     inline std::vector<QVector3D> getVerts() const { return m_verts; }
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index];}
-    inline int getSphereNum() const                { return m_spherePositions.size(); }
+    inline int getSphereNum() const                { return (int)m_spherePositions.size(); }
+
+    inline std::vector<int> getConnectionsTo(int index) { return m_connections[index]; }
 
     //Colour of the mesh
     QVector4D m_colour;
@@ -103,7 +106,7 @@ private:
     BBox makeNeighbourhood(QVector3D p);
     bool bBoxContains(BBox box, QVector3D point);
     void haloIntersection(QVector3D a, QVector3D b, QVector3D c, QVector3D &hit1, QVector3D &hit2, HaloIntersections &intersectionType);
-    void validatePoints(std::vector<QVector3D> &points, const std::vector<QVector3D> &neighbourhood);
+    void validatePoints(std::vector<QVector3D> &points);
 
     float interpolateLinear(float x, float x1, float x2, float c00, float c01);
     float interpolateTrilinear(QVector3D p);
@@ -136,8 +139,9 @@ private:
     std::vector< std::vector< std::vector< int> > > m_distancePoints;
     std::vector< std::vector< std::vector<Triangle> > > m_distanceTriangles;
 
-
     std::vector<Prism> m_shell;
+
+    std::unordered_map<int, std::vector<int> > m_connections;
 
     //Wireframe state
     bool m_wireframeMode;

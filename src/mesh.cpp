@@ -86,7 +86,7 @@ void Mesh::prepareMesh(QOpenGLShaderProgram& program)
     m_vbo.create();
     m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_vbo.bind();
-    m_vbo.allocate(&m_verts[0], m_verts.size() * sizeof(GLfloat) * 3);
+    m_vbo.allocate(&m_verts[0], (int)m_verts.size() * sizeof(GLfloat) * 3);
 
     //Tell the shader program the currently bound buffer object contains
     //vertex position data
@@ -101,7 +101,7 @@ void Mesh::prepareMesh(QOpenGLShaderProgram& program)
     m_nbo.create();
     m_nbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_nbo.bind();
-    m_nbo.allocate(&m_norms[0], m_norms.size() * sizeof(GLfloat) * 3);
+    m_nbo.allocate(&m_norms[0], (int)m_norms.size() * sizeof(GLfloat) * 3);
 
     program.enableAttributeArray("vertexNorm");
     program.setAttributeArray("vertexNorm", GL_FLOAT, 0, 3);
@@ -113,7 +113,7 @@ void Mesh::prepareMesh(QOpenGLShaderProgram& program)
     m_ibo.create();
     m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_ibo.bind();
-    m_ibo.allocate(&m_meshIndex[0], m_meshIndex.size() * sizeof(uint));
+    m_ibo.allocate(&m_meshIndex[0], (int)m_meshIndex.size() * sizeof(uint));
 
     //Don't release the ibo from the vao but do release the vertex array object,
     //we'll bind to it later when it is needed for drawing
@@ -132,7 +132,7 @@ void Mesh::draw()
     }
 
     //Draw the mesh data using indexed elements
-    glDrawElements(GL_TRIANGLES, m_meshIndex.size(), GL_UNSIGNED_INT, &m_meshIndex[0]);
+    glDrawElements(GL_TRIANGLES,  (int)m_meshIndex.size(), GL_UNSIGNED_INT, &m_meshIndex[0]);
 
     //Reset the polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -150,7 +150,7 @@ void Mesh::preparePoints(QOpenGLShaderProgram &program)
     m_vboP.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_vboP.bind();
 
-    m_vboP.allocate(&m_pointPositions[0], m_pointPositions.size() * sizeof(GLfloat) * 3);
+    m_vboP.allocate(&m_pointPositions[0],  (int)m_pointPositions.size() * sizeof(GLfloat) * 3);
 
     program.enableAttributeArray("vertexPos");
     program.setAttributeArray("vertexPos", GL_FLOAT, 0, 3);
@@ -164,7 +164,7 @@ void Mesh::drawPoints()
 {
     m_vaoP.bind();
 
-    glDrawArrays(GL_POINTS, 0, m_pointPositions.size());
+    glDrawArrays(GL_POINTS, 0,  (int)m_pointPositions.size());
 
     m_vaoP.release();
 }
@@ -697,7 +697,6 @@ QVector3D Mesh::getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2
 
     float uFactor = (point.x() - C.x())*(B.y() - C.y()) + (point.y() - C.y())*(C.x() - B.x());
     float vFactor = (point.x() - C.x())*(C.y() - A.y()) + (point.y() - C.y())*(A.x() - C.x());
-    float wFactor = (point.x() - C.x())*(A.y() - B.y()) + (point.y() - C.y())*(A.x() - B.x());
 
     float u = uFactor / det;
     float v = vFactor / det;
@@ -957,19 +956,19 @@ void Mesh::generateDistanceField()
 
     qInfo()<<"Distance field creation is complete\n";
 
-    int ySize = m_distancePoints.size();
+    int ySize =  (int)m_distancePoints.size();
 
     float  y = m_meshAABB.yMin;
 
     for(int yI = 0; yI < ySize; yI++)
     {
-        int zSize = m_distancePoints[yI].size();
+        int zSize =  (int)m_distancePoints[yI].size();
 
         float z = m_meshAABB.zMin;
 
         for(int zI = 0; zI < zSize; zI++)
         {
-            int xSize = m_distancePoints[yI][zI].size();
+            int xSize =  (int)m_distancePoints[yI][zI].size();
 
             float x = m_meshAABB.xMin;
 
@@ -1096,13 +1095,13 @@ void Mesh::generateDistanceField()
 
     for(int yI = 0; yI < ySize; yI++)
     {
-        int zSize = m_distancePoints[yI].size();
+        int zSize =  (int)m_distancePoints[yI].size();
 
         float z = m_meshAABB.zMin;
 
         for(int zI = 0; zI < zSize; zI++)
         {
-            int xSize = m_distancePoints[yI][zI].size();
+            int xSize =  (int)m_distancePoints[yI][zI].size();
 
             float x = m_meshAABB.xMin;
 
@@ -1166,6 +1165,9 @@ void Mesh::packSpheres()
 
     int count = 0;
 
+    std::vector<int> currentConnections;
+    int sphereIndex = 0;
+
     while(frontQueue.size() != 0)
     {
         if(frontQueue.size() >= 100)
@@ -1227,7 +1229,7 @@ void Mesh::packSpheres()
 
 
 
-        validatePoints(candidatePoints, neighbors);
+        validatePoints(candidatePoints);
 
         if(candidatePoints.size() > 0)
         {
@@ -1240,9 +1242,16 @@ void Mesh::packSpheres()
         if(candidatePoints.size() < 2)
         {
             frontQueue.erase(frontQueue.begin());
+            m_connections[sphereIndex] = currentConnections;
+
+            sphereIndex++;
+            currentConnections.clear();
         }
 
         count++;
+
+        currentConnections.push_back(count);
+
     }
 
     for(uint i =0; i < m_spherePositions.size(); ++i)
@@ -1350,8 +1359,6 @@ void Mesh::haloIntersection(QVector3D a, QVector3D b, QVector3D c,
         return;
     }
 
-    float circleRadius2 = sqrt((haloRadius * haloRadius) - (dotDist * dotDist));
-
     intersectionType = TwoHits;
 
     QVector3D circleN2 = QVector3D::crossProduct(circleCenter2 - circleCenter, circleN).normalized();
@@ -1440,12 +1447,10 @@ void Mesh::haloIntersection(QVector3D a, QVector3D b, QVector3D c,
 
 }
 
-void Mesh::validatePoints(std::vector<QVector3D> &points, const std::vector<QVector3D> &neighbourhood)
+void Mesh::validatePoints(std::vector<QVector3D> &points)
 {
-    int numPoints = points.size();
+    uint numPoints =  (uint)points.size();
     std::vector<QVector3D> acceptedPoints;
-
-    numPoints = points.size();
 
     for(uint i = 0; i < numPoints; ++i)
     {
@@ -1463,7 +1468,7 @@ void Mesh::validatePoints(std::vector<QVector3D> &points, const std::vector<QVec
 
     std::vector<int> pointsToRemove;
 
-    numPoints = points.size();
+    numPoints =  (uint)points.size();
 
     for(uint i = 0; i <m_spherePositions.size(); ++i)
     {
@@ -1472,8 +1477,6 @@ void Mesh::validatePoints(std::vector<QVector3D> &points, const std::vector<QVec
             if(std::find(pointsToRemove.begin(), pointsToRemove.end(), j) == pointsToRemove.end())
             {
                 float dist = (m_spherePositions[i] - points[j]).length();
-
-                float radius = m_radius;
 
                 if(dist <= m_radius * 1.75f)
                 {

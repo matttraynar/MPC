@@ -166,7 +166,6 @@ void GLWidget::createGround()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
-//    m_objs["groundPlane"].reset(ground);
 
     //Release the shader program
     m_pgm.release();
@@ -186,22 +185,63 @@ void GLWidget::createTeapot()
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
 
+    //Generate the distance points used to speed up sphere packing
     teapot->generateDistanceField();
+
+    //Pack the mesh with spheres
     teapot->packSpheres();
-//    teapot->preparePoints(m_pgm);
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
 
-    for(uint i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
+    //Iterate over all the spheres in the pack
+    for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
-        //Set the position and load to the shader program again
+        //For each sphere add a new btSphere to the bullet world (and at the
+        //correct position
         m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
+    }
+
+    //Create a new container for pairs
+    std::vector< std::pair<int, int> > connectedSpheres;
+
+    //Get the number of collision objects in the world
+    uint nBodies = m_bullet->getNumCollisionObjects();
+
+    //Iterate through them
+    for(uint i = 1; i < nBodies; ++i)
+    {
+        //Account for the ground plane (the first object in the bullet world)
+        int sphereIndex = i - 1;
+
+        //Get the possible connections the current sphere could have in
+        //the sphere pack
+        std::vector<int> attachedSpheres = teapot->getConnectionsTo(sphereIndex);
+
+        //Iterate through
+        for(uint j = 0; j < attachedSpheres.size(); ++j)
+        {
+            //Check for the constraint between the current sphere and the
+            //potential sphere
+            auto position = std::find_if(connectedSpheres.begin(), connectedSpheres.end(), FindPair(sphereIndex, j));
+
+            //Check if it was found
+            if(position == connectedSpheres.end())
+            {
+                //MAKE CONSTRAINT BETWEEN SPHEREINDEX AND J
+
+                //Add the connected pair to the vector
+                connectedSpheres.push_back(std::make_pair(sphereIndex, j));
+            }
+        }
     }
 
     //Release the shader program
     m_pgm.release();
 }
+
+
+
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
 
@@ -239,7 +279,8 @@ void GLWidget::paintGL()
         //Get the position of the bullet mesh
         m_position = m_bullet->getTransform(i);
 
-        //Load the viewing/positional matrices to the shader program
+        //Load the viewing and object transformation matrices
+        //to the shader program
         loadShaderMatrices();
 
         //Get the name of the bullet object
@@ -254,12 +295,13 @@ void GLWidget::paintGL()
             //Draw the object
             m_sceneObjects[1]->draw();
         }
+        //Check for a sphere
         else if(name == "sphere")
         {
             //Set the colour of the object in the shader
             m_pgm.setUniformValue("mCol",sphere.m_colour);
 
-            //Draw the object
+            //Draw an instance of the sphere
             sphere.draw();
 
         }
@@ -435,6 +477,9 @@ void GLWidget::setZRotation(int angle)
 
 void GLWidget::timerEvent(QTimerEvent *e)
 {
+    //Getting a warning because the timer event isn't being used
+    e;
+
     m_bullet->step(1.0f/60.0f, 10);
     update();
 }
