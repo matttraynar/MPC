@@ -208,6 +208,8 @@ void GLWidget::createTeapot()
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
 
+    int constCount = 0;
+
     //Iterate through them
     for(uint i = 1; i < nBodies; ++i)
     {
@@ -225,16 +227,34 @@ void GLWidget::createTeapot()
             //potential sphere
             auto position = std::find_if(connectedSpheres.begin(), connectedSpheres.end(), FindPair(sphereIndex, j));
 
-            //Check if it was found
+            //Thisindicates the pair was not found
             if(position == connectedSpheres.end())
             {
-                //MAKE CONSTRAINT BETWEEN SPHEREINDEX AND J
+                qInfo()<<"Adding constraint";
+                constCount++;
+
+//                //MAKE CONSTRAINT BETWEEN SPHEREINDEX AND J
+//                btRigidBody* sphereA = m_bullet->getBodyAt(i);
+//                btRigidBody* sphereB = m_bullet->getBodyAt(attachedSpheres[j]);
+
+//                btTransform transA;
+//                transA.setIdentity();
+
+//                btTransform transB;
+//                transB.setIdentity();
+
+//                btFixedConstraint* connection = new btFixedConstraint(*sphereA, *sphereB, transA, transB);
+
+//                m_bullet->addConstraint(connection);
 
                 //Add the connected pair to the vector
                 connectedSpheres.push_back(std::make_pair(sphereIndex, j));
             }
         }
     }
+
+    qInfo()<<constCount<<" constraints added";
+    qInfo()<<m_sceneObjects[1]->getSphereNum()<<" spheres";
 
     //Release the shader program
     m_pgm.release();

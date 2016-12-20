@@ -22,9 +22,12 @@ public:
     void addMesh(const std::string name, QVector3D pos);
     void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia);
 
+    void addConstraint(btTypedConstraint *constraint);
+
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;
     inline std::string getBodyNameAt(uint i) const { return m_bodies[i].name; }
+    inline btRigidBody* getBodyAt(uint i) const { return m_bodies[i].body; }
 
 private:
     std::unique_ptr<btDefaultCollisionConfiguration>     m_collisionConfig;

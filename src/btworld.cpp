@@ -107,6 +107,12 @@ void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inert
     m_bodies.push_back(rbSphere);
 }
 
+void BtWorld::addConstraint(btTypedConstraint* constraint)
+{
+    m_dynamicsWorld->addConstraint(constraint);
+    delete constraint;
+}
+
 uint BtWorld::getNumCollisionObjects() const
 {
     return m_dynamicsWorld->getNumCollisionObjects();
