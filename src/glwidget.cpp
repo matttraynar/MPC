@@ -20,7 +20,7 @@ GLWidget::GLWidget( QWidget* parent )
     m_zRot = 0;
     m_zDis = 0;
     m_mouseDelta = 0;
-    m_cameraPos = QVector3D(5,5,5);
+    m_cameraPos = QVector3D(50.0f,50.0f,50.0f);
 
     //Initialise the postition which will be used later
     m_position = QVector3D();
@@ -28,6 +28,12 @@ GLWidget::GLWidget( QWidget* parent )
 
 GLWidget::~GLWidget()
 {
+    for(auto iter = m_constraints.begin(); iter != m_constraints.end(); ++iter)
+    {
+        delete *iter;
+    }
+
+    m_constraints.clear();
 
 }
 
@@ -51,7 +57,7 @@ void GLWidget::initializeGL()
 
      //Set an initial view matrix
      m_view.setToIdentity();
-     m_view.lookAt(QVector3D(0.0f, 0.0f, 1.2f),    // Camera Position
+     m_view.lookAt(m_cameraPos,    // Camera Position
                    QVector3D(0.0f, 0.0f, 0.0f),    // Point camera looks towards
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
@@ -66,11 +72,10 @@ void GLWidget::initializeGL()
      shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
-     //Add the ground plane to the bullet world and then
-     //create a ground plane in the scene objects so that
+     //Create a ground plane in the scene objects so that
      //it gets drawn
-     m_bullet->addMesh("groundPlane",QVector3D(0,0,0));
      createGround();
+
 
      //Do the same with the teapot
 //     m_bullet->addMesh("teapot",QVector3D(0,10,0));
@@ -194,21 +199,31 @@ void GLWidget::createTeapot()
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
 
+    int count = 100000;
+
     //Iterate over all the spheres in the pack
     for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
+        if(i > count)
+        {
+            break;
+        }
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
         m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
     }
 
-    //Create a new container for pairs
-    std::vector< std::pair<int, int> > connectedSpheres;
 
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
+    uint nSpheres = m_sceneObjects[1]->getSphereNum();
 
     int constCount = 0;
+
+    //Create a new container for pairs
+    std::vector< std::pair<uint, uint> > sphereIndices;
+
+    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
     //Iterate through them
     for(uint i = 1; i < nBodies; ++i)
@@ -218,50 +233,65 @@ void GLWidget::createTeapot()
 
         //Get the possible connections the current sphere could have in
         //the sphere pack
-        std::vector<int> attachedSpheres = teapot->getConnectionsTo(sphereIndex);
 
-        //Iterate through
-        for(uint j = 0; j < attachedSpheres.size(); ++j)
+        std::vector<QVector3D> spheresToConnect;
+
+        teapot->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+
+        if(spheresToConnect.size() == 0)
         {
-            //Check for the constraint between the current sphere and the
-            //potential sphere
-            auto position = std::find_if(connectedSpheres.begin(), connectedSpheres.end(), FindPair(sphereIndex, j));
-
-            //Thisindicates the pair was not found
-            if(position == connectedSpheres.end())
+            continue;
+        }
+        else
+        {
+            for(uint j = 0; j < sphereIndices.size(); ++j)
             {
-                qInfo()<<"Adding constraint";
-                constCount++;
+                uint sphereA = sphereIndices[j].first;
 
-//                //MAKE CONSTRAINT BETWEEN SPHEREINDEX AND J
-//                btRigidBody* sphereA = m_bullet->getBodyAt(i);
-//                btRigidBody* sphereB = m_bullet->getBodyAt(attachedSpheres[j]);
+                if(sphereIndex == sphereA)
+                {
+                    uint sphereB = sphereIndices[j].second;
 
-//                btTransform transA;
-//                transA.setIdentity();
+                    if(sphereB > count + 1)
+                    {
+                        continue;
+                    }
 
-//                btTransform transB;
-//                transB.setIdentity();
+                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
 
-//                btFixedConstraint* connection = new btFixedConstraint(*sphereA, *sphereB, transA, transB);
+                    QVector3D sphereAPos = teapot->getSphereAt(sphereA);
+                    QVector3D sphereBPos = teapot->getSphereAt(sphereB);
 
-//                m_bullet->addConstraint(connection);
+                    btTransform transA;
+                    transA.setIdentity();
 
-                //Add the connected pair to the vector
-                connectedSpheres.push_back(std::make_pair(sphereIndex, j));
+                    btVector3 vectorA(sphereAPos.x(), sphereAPos.y(), sphereAPos.z());
+                    transA.setOrigin(vectorA);
+                    //                    transA.setOrigin(btVector3(sphereAPos.x(), sphereAPos.y(), sphereAPos.z()));
+
+                    btTransform transB;
+                    transB.setIdentity();
+
+                    btVector3 vectorB(sphereBPos.x(), sphereBPos.y(), sphereBPos.z());
+                    transB.setOrigin(vectorB);
+                    //                    transB.setOrigin(btVector3(sphereBPos.x(), sphereBPos.y(), sphereBPos.z()));
+
+                    btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transA, transB);
+
+                    m_constraints.push_back(connection);
+
+                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                    constCount++;
+                }
             }
         }
     }
 
-    qInfo()<<constCount<<" constraints added";
-    qInfo()<<m_sceneObjects[1]->getSphereNum()<<" spheres";
-
     //Release the shader program
     m_pgm.release();
 }
-
-
-
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
 

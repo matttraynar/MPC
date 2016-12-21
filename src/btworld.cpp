@@ -110,7 +110,29 @@ void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inert
 void BtWorld::addConstraint(btTypedConstraint* constraint)
 {
     m_dynamicsWorld->addConstraint(constraint);
-    delete constraint;
+    m_dynamicsWorld->debugDrawConstraint(constraint);
+}
+
+void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB)
+{
+    btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
+
+    m_dynamicsWorld->addConstraint(connection, false);
+
+    if(connection->isEnabled())
+    {
+        qInfo()<<"Constraint enabled";
+    }
+    else
+    {
+        qInfo()<<"Constraint not enabled";
+    }
+
+}
+
+void BtWorld::removeConstraint(btTypedConstraint* constraint)
+{
+    m_dynamicsWorld->removeConstraint(constraint);
 }
 
 uint BtWorld::getNumCollisionObjects() const

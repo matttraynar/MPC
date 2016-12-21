@@ -1603,5 +1603,76 @@ int Mesh::getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points)
     return index;
 }
 
+void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, std::vector< std::pair<uint, uint> > &pairs)
+{
+    QVector3D curSphere = m_spherePositions[sphereIndex];
+
+    float margin = m_radius;
+
+    for(uint i = 0; i < m_spherePositions.size(); ++i)
+    {
+        //Ignore the sphere we're testing
+        if(i == sphereIndex)
+        {
+            continue;
+        }
+
+        //Get a sphere from the list of positions
+        QVector3D testSphere = m_spherePositions[i];
+
+        //Check whether the x component is within range
+        float xMin = curSphere.x() - margin;
+        float xMax = curSphere.x() + margin;
+
+        //If it isn't we can short circuit and skip the rest
+        if(testSphere.x() < xMin || testSphere.x() > xMax)
+        {
+            continue;
+        }
+
+        //Do the same for the y component
+        float yMin = curSphere.y() - margin;
+        float yMax = curSphere.y() + margin;
+
+        if(testSphere.y() < yMin || testSphere.y() > yMax)
+        {
+            continue;
+        }
+
+        //And finally test the z component
+        float zMin = curSphere.z() - margin;
+        float zMax = curSphere.z() + margin;
+
+        if(testSphere.z() < zMin || testSphere.z() > zMax)
+        {
+            continue;
+        }
+
+        //The point is within our bounding box, get
+        //the actual distance separating the current
+        //sphere and this sphere
+        float distance = (testSphere - curSphere).length();
+
+        //Check if the distance is acceptable
+        if(distance <= margin)
+        {
+            auto pairPosition = std::find_if(pairs.begin(), pairs.end(), FindPair(sphereIndex, i));
+
+            //This indicates the pair was not found
+            if(pairPosition == pairs.end())
+            {
+                //If it is then add it to the list of accepted positions
+                positions.push_back(testSphere);
+                pairs.push_back(std::make_pair(sphereIndex, i));
+            }
+            else
+            {
+//                qInfo()<<"Pair: "<<sphereIndex<<", "<<i<<" was already found";
+            }
+        }
+    }
+
+}
+
 
 

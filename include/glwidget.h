@@ -18,26 +18,6 @@
 #include "btworld.h"
 #include "btshape.h"
 
-/*-----------------------------
- * This struct uses a slightly modified version of code that can be found here:
- * http://stackoverflow.com/questions/33557276/using-find-with-vectorpairint-int
- *
- * The modification is to allow for reverse pairs e.g (A,B) and (B,A)
- * */
-struct FindPair
-{
-    FindPair(int a, int b) : m_first(a), m_second(b) {}
-
-    int m_first;
-    int m_second;
-
-    bool operator() (const std::pair<int, int> &pair)
-    {
-        return((pair.first == m_first && pair.second == m_second) ||
-                 (pair.first == m_second && pair.second == m_first));
-    }
-};
-
 class GLWidget : public QGLWidget
 {
  Q_OBJECT
@@ -83,6 +63,8 @@ private:
 
     //Container which contains all the objects in the scene
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
+
+    std::vector<btTypedConstraint* > m_constraints;
 
     //An unordered map used to refer to each mesh by a name
     std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;
