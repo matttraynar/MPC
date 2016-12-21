@@ -117,6 +117,14 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
 {
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
+    //PLAYAROUND HERE?
+    connection->setLimit(0, 0, 0.1);
+    connection->setLimit(1, 0, 0.1);
+    connection->setLimit(2, 0, 0.1);
+    connection->setLimit(3, 0, 0.1);
+    connection->setLimit(4, 0, 0.1);
+    connection->setLimit(5, 0, 0.1);
+
     m_dynamicsWorld->addConstraint(connection, false);
 
     if(connection->isEnabled())

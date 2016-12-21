@@ -11,7 +11,7 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
     m_bullet.reset(new BtWorld());
-    m_bullet->setGravity(0.0f, -9.8f, 0.0f);
+    m_bullet->setGravity(0.0f, 0.0f, 0.0f);
     m_bullet->addGround();
 
     //Initialise variables for mouse control to 0
@@ -204,10 +204,6 @@ void GLWidget::createTeapot()
     //Iterate over all the spheres in the pack
     for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
-        if(i > count)
-        {
-            break;
-        }
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
         m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
@@ -240,6 +236,7 @@ void GLWidget::createTeapot()
 
         if(spheresToConnect.size() == 0)
         {
+            qInfo()<<"No spheres to connect with "<<i;
             continue;
         }
         else
@@ -282,6 +279,9 @@ void GLWidget::createTeapot()
                     m_constraints.push_back(connection);
 
                     m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                    bodyA->addConstraintRef(connection);
+                    bodyB->addConstraintRef(connection);
 
                     constCount++;
                 }

@@ -1607,7 +1607,7 @@ void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, 
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
-    float margin = m_radius;
+    float margin = 2 * m_radius;
 
     for(uint i = 0; i < m_spherePositions.size(); ++i)
     {
