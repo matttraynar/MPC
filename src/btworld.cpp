@@ -30,6 +30,24 @@ void BtWorld::step(float time, float step)
     m_dynamicsWorld->stepSimulation(time,step);
 }
 
+void BtWorld::stop()
+{
+    uint bodies = getNumCollisionObjects();
+
+    for(uint i = 0; i < bodies; ++i)
+    {
+        m_bodies[i].body->clearForces();
+        m_bodies[i].body->setLinearVelocity(btVector3(0,0,0));
+        m_bodies[i].body->setAngularVelocity(btVector3(0,0,0));
+    }
+}
+
+void BtWorld::reset(QVector3D position, uint index)
+{
+    btTransform resetPosition(btQuaternion::getIdentity(), btVector3(position.x(), position.y() + 5, position.z()));
+    m_bodies[index + 1].body->setWorldTransform(resetPosition);
+}
+
 void BtWorld::addGround()
 {
     m_groundPlane.reset(new btStaticPlaneShape(btVector3(0.0f, 1.0f, 0.0f), 0.0f));
@@ -117,51 +135,13 @@ void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inert
     sphereRB->setUserPointer(&m_bodies[m_bodies.size() - 1]);
 }
 
-void BtWorld::addConstraint(btTypedConstraint* constraint)
-{
-    m_dynamicsWorld->addConstraint(constraint);
-    m_numConstraints++;
-}
-
 void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB)
 {
+    //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
-    connection->setLinearLowerLimit(btVector3(0,0,0));
-    connection->setLinearUpperLimit(btVector3(1,1,1));
-    connection->setAngularLowerLimit(btVector3( 0, 0, 0 ));
-    connection->setAngularUpperLimit(btVector3( 0, 0, 0 ));
-
-
+    //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
-
-    m_constraints.push_back(connection);
-
-//    Body* constrainFrom = (Body*)(bodyA->getUserPointer());
-//    Body* constrainTo = (Body*)(bodyB->getUserPointer());
-
-//    constrainFrom->constraints.push_back(connection);
-//    constrainTo->constraints.push_back(connection);
-
-    m_numConstraints++;
-
-//    connection->setEnabled(false);
-
-    if(connection->isEnabled())
-    {
-        qInfo()<<"Constraint enabled";
-    }
-    else
-    {
-        qInfo()<<"Constraint not enabled";
-    }
-
-}
-
-void BtWorld::removeConstraint(btTypedConstraint* constraint)
-{
-    m_dynamicsWorld->removeConstraint(constraint);
-    m_numConstraints--;
 }
 
 void BtWorld::checkVelocities()
@@ -186,92 +166,6 @@ void BtWorld::checkVelocities()
         }
     }
 }
-
-void BtWorld::checkCollisions()
-{
-    int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
-
-    for(int i = 0; i < numManifolds; ++i)
-    {
-        btPersistentManifold* contactMan = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
-
-        const btCollisionObject* objA = static_cast<const btCollisionObject*>(contactMan->getBody0());
-        const btCollisionObject* objB = static_cast<const btCollisionObject*>(contactMan->getBody1());
-
-        int numContacts = contactMan->getNumContacts();
-
-        Body* thisObj = (Body*)(objA->getUserPointer());
-        Body* thatObj = (Body*)(objB->getUserPointer());
-
-        if(thisObj == NULL || thatObj == NULL)
-        {
-            qInfo()<<"Pointer was null";
-            continue;
-        }
-
-        btRigidBody* thisRBody= thisObj->body;
-        btRigidBody* thatRBody = thatObj->body;
-
-        if(thisRBody == NULL || thatRBody == NULL)
-        {
-            qInfo()<<"Pointer was null";
-            continue;
-        }
-
-        Body* thisRObj = (Body*)(thisRBody->getUserPointer());
-        Body* thatRObj = (Body*)(thatRBody->getUserPointer());
-
-
-
-
-        qInfo()<<"name "<<QString(thisRObj->name.c_str());
-        qInfo()<<"name "<<QString(thatRObj->name.c_str());
-
-//        for(int j = 0; j < numContacts; ++j)
-//        {
-//            btManifoldPoint& point = contactMan->getContactPoint(j);
-
-//            if(point.getDistance() < 0.0f)
-//            {
-//                //Get the stored pointer from the collision object. Because this returns a void*
-//                //I have to convert it to a shared_ptr* and then dereference it
-
-
-//                if(thisObj == NULL || thatObj == NULL)
-//                {
-//                    qInfo()<<"Pointer was null";
-//                }
-//                else if(strcmp(thatObj->name.c_str(), "groundPlane"))
-//                {
-//                    qInfo()<<"Sphere collision that=ground";
-
-//                    int thisObjConstraintCount = thisObj->constraints.size();
-
-
-//                    qInfo()<<"Num constraints: "<<thisObjConstraintCount;
-
-//                    for(int k = 0; k < thisObjConstraintCount; ++k)
-//                    {
-//                        thisObj->constraints[k]->setEnabled(true);
-//                    }
-//                }
-//                else if(strcmp(thisObj->name.c_str(), "groundPlane"))
-//                {
-//                    qInfo()<<"Sphere collision this=ground";
-
-//                    int thatObjConstraintCount = thatObj->constraints.size();
-
-//                    for(int k = 0; k < thatObjConstraintCount; ++k)
-//                    {
-//                        thatObj->constraints[k]->setEnabled(true);
-//                    }
-//                }
-//            }
-//        }
-    }
-
-}
-
 
 uint BtWorld::getNumCollisionObjects() const
 {

@@ -18,18 +18,16 @@ public:
 
     void setGravity(float x, float y, float z);
     void step(float time, float step);
+    void stop();
+    void reset(QVector3D position, uint index);
 
     void addGround();
     void addMesh(const std::string name, QVector3D pos);
     void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia);
 
-    void addConstraint(btTypedConstraint *constraint);
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
-    void removeConstraint(btTypedConstraint* constraint);
 
     void checkVelocities();
-    void checkCollisions();
-    void setConstraintState(btManifoldPoint &collisionPoint, const btCollisionObject *bodyA, int id1, int index1, const btCollisionObject *bodyB, int id2, int index2);
 
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;
@@ -43,17 +41,12 @@ private:
     std::unique_ptr<btSequentialImpulseConstraintSolver> m_solver;
     std::unique_ptr< btDiscreteDynamicsWorld>            m_dynamicsWorld;
 
-    std::shared_ptr<btCollisionShape> m_groundPlane;    
-
-    std::vector<btTypedConstraint* > m_constraints;
-    int m_numConstraints;
+    std::shared_ptr<btCollisionShape> m_groundPlane;
 
     typedef struct
     {
       std::string name;
       btRigidBody* body;
-      std::vector<btFixedConstraint* > constraints;
-      bool constraintsOn;
 
     }Body;
 

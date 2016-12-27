@@ -12,7 +12,7 @@ Mesh::Mesh(QVector4D colour)
     //Set the colour to the specified value
     m_colour = colour;
 
-    m_radius = 2.0f;
+    m_radius = 0.25f;
 }
 
 Mesh::~Mesh()
