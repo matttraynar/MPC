@@ -11,7 +11,8 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
     m_bullet.reset(new BtWorld());
-    m_bullet->setGravity(0.0f, 0.0f, 0.0f);
+//    m_bullet->setGravity(0.0f, 0.0f, 0.0f);
+    m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
     //Initialise variables for mouse control to 0
@@ -21,6 +22,9 @@ GLWidget::GLWidget( QWidget* parent )
     m_zDis = 0;
     m_mouseDelta = 0;
     m_cameraPos = QVector3D(50.0f,50.0f,50.0f);
+
+    m_isSimulating = false;
+    m_drawMesh = false;
 
     //Initialise the postition which will be used later
     m_position = QVector3D();
@@ -69,7 +73,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/sphereLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
@@ -185,7 +189,7 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/cubeLARGE.obj");
+    teapot->loadMesh("objFiles/sphereLARGE.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
@@ -198,15 +202,21 @@ void GLWidget::createTeapot()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
+    m_sceneObjects[1]->setWireMode();
 
-    int count = 100000;
+    int count = 10000;
 
     //Iterate over all the spheres in the pack
     for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
-        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
+        if(i > count)
+        {
+            break;
+        }
+        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,5,0), 1.0f, QVector3D(0,0,0));
+
     }
 
 
@@ -247,41 +257,48 @@ void GLWidget::createTeapot()
 
                 if(sphereIndex == sphereA)
                 {
+
                     uint sphereB = sphereIndices[j].second;
 
-                    if(sphereB > count + 1)
+
+                    if(sphereB > count)
                     {
                         continue;
                     }
 
-                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
-                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
-
                     QVector3D sphereAPos = teapot->getSphereAt(sphereA);
                     QVector3D sphereBPos = teapot->getSphereAt(sphereB);
+
+                    sphereA++;
+                    sphereB++;
+
+                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
 
                     btTransform transA;
                     transA.setIdentity();
 
-                    btVector3 vectorA(sphereAPos.x(), sphereAPos.y(), sphereAPos.z());
-                    transA.setOrigin(vectorA);
-                    //                    transA.setOrigin(btVector3(sphereAPos.x(), sphereAPos.y(), sphereAPos.z()));
+                    bodyA->getMotionState()->getWorldTransform(transA);
+
+//                    btVector3 vectorA(sphereAPos.x(), sphereAPos.y(), sphereAPos.z());
+//                    transA.setOrigin(vectorA);
 
                     btTransform transB;
                     transB.setIdentity();
 
-                    btVector3 vectorB(sphereBPos.x(), sphereBPos.y(), sphereBPos.z());
-                    transB.setOrigin(vectorB);
-                    //                    transB.setOrigin(btVector3(sphereBPos.x(), sphereBPos.y(), sphereBPos.z()));
+                    bodyB->getMotionState()->getWorldTransform(transB);
 
-                    btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transA, transB);
+                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
-                    m_constraints.push_back(connection);
+//                    btVector3 vectorB(sphereBPos.x(), sphereBPos.y(), sphereBPos.z());
+//                    transB.setOrigin(vectorB);
+//                    btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transA, transB);
+
 
                     m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
 
-                    bodyA->addConstraintRef(connection);
-                    bodyB->addConstraintRef(connection);
+//                    bodyA->addConstraintRef(connection);
+//                    bodyB->addConstraintRef(connection);
 
                     constCount++;
                 }
@@ -323,6 +340,9 @@ void GLWidget::paintGL()
     //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
 
+    QVector3D middlePosition(0,0,0);
+    int numSpheres = 0;
+
     //Iterate through them
     for(uint i = 0; i < nBodies; ++i)
     {
@@ -348,6 +368,9 @@ void GLWidget::paintGL()
         //Check for a sphere
         else if(name == "sphere")
         {
+            middlePosition += m_position;
+            numSpheres++;
+
             //Set the colour of the object in the shader
             m_pgm.setUniformValue("mCol",sphere.m_colour);
 
@@ -367,6 +390,14 @@ void GLWidget::paintGL()
     //The plane is always created first, so we can assume it's index
     //which we can use to draw
     m_sceneObjects[0]->draw();
+
+    if(m_drawMesh)
+    {
+        m_position = middlePosition/numSpheres;
+
+        loadShaderMatrices();
+        m_sceneObjects[1]->draw();
+    }
 
     //Finally release the shader program
     m_pgm.release();
@@ -436,6 +467,14 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_Escape:
         //User pressed 'esc' so close the window
         close();
+        break;
+
+    case Qt::Key_Space:
+        m_isSimulating = !m_isSimulating;
+        break;
+
+    case Qt::Key_M:
+        m_drawMesh = !m_drawMesh;
         break;
 
     default:
@@ -530,6 +569,13 @@ void GLWidget::timerEvent(QTimerEvent *e)
     //Getting a warning because the timer event isn't being used
     e;
 
-    m_bullet->step(1.0f/60.0f, 10);
-    update();
+    if(m_isSimulating)
+    {
+        m_bullet->checkVelocities();
+        //    m_bullet->checkCollisions();
+
+        m_bullet->step(1.0f/60.0f, 10);
+
+        update();
+    }
 }

@@ -12,7 +12,7 @@ Mesh::Mesh(QVector4D colour)
     //Set the colour to the specified value
     m_colour = colour;
 
-    m_radius = 1.0f;
+    m_radius = 2.0f;
 }
 
 Mesh::~Mesh()
@@ -1146,7 +1146,7 @@ void Mesh::packSpheres()
     QVector3D p2 = p0;
     p0[0] += m_radius;
     p1[0] -= m_radius;
-    p2[2] += m_radius;
+    p2[1] += m_radius;
 
     p2[2] += m_radius * 0.75f;
 
@@ -1607,7 +1607,7 @@ void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, 
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
-    float margin = 2 * m_radius;
+    float margin = 10 * m_radius;
 
     for(uint i = 0; i < m_spherePositions.size(); ++i)
     {

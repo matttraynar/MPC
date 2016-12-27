@@ -97,6 +97,9 @@ private:
     int m_yDis;
     int m_zDis;
 
+    bool m_isSimulating;
+    bool m_drawMesh;
+
     //Member used to store the position of the user's mouse click
     QPoint m_lastPos;
 };

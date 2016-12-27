@@ -3,6 +3,7 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 
 #include <QVector3D>
 
@@ -26,6 +27,10 @@ public:
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
     void removeConstraint(btTypedConstraint* constraint);
 
+    void checkVelocities();
+    void checkCollisions();
+    void setConstraintState(btManifoldPoint &collisionPoint, const btCollisionObject *bodyA, int id1, int index1, const btCollisionObject *bodyB, int id2, int index2);
+
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;
     inline std::string getBodyNameAt(uint i) const { return m_bodies[i].name; }
@@ -38,12 +43,17 @@ private:
     std::unique_ptr<btSequentialImpulseConstraintSolver> m_solver;
     std::unique_ptr< btDiscreteDynamicsWorld>            m_dynamicsWorld;
 
-    std::shared_ptr<btCollisionShape> m_groundPlane;
+    std::shared_ptr<btCollisionShape> m_groundPlane;    
+
+    std::vector<btTypedConstraint* > m_constraints;
+    int m_numConstraints;
 
     typedef struct
     {
       std::string name;
       btRigidBody* body;
+      std::vector<btFixedConstraint* > constraints;
+      bool constraintsOn;
 
     }Body;
 
