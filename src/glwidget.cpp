@@ -322,7 +322,7 @@ void GLWidget::paintGL()
     Mesh sphere;
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
-    sphere.m_colour = QVector4D(1.0,0.0,0.0,1.0);
+    sphere.setColour(QVector4D(1.0,0.0,0.0,1.0));
 
     //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
@@ -347,7 +347,7 @@ void GLWidget::paintGL()
         if(name == "teapot")
         {
             //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
+            m_pgm.setUniformValue("mCol",m_sceneObjects[0]->getColour());
 
             //Draw the object
             m_sceneObjects[1]->draw();
@@ -359,7 +359,7 @@ void GLWidget::paintGL()
             numSpheres++;
 
             //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",sphere.m_colour);
+            m_pgm.setUniformValue("mCol",sphere.getColour());
 
             //Draw an instance of the sphere
             sphere.draw();
@@ -372,7 +372,7 @@ void GLWidget::paintGL()
     loadShaderMatrices();
 
     //Again set the shader colour for the plane
-    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->m_colour);
+    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->getColour());
 
     //The plane is always created first, so we can assume it's index
     //which we can use to draw

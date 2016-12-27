@@ -82,66 +82,79 @@ public:
     void prepareMesh(QOpenGLShaderProgram &program);
     void draw();
 
+    //Method that creates the point field
+    void generateDistanceField();
+
+    //Methods used to draw the point field of the mesh
     void preparePoints(QOpenGLShaderProgram &program);
     void drawPoints();
 
-    void generateDistanceField();
 
     //Method which creates a sphere pack for the mesh
     void packSpheres();
-    void packSpheres2D();
 
-    void getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, std::vector<std::pair<uint, uint> > &pairs);
-
-    //Setter methods
+    //Set methods
     void setWireMode();
     void setColour(QVector4D colour);
 
     //Get methods
     inline std::vector<QVector3D> getVerts() const { return m_verts; }
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index];}
-    inline int getSphereNum() const                { return (int)m_spherePositions.size(); }
+    inline int getSphereNum() const                       { return (int)m_spherePositions.size(); }
+    inline QVector4D getColour() const                  { return m_colour; }
 
-    inline std::vector<int> getConnectionsTo(int index) { return m_connections[index]; }
+    void getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, std::vector<std::pair<uint, uint> > &pairs);
+
+private:
+    //Method which calculates the bounding box of the mesh
+    void calculateMAABB();
+
+    //Boolean function used to compare two triangles
+    bool triangleEquals(Triangle a, Triangle b);
+
+    //Function which gets the intersections between mesh faces
+    //and a ray starting at p with direction dir
+    int getIntersections(QVector3D p, QVector3D dir);
+
+    //Method for calculating the normal of a triangle
+    QVector3D calculateTriNorm(Triangle tri);
+
+    //Method which creates a bounding box around a point
+    BBox makeNeighbourhood(QVector3D p);
+
+    //Method used to check whether a point lies within
+    //the given bounding box or not
+    bool bBoxContains(BBox box, QVector3D point);
+
+    //Method used to check the intersections of 3 spheres using
+    //halos (slightly extruded version of the spheres)
+    void haloIntersection(QVector3D a, QVector3D b, QVector3D c, QVector3D &hit1, QVector3D &hit2, HaloIntersections &intersectionType);
+
+    //Method used to check that a given set of sphere positions
+    //lie within the mesh and do not cause collisions with other
+    //spheres
+    void validatePoints(std::vector<QVector3D> &points);
+
+    //Two methods for interpolation
+    float interpolateLinear(float x, float x1, float x2, float c00, float c01);
+    float interpolateTrilinear(QVector3D p);
+
+    //A method which returns the index of the point in a given container
+    //which is the closest to the given point
+    int getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points);
 
     //Colour of the mesh
     QVector4D m_colour;
 
-private:
-    void calculateMAABB();
-
-    bool pointInTriBBox(QVector3D p, Triangle t);
-    bool triangleEquals(Triangle a, Triangle b);
-
-    int getIntersections(QVector3D p, QVector3D dir);
-
-    void getPotentialTriangles(QVector3D point, std::vector<Intersections> &intersectionHolder);
-    void getPotentialTriangles(QVector2D point, std::vector<Intersections> &intersectionHolder);
-
-    float getXFromVec(QVector3D a, QVector3D b);
-
-    QVector3D getBarycentricCoordinates(QVector3D point, QVector3D A, QVector3D B, QVector3D C);
-    QVector3D getBarycentricCoordinates(QVector2D point, QVector2D A, QVector2D B, QVector2D C);
-
-    QVector3D calculateTriNorm(Triangle tri);
-
-    BBox makeNeighbourhood(QVector3D p);
-    bool bBoxContains(BBox box, QVector3D point);
-    void haloIntersection(QVector3D a, QVector3D b, QVector3D c, QVector3D &hit1, QVector3D &hit2, HaloIntersections &intersectionType);
-    void validatePoints(std::vector<QVector3D> &points);
-
-    float interpolateLinear(float x, float x1, float x2, float c00, float c01);
-    float interpolateTrilinear(QVector3D p);
-
-    int getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points);
-
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
-    QOpenGLVertexArrayObject m_vaoP;
-    QOpenGLBuffer m_vboP;
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_ibo;
+
+    //Array and buffer object for the point field
+    QOpenGLVertexArrayObject m_vaoP;
+    QOpenGLBuffer m_vboP;
 
     //Containers for the mesh data
     std::vector<QVector3D> m_verts;
@@ -150,22 +163,28 @@ private:
 
     //Container with sphere positions
     std::vector<QVector3D> m_spherePositions;
-    std::vector<QVector3D> m_activeSpheres;
 
+    //The radius of spheres in the pack
     float m_radius;
 
+    //The axis aligned bounding box of the mesh
     BBox m_meshAABB;
+
+    //The resolution of the point field
     float m_boxResolution;
 
+    //Containers for the point field, the signed distances of
+    //those points and finally a container for the triangles
+    //responsible for those distances
     std::vector<QVector3D> m_pointPositions;
     std::vector< std::vector< std::vector< int> > > m_distancePoints;
     std::vector< std::vector< std::vector<Triangle> > > m_distanceTriangles;
 
+    //The shell of the mesh, made by turning each mesh
+    //face into a prism
     std::vector<Prism> m_shell;
 
-    std::unordered_map<int, std::vector<int> > m_connections;
-
-    //Wireframe state
+    //Wireframe state of the mesh
     bool m_wireframeMode;
 };
 
