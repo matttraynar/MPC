@@ -12,7 +12,7 @@ Mesh::Mesh(QVector4D colour)
     //Set the colour to the specified value
     m_colour = colour;
 
-    m_radius = 0.25f;
+    m_radius = 1.5f;
 }
 
 Mesh::~Mesh()
@@ -479,7 +479,7 @@ void Mesh::generateDistanceField()
     //Calculate the MAABB
     calculateMAABB();
 
-    m_boxResolution = 1.0f;
+    m_boxResolution = 2.0f;
 
     float deltaPercent = (m_boxResolution/(m_meshAABB.yMax - m_meshAABB.yMin)) * 100;
     float totalPercent = 0.0f;
@@ -538,6 +538,10 @@ void Mesh::generateDistanceField()
         m_distanceTriangles.push_back(zTriangles);
 
         totalPercent += deltaPercent;
+        if(totalPercent > 100.0f)
+        {
+            totalPercent = 100.0f;
+        }
         qInfo() << "Distance points are "<<(int)totalPercent<<"% done\n";
     }
 
@@ -776,6 +780,8 @@ void Mesh::packSpheres()
 
     while(frontQueue.size() != 0)
     {
+        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
+
         if(frontQueue.size() >= 100)
         {
             qWarning()<<"Recursion guard reached\n";
@@ -1112,6 +1118,7 @@ float Mesh::interpolateTrilinear(QVector3D p)
 
     int xIndex = 0;
 
+    //CHANGE TO ITERATE INDEX AND CHANGE POSITION ALA 709
     for(float y = m_meshAABB.yMin; y < m_meshAABB.yMax; y += m_boxResolution)
     {
         //Reset the indices used for accessing the grid point container
@@ -1198,7 +1205,7 @@ void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, 
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
-    float margin = 10 * m_radius;
+    float margin = 5 * m_radius;
 
     for(uint i = 0; i < m_spherePositions.size(); ++i)
     {

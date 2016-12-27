@@ -73,7 +73,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/dragonREDUCED.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/bunnyREDUCED.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
@@ -190,7 +190,7 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/dragonREDUCED.obj");
+    teapot->loadMesh("objFiles/bunnyREDUCED.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
@@ -387,7 +387,7 @@ void GLWidget::paintGL()
         //Load the position to draw the mesh and then
         //draw it
         loadShaderMatrices();
-        m_sceneObjects[1]->drawPoints();
+        m_sceneObjects[1]->draw();
     }
 
     //Finally release the shader program
