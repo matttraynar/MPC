@@ -101,6 +101,11 @@ private:
     bool m_drawMesh;
     bool m_drawSpheres;
 
+    bool m_moveUp;
+    bool m_moveDown;
+    bool m_adjust;
+    QVector3D m_adjustPos;
+
     //Member used to store the position of the user's mouse click
     QPoint m_lastPos;
 };

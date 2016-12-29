@@ -142,6 +142,8 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
 
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
+
+    m_constraints.push_back(connection);
 }
 
 void BtWorld::checkVelocities()
@@ -196,4 +198,30 @@ QVector3D BtWorld::getTransform(uint index) const
         return QVector3D(0.0f, 0.0f, 0.0f);
     }
 
+}
+
+void BtWorld::moveBodies(QVector3D moveVec)
+{
+    uint nBodies = m_dynamicsWorld->getNumCollisionObjects();
+
+    //Iterate through them
+    for(uint i = 0; i < nBodies; ++i)
+    {
+        btRigidBody* body = m_bodies[i].body;
+
+        body->setLinearVelocity(btVector3(moveVec.x(), moveVec.y(), moveVec.z()));
+    }
+}
+
+void BtWorld::stopAdjusting()
+{
+    uint nBodies = m_dynamicsWorld->getNumCollisionObjects();
+
+    //Iterate through them
+    for(uint i = 0; i < nBodies; ++i)
+    {
+        btRigidBody* body = m_bodies[i].body;
+
+        body->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+    }
 }

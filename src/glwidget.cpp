@@ -27,6 +27,10 @@ GLWidget::GLWidget( QWidget* parent )
     m_drawMesh = false;
     m_drawSpheres = true;
 
+    m_moveUp = false;
+    m_moveDown = false;
+    m_adjust = false;
+
     //Initialise the postition which will be used later
     m_position = QVector3D();
 }
@@ -74,7 +78,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/dragon2.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
@@ -191,7 +195,7 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/dragon2.obj");
+    teapot->loadMesh("objFiles/cubeLARGE.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
@@ -473,6 +477,30 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         m_drawMesh = !m_drawMesh;
         break;
 
+    case Qt::Key_Up:
+        if(m_moveDown)
+        {
+            m_moveDown = false;
+        }
+        else
+        {
+            m_moveUp = true;
+            m_adjustPos[1] += 50.0f;
+        }
+        break;
+
+    case Qt::Key_Down:
+        if(m_moveUp)
+        {
+            m_moveUp = false;
+        }
+        else
+        {
+            m_moveDown = true;
+            m_adjustPos[1] -= 50.0f;
+        }
+        break;
+
     case Qt::Key_Home:
         //User pressed 'home' so stop the simulation
         m_bullet->stop();
@@ -588,6 +616,26 @@ void GLWidget::timerEvent(QTimerEvent *e)
     //Check if the program should be simulating
     if(m_isSimulating)
     {
+        if(m_moveUp)
+        {
+            m_bullet->moveBodies(m_adjustPos);
+            m_adjust = true;
+            m_moveUp = false;
+        }
+        else if(m_moveDown)
+        {
+            m_bullet->moveBodies(m_adjustPos);
+            m_adjust = true;
+            m_moveDown = false;
+
+        }
+        else if(m_adjust == true)
+        {
+            m_bullet->stopAdjusting();
+            m_adjustPos = QVector3D(0,0,0);
+            m_adjust = false;
+        }
+
         //Check nothing is moving too fast
         m_bullet->checkVelocities();
 

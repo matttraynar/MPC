@@ -34,6 +34,9 @@ public:
     inline std::string getBodyNameAt(uint i) const { return m_bodies[i].name; }
     inline btRigidBody* getBodyAt(uint i) const { return m_bodies[i].body; }
 
+    void moveBodies(QVector3D moveVec);
+    void stopAdjusting();
+
 private:
     std::unique_ptr<btDefaultCollisionConfiguration>     m_collisionConfig;
     std::unique_ptr<btCollisionDispatcher>               m_dispatcher;
@@ -49,6 +52,8 @@ private:
       btRigidBody* body;
 
     }Body;
+
+    std::vector<btTypedConstraint*> m_constraints;
 
     std::vector<Body> m_bodies;
 };

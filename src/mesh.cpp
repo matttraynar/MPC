@@ -1112,12 +1112,6 @@ float Mesh::interpolateLinear(float x, float x1, float x2, float c00, float c01)
 
 float Mesh::interpolateTrilinear(QVector3D p)
 {
-//    int yIndex = 0;
-
-//    int zIndex = 0;
-
-//    int xIndex = 0;
-
     int ySize = (int)m_distancePoints.size();
     float y =m_meshAABB.yMin;
 
@@ -1204,7 +1198,7 @@ void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, 
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
-    float margin = 5 * m_radius;
+    float margin = 2 * m_radius;
 
     for(uint i = 0; i < m_spherePositions.size(); ++i)
     {
