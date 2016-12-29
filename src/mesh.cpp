@@ -12,7 +12,7 @@ Mesh::Mesh(QVector4D colour)
     //Set the colour to the specified value
     m_colour = colour;
 
-    m_radius = 1.5f;
+    m_radius = 1.0f;
 }
 
 Mesh::~Mesh()
@@ -780,9 +780,9 @@ void Mesh::packSpheres()
 
     while(frontQueue.size() != 0)
     {
-        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
+        qInfo()<<"There are now "<<m_spherePositions.size()<<" possible spheres";
 
-        if(frontQueue.size() >= 100)
+        if(m_spherePositions.size() >= 10000)
         {
             qWarning()<<"Recursion guard reached\n";
             break;
@@ -1112,23 +1112,28 @@ float Mesh::interpolateLinear(float x, float x1, float x2, float c00, float c01)
 
 float Mesh::interpolateTrilinear(QVector3D p)
 {
-    int yIndex = 0;
+//    int yIndex = 0;
 
-    int zIndex = 0;
+//    int zIndex = 0;
 
-    int xIndex = 0;
+//    int xIndex = 0;
 
-    //CHANGE TO ITERATE INDEX AND CHANGE POSITION ALA 709
-    for(float y = m_meshAABB.yMin; y < m_meshAABB.yMax; y += m_boxResolution)
+    int ySize = (int)m_distancePoints.size();
+    float y =m_meshAABB.yMin;
+
+    for(int yIndex = 0; yIndex < ySize - 1; yIndex++)
     {
-        //Reset the indices used for accessing the grid point container
-        zIndex = 0;
+        int zSize = (int)m_distancePoints[yIndex].size();
 
-        for(float z = m_meshAABB.zMin; z < m_meshAABB.zMax; z += m_boxResolution)
+        float z = m_meshAABB.zMin;
+
+        for(int zIndex = 0; zIndex < zSize - 1; zIndex++)
         {
-            xIndex = 0;
+            int xSize = (int)m_distancePoints[yIndex][zIndex].size();
 
-            for(float x = m_meshAABB.xMin; x < m_meshAABB.xMax; x += m_boxResolution)
+            float x = m_meshAABB.xMin;
+
+            for(int xIndex = 0; xIndex < xSize - 1; xIndex++)
             {
                 if((p.x() >= x && p.x() <= (x + m_boxResolution)) &&
                     (p.y() >= y && p.y() <= (y + m_boxResolution)) &&
@@ -1161,25 +1166,19 @@ float Mesh::interpolateTrilinear(QVector3D p)
                     float value = interpolateLinear(p.z(), z, (z + m_boxResolution),
                                                                 y0,
                                                                 y1);
-
-
-
                     return value;
                 }
 
-                //Increment the indices used for accesing the grid points
-                xIndex++;
+                x += m_boxResolution;
             }
-            zIndex++;
+
+            z += m_boxResolution;
         }
-        yIndex++;
+
+        y += m_boxResolution;
     }
 
-//    qWarning()<<"Point not inside Mesh AABB, triliear interpolation didn't happen\n"
-//                    "Point: "<<p.x()<<", "<<p.y()<<", "<<p.z()<<'\n';
-
     return 100000000.0f;
-
 }
 
 int Mesh::getBestPoint(QVector3D currentSphere, std::vector<QVector3D> points)

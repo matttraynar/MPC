@@ -99,6 +99,7 @@ private:
 
     bool m_isSimulating;
     bool m_drawMesh;
+    bool m_drawSpheres;
 
     //Member used to store the position of the user's mouse click
     QPoint m_lastPos;

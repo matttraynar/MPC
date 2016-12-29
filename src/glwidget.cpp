@@ -25,6 +25,7 @@ GLWidget::GLWidget( QWidget* parent )
 
     m_isSimulating = false;
     m_drawMesh = false;
+    m_drawSpheres = true;
 
     //Initialise the postition which will be used later
     m_position = QVector3D();
@@ -73,7 +74,7 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/bunnyREDUCED.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("teapot","objFiles/dragon2.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
@@ -190,7 +191,7 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/bunnyREDUCED.obj");
+    teapot->loadMesh("objFiles/dragon2.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
@@ -362,7 +363,10 @@ void GLWidget::paintGL()
             m_pgm.setUniformValue("mCol",sphere.getColour());
 
             //Draw an instance of the sphere
-            sphere.draw();
+            if(m_drawSpheres)
+            {
+                sphere.draw();
+            }
 
         }
     }
@@ -441,11 +445,15 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_W:
         //User pressed 'W' so update the wireframe mode
         //of each mesh in the scene
-        for(uint i = 0; i < m_sceneObjects.size(); ++i)
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
             m_sceneObjects[i]->setWireMode();
         }
 
+        break;
+
+    case Qt::Key_S:
+        m_drawSpheres = !m_drawSpheres;
         break;
 
     case Qt::Key_Escape:

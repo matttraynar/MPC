@@ -38,7 +38,6 @@ struct FindPair
     }
 };
 
-
 enum IntersectionType
 {
     Vertex,
