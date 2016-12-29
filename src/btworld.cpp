@@ -139,6 +139,7 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
 {
     //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
+    connection->enableFeedback(true);
 
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
@@ -165,6 +166,39 @@ void BtWorld::checkVelocities()
             bodyVel *= maxSpeed/bodySpd;
 
             body->setLinearVelocity(bodyVel);
+        }
+    }
+}
+
+void BtWorld::checkPlastic()
+{
+    uint nConstraints = m_constraints.size();
+
+    //Iterate through them
+    for(uint i = 0; i < nConstraints; ++i)
+    {
+        btTypedConstraint* currentConstraint = m_constraints[i];
+        btScalar appliedImpulse = currentConstraint->getAppliedImpulse();
+
+        if(appliedImpulse > 0.8f)
+        {
+            qInfo()<<"Impulse too high";
+            btRigidBody* bodyA = &(currentConstraint->getRigidBodyA());
+            btRigidBody* bodyB = &(currentConstraint->getRigidBodyB());
+
+
+            m_dynamicsWorld->removeConstraint(m_constraints[i]);
+
+            btTransform transA;
+            transA.setIdentity();
+            bodyA->getMotionState()->getWorldTransform(transA);
+
+            btTransform transB;
+            transB.setIdentity();
+
+            transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
+
+            addFixedConstraint(bodyA, bodyB, transA, transB);
         }
     }
 }

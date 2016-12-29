@@ -27,6 +27,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_drawMesh = false;
     m_drawSpheres = true;
 
+    m_plastic = false;
+
     m_moveUp = false;
     m_moveDown = false;
     m_adjust = false;
@@ -477,6 +479,10 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         m_drawMesh = !m_drawMesh;
         break;
 
+    case Qt::Key_P:
+        m_plastic = !m_plastic;
+        break;
+
     case Qt::Key_Up:
         if(m_moveDown)
         {
@@ -634,6 +640,11 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_bullet->stopAdjusting();
             m_adjustPos = QVector3D(0,0,0);
             m_adjust = false;
+        }
+
+        if(m_plastic)
+        {
+            m_bullet->checkPlastic();
         }
 
         //Check nothing is moving too fast

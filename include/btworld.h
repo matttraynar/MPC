@@ -28,6 +28,7 @@ public:
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
 
     void checkVelocities();
+    void checkPlastic();
 
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;

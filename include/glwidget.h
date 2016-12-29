@@ -100,6 +100,7 @@ private:
     bool m_isSimulating;
     bool m_drawMesh;
     bool m_drawSpheres;
+    bool m_plastic;
 
     bool m_moveUp;
     bool m_moveDown;
