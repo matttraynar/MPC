@@ -59,6 +59,7 @@ private:
 
     //Methods for creating each mesh
     void createGround();
+    void createMesh(const char* filepath);
     void createTeapot();
 
     //Container which contains all the objects in the scene

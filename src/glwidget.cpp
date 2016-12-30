@@ -80,16 +80,27 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("mesh","objFiles/Voronoi/cubeForVoronoi.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
 
+     for(int i = 0; i < 50; ++i)
+     {
+         std::string fileStart = "objFiles/Voronoi/cubeFrag";
+         fileStart += std::to_string(i);
+         fileStart += ".obj";
 
-     //Do the same with the teapot
-     createTeapot();
+         std::string meshName = "cubeFrag";
+         meshName += std::to_string(i);
+
+         const char* fileName = fileStart.c_str();
+         shapes->addMesh(meshName, fileName, QVector3D(0.0,0.0,1.0));
+
+         createMesh(fileName);
+     }
 
      //Release the shader program
      m_pgm.release();
@@ -197,7 +208,7 @@ void GLWidget::createTeapot()
     std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/cubeLARGE.obj");
+    teapot->loadMesh("objFiles/cubeVoronoi.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
@@ -243,6 +254,124 @@ void GLWidget::createTeapot()
         //the sphere pack
         std::vector<QVector3D> spheresToConnect;
         teapot->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+
+        //Check if there are any candidate spheres
+        if(spheresToConnect.size() == 0)
+        {
+            //We can ignore this sphere if there aren't any
+            continue;
+        }
+        else
+        {
+            //There are some spheres that can be constrained to
+            for(uint j = 0; j < sphereIndices.size(); ++j)
+            {
+                //Iterate through each one, check if the first sphere index
+                //in the container of pairs is the same as the current
+                //bullet rigid body we are testing
+                uint sphereA = sphereIndices[j].first;
+
+                if(sphereIndex == sphereA)
+                {
+                    //If it is find out what the body is paired to
+                    uint sphereB = sphereIndices[j].second;
+
+                    //The indices stored are created from the list of spheres,
+                    //because we also have the static ground plane in the
+                    //bullet world the indices need to be incremented
+                    sphereA++;
+                    sphereB++;
+
+                    //Get the rigid bodies relating to the pair
+                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
+
+                    //First get the transform of the first body
+                    btTransform transA;
+                    transA.setIdentity();
+                    bodyA->getMotionState()->getWorldTransform(transA);
+
+                    //Now get the second
+                    btTransform transB;
+                    transB.setIdentity();
+
+                    //I originally tried doing this the same was as with A
+                    //but found that this caused the two bodies to fly toward
+                    //each other. Instead I convert the frame of B so that it
+                    //is relative to A.
+                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
+
+                    //Add the constraint to the bullet world
+                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                    //Mark the addition of a new constraint
+                    constCount++;
+                }
+            }
+        }
+    }
+
+    //Release the shader program
+    m_pgm.release();
+}
+
+void GLWidget::createMesh(const char *filepath)
+{
+    //Bind the shader program to the context
+    m_pgm.bind();
+
+    //Create a new mesh shared pointer and use the colour constructor
+    std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
+
+    //Load the teapot obj
+    mesh->loadMesh(filepath);
+
+    //Load the neccesary vaos and vbos
+    mesh->prepareMesh(m_pgm);
+
+    //Generate the distance points used to speed up sphere packing
+    mesh->generateDistanceField();
+    mesh->preparePoints(m_pgm);
+
+    //Pack the mesh with spheres
+    mesh->packSpheres();
+
+    //Add the pointer to the vector of scene objects
+    m_sceneObjects.push_back(mesh);
+
+    int newMeshPosition = (int)m_sceneObjects.size() - 1;
+    uint currentNBodies = m_bullet->getNumCollisionObjects();
+
+    //Iterate over all the spheres in the pack
+    for(int i = 0; i < m_sceneObjects[newMeshPosition]->getSphereNum(); ++i)
+    {
+        //For each sphere add a new btSphere to the bullet world (and at the
+        //correct position
+        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->getSphereAt(i) + QVector3D(0,5,0), 1.0f, QVector3D(0,0,0));
+    }
+
+
+    //Get the number of collision objects in the world
+    uint nBodies = m_bullet->getNumCollisionObjects();
+    uint nSpheres = m_sceneObjects[newMeshPosition]->getSphereNum();
+
+    int constCount = 0;
+
+    //Create a new container for pairs
+    std::vector< std::pair<uint, uint> > sphereIndices;
+
+    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
+
+    //Iterate through them
+    for(uint i = currentNBodies; i < nBodies; ++i)
+    {
+        //Account for the ground plane (the first object in the bullet world)
+        int sphereIndex = i - currentNBodies;
+
+        //Get the possible connections the current sphere could have in
+        //the sphere pack
+        std::vector<QVector3D> spheresToConnect;
+        mesh->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
 
         //Check if there are any candidate spheres
         if(spheresToConnect.size() == 0)
@@ -351,7 +480,7 @@ void GLWidget::paintGL()
         std::string name = m_bullet->getBodyNameAt(i);
 
         //Check for the teapot
-        if(name == "teapot")
+        if(name == "mesh")
         {
             //Set the colour of the object in the shader
             m_pgm.setUniformValue("mCol",m_sceneObjects[0]->getColour());
@@ -394,10 +523,15 @@ void GLWidget::paintGL()
         //Get the middle of the sphere pack
         m_position = middlePosition/numSpheres;
 
+        qInfo()<<"Mesh COM: "<<middlePosition.x()<<' '<<middlePosition.y()<<' '<<middlePosition.z()<<'\n';
+
         //Load the position to draw the mesh and then
         //draw it
         loadShaderMatrices();
-        m_sceneObjects[1]->draw();
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        {
+            m_sceneObjects[i]->draw();
+        }
     }
 
     //Finally release the shader program

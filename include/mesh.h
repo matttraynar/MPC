@@ -101,6 +101,7 @@ public:
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index];}
     inline int getSphereNum() const                       { return (int)m_spherePositions.size(); }
     inline QVector4D getColour() const                  { return m_colour; }
+    inline QVector3D getCOM() const                                { return m_COM; }
 
     void getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, std::vector<std::pair<uint, uint> > &pairs);
 
@@ -159,6 +160,7 @@ private:
     std::vector<QVector3D> m_verts;
     std::vector<QVector3D> m_norms;
     std::vector<uint> m_meshIndex;
+    QVector3D m_COM;
 
     //Container with sphere positions
     std::vector<QVector3D> m_spherePositions;

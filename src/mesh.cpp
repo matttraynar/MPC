@@ -71,7 +71,11 @@ void Mesh::loadMesh(const char *filepath)
                 //Add this data to the correct container
                 m_verts.push_back(QVector3D(vert.x,vert.y,vert.z));
                 m_norms.push_back(QVector3D(norm.x,norm.y,norm.z));
+
+                m_COM += m_verts[m_verts.size() - 1];
             }
+
+            m_COM /= numVerts;
         }
     }
 }
@@ -746,7 +750,7 @@ void Mesh::packSpheres()
     for(uint i = 0; i < m_verts.size(); ++i)
     {
         middlePos += m_verts[i];
-        middlePos.setY(middlePos.y() + 5);
+//        middlePos.setY(middlePos.y() + 5);
     }
 
     middlePos /= m_verts.size();
@@ -780,7 +784,7 @@ void Mesh::packSpheres()
 
     while(frontQueue.size() != 0)
     {
-        qInfo()<<"There are now "<<m_spherePositions.size()<<" possible spheres";
+//        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
 
         if(m_spherePositions.size() >= 10000)
         {
@@ -1198,7 +1202,7 @@ void Mesh::getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, 
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
-    float margin = 2 * m_radius;
+    float margin = 10 * m_radius;
 
     for(uint i = 0; i < m_spherePositions.size(); ++i)
     {
