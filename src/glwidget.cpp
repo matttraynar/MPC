@@ -39,12 +39,6 @@ GLWidget::GLWidget( QWidget* parent )
 
 GLWidget::~GLWidget()
 {
-    for(auto iter = m_constraints.begin(); iter != m_constraints.end(); ++iter)
-    {
-        delete *iter;
-    }
-
-    m_constraints.clear();
 
 }
 
@@ -80,15 +74,15 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("mesh","objFiles/Voronoi/cubeForVoronoi.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("mesh","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/Voronoi/cubeForVoronoi.obj", "mesh", QVector3D(0,25,5));
-     createMesh("objFiles/Voronoi/cubeForVoronoi.obj", "mesh", QVector3D(0,10,0));
+     createMesh("objFiles/cubeSTEP1.obj", "bunny", QVector3D(0,25,0));
+     createMesh("objFiles/cubeSTEP2.obj", "cube", QVector3D(0,5,0));
 
      //Release the shader program
      m_pgm.release();
@@ -182,6 +176,7 @@ void GLWidget::createGround()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
+    m_sceneObjectPositions.push_back(QVector3D(0,0,0));
 
     //Release the shader program
     m_pgm.release();
@@ -340,6 +335,8 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
         newMeshPosition = (int)m_sceneObjects.size() - 1;
     }
+
+    m_sceneObjectPositions.push_back(position);
 
     uint currentNBodies = m_bullet->getNumCollisionObjects();
 
@@ -510,6 +507,7 @@ void GLWidget::paintGL()
             numSpheres++;
 
             //Set the colour of the object in the shader
+            sphere.setColour(QVector4D(1 - (1.0f/i), 0.0f, 0.0f, 0.0f));
             m_pgm.setUniformValue("mCol",sphere.getColour());
 
             //Draw an instance of the sphere
@@ -517,9 +515,9 @@ void GLWidget::paintGL()
             {
                 sphere.draw();
             }
-
         }
     }
+
 
     //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
@@ -533,19 +531,15 @@ void GLWidget::paintGL()
     m_sceneObjects[0]->draw();
 
     //Check if the mesh is being drawn
-//    if(m_drawMesh)
-//    {
-//        for(uint i = 1; i < m_sceneObjects.size(); ++i)
-//        {
-//            m_sceneObjects[i]->draw();
-//        }
-//    }
-//    m_position = QVector3D(0.0f, 10.0f, 0.0f);
-//    loadShaderMatrices();
-//    for(uint i = 1; i < m_sceneObjects.size(); ++i)
-//    {
-//        m_sceneObjects[i]->draw();
-//    }
+    if(m_drawMesh)
+    {
+        //NEEDS EDITTING
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        {
+            m_sceneObjects[i]->draw();
+        }
+    }
+
 
     //Finally release the shader program
     m_pgm.release();
@@ -591,7 +585,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 
 void GLWidget::keyPressEvent(QKeyEvent *e)
 {    
-    int sphereNum = m_sceneObjects[1]->getSphereNum();
+    int objCount = 1;
 
     switch(e->key())
     {
@@ -659,9 +653,13 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         m_bullet->stop();
 
         //Reset all the sphere positions
-        for(int i = 0; i < sphereNum; ++i)
+        for(int i = 0; i < m_sceneObjects.size(); ++i)
         {
-            m_bullet->reset(m_sceneObjects[1]->getSphereAt(i), i);
+            for(int j = 0; j < m_sceneObjects[i]->getSphereNum(); ++j)
+            {
+                m_bullet->reset(m_sceneObjects[i]->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                objCount++;
+            }
         }
 
         //Step the simulation once so that everything

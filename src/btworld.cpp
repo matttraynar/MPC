@@ -45,7 +45,7 @@ void BtWorld::stop()
 void BtWorld::reset(QVector3D position, uint index)
 {
     btTransform resetPosition(btQuaternion::getIdentity(), btVector3(position.x(), position.y() + 5, position.z()));
-    m_bodies[index + 1].body->setWorldTransform(resetPosition);
+    m_bodies[index].body->setWorldTransform(resetPosition);
 }
 
 void BtWorld::addGround()

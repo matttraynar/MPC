@@ -66,8 +66,7 @@ private:
 
     //Container which contains all the objects in the scene
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
-
-    std::vector<btTypedConstraint* > m_constraints;
+    std::vector<QVector3D> m_sceneObjectPositions;
 
     //An unordered map used to refer to each mesh by a name
     std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;
@@ -104,6 +103,7 @@ private:
     bool m_drawMesh;
     bool m_drawSpheres;
     bool m_plastic;
+
 
     bool m_moveUp;
     bool m_moveDown;

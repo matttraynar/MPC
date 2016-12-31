@@ -751,11 +751,9 @@ void Mesh::packSpheres()
     for(uint i = 0; i < m_verts.size(); ++i)
     {
         middlePos += m_verts[i];
-//        middlePos.setY(middlePos.y() + 5);
     }
 
     middlePos /= m_verts.size();
-    qInfo()<<"Mesh COM: "<<middlePos.x()<<' '<<middlePos.y()<<' '<<middlePos.z()<<'\n';
 
 
     //Create the start positions for the first 3 spheres
@@ -783,10 +781,9 @@ void Mesh::packSpheres()
 
     int sphereIndex = 0;
 
-    qInfo()<<"Starting sphere pack";
+    qInfo()<<"Starting sphere pack on the"<<(QString)m_name.c_str();
     while(frontQueue.size() != 0)
     {
-        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
 
         if(m_spherePositions.size() >= 10000)
         {
