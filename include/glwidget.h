@@ -18,26 +18,6 @@
 #include "btworld.h"
 #include "btshape.h"
 
-/*-----------------------------
- * This struct uses a slightly modified version of code that can be found here:
- * http://stackoverflow.com/questions/33557276/using-find-with-vectorpairint-int
- *
- * The modification is to allow for reverse pairs e.g (A,B) and (B,A)
- * */
-struct FindPair
-{
-    FindPair(int a, int b) : m_first(a), m_second(b) {}
-
-    int m_first;
-    int m_second;
-
-    bool operator() (const std::pair<int, int> &pair)
-    {
-        return((pair.first == m_first && pair.second == m_second) ||
-                 (pair.first == m_second && pair.second == m_first));
-    }
-};
-
 class GLWidget : public QGLWidget
 {
  Q_OBJECT
@@ -79,10 +59,14 @@ private:
 
     //Methods for creating each mesh
     void createGround();
+    void createMesh(const char* filepath, const std::string name, QVector3D position);
     void createTeapot();
+
+    bool checkExisting(const std::string name, int &position);
 
     //Container which contains all the objects in the scene
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
+    std::vector<QVector3D> m_sceneObjectPositions;
 
     //An unordered map used to refer to each mesh by a name
     std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;
@@ -114,6 +98,17 @@ private:
     int m_xDis;
     int m_yDis;
     int m_zDis;
+
+    bool m_isSimulating;
+    bool m_drawMesh;
+    bool m_drawSpheres;
+    bool m_plastic;
+
+
+    bool m_moveUp;
+    bool m_moveDown;
+    bool m_adjust;
+    QVector3D m_adjustPos;
 
     //Member used to store the position of the user's mouse click
     QPoint m_lastPos;

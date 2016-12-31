@@ -11,6 +11,7 @@ GLWidget::GLWidget( QWidget* parent )
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
 
     m_bullet.reset(new BtWorld());
+//    m_bullet->setGravity(0.0f, 0.0f, 0.0f);
     m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
@@ -20,7 +21,17 @@ GLWidget::GLWidget( QWidget* parent )
     m_zRot = 0;
     m_zDis = 0;
     m_mouseDelta = 0;
-    m_cameraPos = QVector3D(5,5,5);
+    m_cameraPos = QVector3D(50.0f,50.0f,50.0f);
+
+    m_isSimulating = false;
+    m_drawMesh = false;
+    m_drawSpheres = true;
+
+    m_plastic = false;
+
+    m_moveUp = false;
+    m_moveDown = false;
+    m_adjust = false;
 
     //Initialise the postition which will be used later
     m_position = QVector3D();
@@ -51,7 +62,7 @@ void GLWidget::initializeGL()
 
      //Set an initial view matrix
      m_view.setToIdentity();
-     m_view.lookAt(QVector3D(0.0f, 0.0f, 1.2f),    // Camera Position
+     m_view.lookAt(m_cameraPos,    // Camera Position
                    QVector3D(0.0f, 0.0f, 0.0f),    // Point camera looks towards
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
@@ -63,18 +74,15 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("teapot","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
+     shapes->addMesh("mesh","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
-     //Add the ground plane to the bullet world and then
-     //create a ground plane in the scene objects so that
+     //Create a ground plane in the scene objects so that
      //it gets drawn
-     m_bullet->addMesh("groundPlane",QVector3D(0,0,0));
      createGround();
 
-     //Do the same with the teapot
-//     m_bullet->addMesh("teapot",QVector3D(0,10,0));
-     createTeapot();
+     createMesh("objFiles/cubeSTEP1.obj", "bunny", QVector3D(0,25,0));
+     createMesh("objFiles/cubeSTEP2.obj", "cube", QVector3D(0,5,0));
 
      //Release the shader program
      m_pgm.release();
@@ -125,6 +133,8 @@ void GLWidget::loadShaderMatrices()
     camToOrig.normalize();
     QVector3D newCamPos = m_cameraPos + (m_mouseDelta * camToOrig);
 
+    m_pgm.setUniformValue("camPos", newCamPos);
+
     //Reset the view matrix and set to look at origin from the new position
     m_view.setToIdentity();
     m_view.lookAt(newCamPos + m_dir, QVector3D(0,1,0), QVector3D(0,1,0));
@@ -156,7 +166,7 @@ void GLWidget::createGround()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0)));
+    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0), "ground"));
 
     //Load the ground plane obj
     ground->loadMesh("objFiles/ground.obj");
@@ -166,6 +176,7 @@ void GLWidget::createGround()
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
+    m_sceneObjectPositions.push_back(QVector3D(0,0,0));
 
     //Release the shader program
     m_pgm.release();
@@ -177,36 +188,44 @@ void GLWidget::createTeapot()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
+    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), "teapot"));
 
     //Load the teapot obj
-    teapot->loadMesh("objFiles/cubeLARGE.obj");
+    teapot->loadMesh("objFiles/cubeVoronoi.obj");
 
     //Load the neccesary vaos and vbos
     teapot->prepareMesh(m_pgm);
 
     //Generate the distance points used to speed up sphere packing
     teapot->generateDistanceField();
+    teapot->preparePoints(m_pgm);
 
     //Pack the mesh with spheres
     teapot->packSpheres();
 
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(teapot);
+    m_sceneObjects[1]->setWireMode();
 
     //Iterate over all the spheres in the pack
     for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
-        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,10,0), 1.0f, QVector3D(0,0,0));
+        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,5,0), 1.0f, QVector3D(0,0,0));
     }
 
-    //Create a new container for pairs
-    std::vector< std::pair<int, int> > connectedSpheres;
 
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
+    uint nSpheres = m_sceneObjects[1]->getSphereNum();
+
+    int constCount = 0;
+
+    //Create a new container for pairs
+    std::vector< std::pair<uint, uint> > sphereIndices;
+
+    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
     //Iterate through them
     for(uint i = 1; i < nBodies; ++i)
@@ -216,22 +235,61 @@ void GLWidget::createTeapot()
 
         //Get the possible connections the current sphere could have in
         //the sphere pack
-        std::vector<int> attachedSpheres = teapot->getConnectionsTo(sphereIndex);
+        std::vector<QVector3D> spheresToConnect;
+        teapot->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
 
-        //Iterate through
-        for(uint j = 0; j < attachedSpheres.size(); ++j)
+        //Check if there are any candidate spheres
+        if(spheresToConnect.size() == 0)
         {
-            //Check for the constraint between the current sphere and the
-            //potential sphere
-            auto position = std::find_if(connectedSpheres.begin(), connectedSpheres.end(), FindPair(sphereIndex, j));
-
-            //Check if it was found
-            if(position == connectedSpheres.end())
+            //We can ignore this sphere if there aren't any
+            continue;
+        }
+        else
+        {
+            //There are some spheres that can be constrained to
+            for(uint j = 0; j < sphereIndices.size(); ++j)
             {
-                //MAKE CONSTRAINT BETWEEN SPHEREINDEX AND J
+                //Iterate through each one, check if the first sphere index
+                //in the container of pairs is the same as the current
+                //bullet rigid body we are testing
+                uint sphereA = sphereIndices[j].first;
 
-                //Add the connected pair to the vector
-                connectedSpheres.push_back(std::make_pair(sphereIndex, j));
+                if(sphereIndex == sphereA)
+                {
+                    //If it is find out what the body is paired to
+                    uint sphereB = sphereIndices[j].second;
+
+                    //The indices stored are created from the list of spheres,
+                    //because we also have the static ground plane in the
+                    //bullet world the indices need to be incremented
+                    sphereA++;
+                    sphereB++;
+
+                    //Get the rigid bodies relating to the pair
+                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
+
+                    //First get the transform of the first body
+                    btTransform transA;
+                    transA.setIdentity();
+                    bodyA->getMotionState()->getWorldTransform(transA);
+
+                    //Now get the second
+                    btTransform transB;
+                    transB.setIdentity();
+
+                    //I originally tried doing this the same was as with A
+                    //but found that this caused the two bodies to fly toward
+                    //each other. Instead I convert the frame of B so that it
+                    //is relative to A.
+                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
+
+                    //Add the constraint to the bullet world
+                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                    //Mark the addition of a new constraint
+                    constCount++;
+                }
             }
         }
     }
@@ -240,8 +298,152 @@ void GLWidget::createTeapot()
     m_pgm.release();
 }
 
+void GLWidget::createMesh(const char *filepath, const std::string name, QVector3D position)
+{
+    //Bind the shader program to the context
+    m_pgm.bind();
+
+    int index = 0;
+    int newMeshPosition = 1000000000;
+
+    if(checkExisting(name, index))
+    {
+        qInfo()<<"Mesh has already been added, duplicating";
+        m_sceneObjects.push_back(m_sceneObjects[index]);
+        newMeshPosition = (int)m_sceneObjects.size() - 1;
+    }
+    else
+    {
+        //Create a new mesh shared pointer and use the colour constructor
+        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), name));
+
+        //Load the teapot obj
+        mesh->loadMesh(filepath);
+
+        //Load the neccesary vaos and vbos
+        mesh->prepareMesh(m_pgm);
+
+        //Generate the distance points used to speed up sphere packing
+        mesh->generateDistanceField();
+        mesh->preparePoints(m_pgm);
+
+        //Pack the mesh with spheres
+        mesh->packSpheres();
+
+        //Add the pointer to the vector of scene objects
+        m_sceneObjects.push_back(mesh);
+
+        newMeshPosition = (int)m_sceneObjects.size() - 1;
+    }
+
+    m_sceneObjectPositions.push_back(position);
+
+    uint currentNBodies = m_bullet->getNumCollisionObjects();
+
+    //Iterate over all the spheres in the pack
+    for(int i = 0; i < m_sceneObjects[newMeshPosition]->getSphereNum(); ++i)
+    {
+        //For each sphere add a new btSphere to the bullet world (and at the
+        //correct position
+        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
+    }
 
 
+    //Get the number of collision objects in the world
+    uint nBodies = m_bullet->getNumCollisionObjects();
+    uint nSpheres = m_sceneObjects[newMeshPosition]->getSphereNum();
+
+    int constCount = 0;
+
+    //Create a new container for pairs
+    std::vector< std::pair<uint, uint> > sphereIndices;
+
+    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
+
+    //Iterate through them
+    for(uint i = currentNBodies; i < nBodies; ++i)
+    {
+        //Account for the ground plane (the first object in the bullet world)
+        int sphereIndex = i - currentNBodies;
+
+        //Get the possible connections the current sphere could have in
+        //the sphere pack
+        std::vector<QVector3D> spheresToConnect;
+        m_sceneObjects[newMeshPosition]->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+
+        //Check if there are any candidate spheres
+        if(spheresToConnect.size() == 0)
+        {
+            //We can ignore this sphere if there aren't any
+            continue;
+        }
+        else
+        {
+            //There are some spheres that can be constrained to
+            for(uint j = 0; j < sphereIndices.size(); ++j)
+            {
+                //Iterate through each one, check if the first sphere index
+                //in the container of pairs is the same as the current
+                //bullet rigid body we are testing
+                uint sphereA = sphereIndices[j].first;
+
+                if(sphereIndex == sphereA)
+                {
+                    //If it is find out what the body is paired to
+                    uint sphereB = sphereIndices[j].second;
+
+                    //The indices stored are created from the list of spheres,
+                    //because we also have the static ground plane in the
+                    //bullet world the indices need to be incremented
+                    sphereA += currentNBodies;
+                    sphereB += currentNBodies;
+
+                    //Get the rigid bodies relating to the pair
+                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
+
+                    //First get the transform of the first body
+                    btTransform transA;
+                    transA.setIdentity();
+                    bodyA->getMotionState()->getWorldTransform(transA);
+
+                    //Now get the second
+                    btTransform transB;
+                    transB.setIdentity();
+
+                    //I originally tried doing this the same was as with A
+                    //but found that this caused the two bodies to fly toward
+                    //each other. Instead I convert the frame of B so that it
+                    //is relative to A.
+                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
+
+                    //Add the constraint to the bullet world
+                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                    //Mark the addition of a new constraint
+                    constCount++;
+                }
+            }
+        }
+    }
+
+    //Release the shader program
+    m_pgm.release();
+}
+
+bool GLWidget::checkExisting(const std::string name, int &position)
+{
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == name)
+        {
+            position = i;
+            return true;
+        }
+    }
+
+    return false;
+}
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
 
@@ -268,10 +470,13 @@ void GLWidget::paintGL()
     Mesh sphere;
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
-    sphere.m_colour = QVector4D(1.0,0.0,0.0,1.0);
+    sphere.setColour(QVector4D(1.0,0.0,0.0,1.0));
 
     //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
+
+    QVector3D middlePosition(0,0,0);
+    int numSpheres = 0;
 
     //Iterate through them
     for(uint i = 0; i < nBodies; ++i)
@@ -287,36 +492,54 @@ void GLWidget::paintGL()
         std::string name = m_bullet->getBodyNameAt(i);
 
         //Check for the teapot
-        if(name == "teapot")
+        if(name == "mesh")
         {
             //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",m_sceneObjects[0]->m_colour);
+            m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
 
             //Draw the object
-            m_sceneObjects[1]->draw();
+            m_sceneObjects[i]->draw();
         }
         //Check for a sphere
         else if(name == "sphere")
         {
+            middlePosition += m_position;
+            numSpheres++;
+
             //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",sphere.m_colour);
+            sphere.setColour(QVector4D(1 - (1.0f/i), 0.0f, 0.0f, 0.0f));
+            m_pgm.setUniformValue("mCol",sphere.getColour());
 
             //Draw an instance of the sphere
-            sphere.draw();
-
+            if(m_drawSpheres)
+            {
+                sphere.draw();
+            }
         }
     }
+
 
     //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
     loadShaderMatrices();
 
     //Again set the shader colour for the plane
-    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->m_colour);
+    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->getColour());
 
     //The plane is always created first, so we can assume it's index
     //which we can use to draw
     m_sceneObjects[0]->draw();
+
+    //Check if the mesh is being drawn
+    if(m_drawMesh)
+    {
+        //NEEDS EDITTING
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        {
+            m_sceneObjects[i]->draw();
+        }
+    }
+
 
     //Finally release the shader program
     m_pgm.release();
@@ -361,26 +584,23 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *e)
-{
+{    
+    int objCount = 1;
+
     switch(e->key())
     {
     case Qt::Key_W:
         //User pressed 'W' so update the wireframe mode
         //of each mesh in the scene
-        for(uint i = 0; i < m_sceneObjects.size(); ++i)
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
             m_sceneObjects[i]->setWireMode();
         }
 
         break;
-    case Qt::Key_T:
-        //The user pressed 'T' so add a new teapot to the world
-        m_bullet->addMesh("teapot",QVector3D(0,10,0));
 
-        m_pgm.bind();
-        createTeapot();
-        m_pgm.release();
-
+    case Qt::Key_S:
+        m_drawSpheres = !m_drawSpheres;
         break;
 
     case Qt::Key_Escape:
@@ -388,10 +608,74 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         close();
         break;
 
+    case Qt::Key_Space:
+        //User pressed 'space' so toggle the
+        //simulation
+        m_isSimulating = !m_isSimulating;
+        break;
+
+    case Qt::Key_M:
+        //User pressed 'm' so toggle the
+        //drawing of the mesh
+        m_drawMesh = !m_drawMesh;
+        break;
+
+    case Qt::Key_P:
+        m_plastic = !m_plastic;
+        break;
+
+    case Qt::Key_Up:
+        if(m_moveDown)
+        {
+            m_moveDown = false;
+        }
+        else
+        {
+            m_moveUp = true;
+            m_adjustPos[1] += 50.0f;
+        }
+        break;
+
+    case Qt::Key_Down:
+        if(m_moveUp)
+        {
+            m_moveUp = false;
+        }
+        else
+        {
+            m_moveDown = true;
+            m_adjustPos[1] -= 50.0f;
+        }
+        break;
+
+    case Qt::Key_Home:
+        //User pressed 'home' so stop the simulation
+        m_bullet->stop();
+
+        //Reset all the sphere positions
+        for(int i = 0; i < m_sceneObjects.size(); ++i)
+        {
+            for(int j = 0; j < m_sceneObjects[i]->getSphereNum(); ++j)
+            {
+                m_bullet->reset(m_sceneObjects[i]->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                objCount++;
+            }
+        }
+
+        //Step the simulation once so that everything
+        //changes properly
+        m_bullet->step(1.0f/60.0f, 10);
+
+        //Stop the simulation
+        m_isSimulating = false;
+
+        break;
+
     default:
         break;
     }
 
+    //Redraw with the changes in mind
     update();
 }
 
@@ -480,6 +764,41 @@ void GLWidget::timerEvent(QTimerEvent *e)
     //Getting a warning because the timer event isn't being used
     e;
 
-    m_bullet->step(1.0f/60.0f, 10);
-    update();
+    //Check if the program should be simulating
+    if(m_isSimulating)
+    {
+        if(m_moveUp)
+        {
+            m_bullet->moveBodies(m_adjustPos);
+            m_adjust = true;
+            m_moveUp = false;
+        }
+        else if(m_moveDown)
+        {
+            m_bullet->moveBodies(m_adjustPos);
+            m_adjust = true;
+            m_moveDown = false;
+
+        }
+        else if(m_adjust == true)
+        {
+            m_bullet->stopAdjusting();
+            m_adjustPos = QVector3D(0,0,0);
+            m_adjust = false;
+        }
+
+//        if(m_plastic)
+//        {
+//            m_bullet->checkPlastic();
+//        }
+
+        //Check nothing is moving too fast
+//        m_bullet->checkVelocities();
+
+        //Step the simulation
+        m_bullet->step(1.0f/60.0f, 10);
+
+        //Update the window
+        update();
+    }
 }
