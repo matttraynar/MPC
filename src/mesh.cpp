@@ -7,10 +7,11 @@ void printVector(QVector3D p)
     qInfo()<<"Vec "<<p.x()<<' '<<p.y()<<' '<<p.z();
 }
 
-Mesh::Mesh(QVector4D colour)
+Mesh::Mesh(QVector4D colour, const std::string name)
 {
     //Set the colour to the specified value
     m_colour = colour;
+    m_name = name;
 
     m_radius = 1.0f;
 }
@@ -782,9 +783,10 @@ void Mesh::packSpheres()
 
     int sphereIndex = 0;
 
+    qInfo()<<"Starting sphere pack";
     while(frontQueue.size() != 0)
     {
-//        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
+        qInfo()<<"There are now "<<m_spherePositions.size()<<" spheres";
 
         if(m_spherePositions.size() >= 10000)
         {

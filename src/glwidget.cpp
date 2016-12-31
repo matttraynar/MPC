@@ -87,20 +87,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-     for(int i = 0; i < 50; ++i)
-     {
-         std::string fileStart = "objFiles/Voronoi/cubeFrag";
-         fileStart += std::to_string(i);
-         fileStart += ".obj";
-
-         std::string meshName = "cubeFrag";
-         meshName += std::to_string(i);
-
-         const char* fileName = fileStart.c_str();
-         shapes->addMesh(meshName, fileName, QVector3D(0.0,0.0,1.0));
-
-         createMesh(fileName);
-     }
+     createMesh("objFiles/Voronoi/cubeForVoronoi.obj", "mesh", QVector3D(0,25,5));
+     createMesh("objFiles/Voronoi/cubeForVoronoi.obj", "mesh", QVector3D(0,10,0));
 
      //Release the shader program
      m_pgm.release();
@@ -184,7 +172,7 @@ void GLWidget::createGround()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0)));
+    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0), "ground"));
 
     //Load the ground plane obj
     ground->loadMesh("objFiles/ground.obj");
@@ -205,7 +193,7 @@ void GLWidget::createTeapot()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
+    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), "teapot"));
 
     //Load the teapot obj
     teapot->loadMesh("objFiles/cubeVoronoi.obj");
@@ -315,31 +303,44 @@ void GLWidget::createTeapot()
     m_pgm.release();
 }
 
-void GLWidget::createMesh(const char *filepath)
+void GLWidget::createMesh(const char *filepath, const std::string name, QVector3D position)
 {
     //Bind the shader program to the context
     m_pgm.bind();
 
-    //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f)));
+    int index = 0;
+    int newMeshPosition = 1000000000;
 
-    //Load the teapot obj
-    mesh->loadMesh(filepath);
+    if(checkExisting(name, index))
+    {
+        qInfo()<<"Mesh has already been added, duplicating";
+        m_sceneObjects.push_back(m_sceneObjects[index]);
+        newMeshPosition = (int)m_sceneObjects.size() - 1;
+    }
+    else
+    {
+        //Create a new mesh shared pointer and use the colour constructor
+        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), name));
 
-    //Load the neccesary vaos and vbos
-    mesh->prepareMesh(m_pgm);
+        //Load the teapot obj
+        mesh->loadMesh(filepath);
 
-    //Generate the distance points used to speed up sphere packing
-    mesh->generateDistanceField();
-    mesh->preparePoints(m_pgm);
+        //Load the neccesary vaos and vbos
+        mesh->prepareMesh(m_pgm);
 
-    //Pack the mesh with spheres
-    mesh->packSpheres();
+        //Generate the distance points used to speed up sphere packing
+        mesh->generateDistanceField();
+        mesh->preparePoints(m_pgm);
 
-    //Add the pointer to the vector of scene objects
-    m_sceneObjects.push_back(mesh);
+        //Pack the mesh with spheres
+        mesh->packSpheres();
 
-    int newMeshPosition = (int)m_sceneObjects.size() - 1;
+        //Add the pointer to the vector of scene objects
+        m_sceneObjects.push_back(mesh);
+
+        newMeshPosition = (int)m_sceneObjects.size() - 1;
+    }
+
     uint currentNBodies = m_bullet->getNumCollisionObjects();
 
     //Iterate over all the spheres in the pack
@@ -347,7 +348,7 @@ void GLWidget::createMesh(const char *filepath)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
-        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->getSphereAt(i) + QVector3D(0,5,0), 1.0f, QVector3D(0,0,0));
+        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
     }
 
 
@@ -371,7 +372,7 @@ void GLWidget::createMesh(const char *filepath)
         //Get the possible connections the current sphere could have in
         //the sphere pack
         std::vector<QVector3D> spheresToConnect;
-        mesh->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+        m_sceneObjects[newMeshPosition]->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
 
         //Check if there are any candidate spheres
         if(spheresToConnect.size() == 0)
@@ -397,8 +398,8 @@ void GLWidget::createMesh(const char *filepath)
                     //The indices stored are created from the list of spheres,
                     //because we also have the static ground plane in the
                     //bullet world the indices need to be incremented
-                    sphereA++;
-                    sphereB++;
+                    sphereA += currentNBodies;
+                    sphereB += currentNBodies;
 
                     //Get the rigid bodies relating to the pair
                     btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
@@ -431,6 +432,20 @@ void GLWidget::createMesh(const char *filepath)
 
     //Release the shader program
     m_pgm.release();
+}
+
+bool GLWidget::checkExisting(const std::string name, int &position)
+{
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == name)
+        {
+            position = i;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
@@ -483,10 +498,10 @@ void GLWidget::paintGL()
         if(name == "mesh")
         {
             //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",m_sceneObjects[0]->getColour());
+            m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
 
             //Draw the object
-            m_sceneObjects[1]->draw();
+            m_sceneObjects[i]->draw();
         }
         //Check for a sphere
         else if(name == "sphere")
@@ -518,21 +533,19 @@ void GLWidget::paintGL()
     m_sceneObjects[0]->draw();
 
     //Check if the mesh is being drawn
-    if(m_drawMesh)
-    {
-        //Get the middle of the sphere pack
-        m_position = middlePosition/numSpheres;
-
-        qInfo()<<"Mesh COM: "<<middlePosition.x()<<' '<<middlePosition.y()<<' '<<middlePosition.z()<<'\n';
-
-        //Load the position to draw the mesh and then
-        //draw it
-        loadShaderMatrices();
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
-        {
-            m_sceneObjects[i]->draw();
-        }
-    }
+//    if(m_drawMesh)
+//    {
+//        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+//        {
+//            m_sceneObjects[i]->draw();
+//        }
+//    }
+//    m_position = QVector3D(0.0f, 10.0f, 0.0f);
+//    loadShaderMatrices();
+//    for(uint i = 1; i < m_sceneObjects.size(); ++i)
+//    {
+//        m_sceneObjects[i]->draw();
+//    }
 
     //Finally release the shader program
     m_pgm.release();
@@ -776,13 +789,13 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_adjust = false;
         }
 
-        if(m_plastic)
-        {
-            m_bullet->checkPlastic();
-        }
+//        if(m_plastic)
+//        {
+//            m_bullet->checkPlastic();
+//        }
 
         //Check nothing is moving too fast
-        m_bullet->checkVelocities();
+//        m_bullet->checkVelocities();
 
         //Step the simulation
         m_bullet->step(1.0f/60.0f, 10);

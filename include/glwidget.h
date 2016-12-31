@@ -59,8 +59,10 @@ private:
 
     //Methods for creating each mesh
     void createGround();
-    void createMesh(const char* filepath);
+    void createMesh(const char* filepath, const std::string name, QVector3D position);
     void createTeapot();
+
+    bool checkExisting(const std::string name, int &position);
 
     //Container which contains all the objects in the scene
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;

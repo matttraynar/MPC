@@ -71,7 +71,7 @@ class Mesh
 public:
     //Ctors
     Mesh() = default;
-    Mesh(QVector4D colour);
+    Mesh(QVector4D colour, const std::string name);
 
     //Dtor
     ~Mesh();
@@ -95,12 +95,14 @@ public:
     //Set methods
     void setWireMode();
     void setColour(QVector4D colour);
+    void setName(const std::string name) { m_name = name;}
 
     //Get methods
     inline std::vector<QVector3D> getVerts() const { return m_verts; }
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index];}
     inline int getSphereNum() const                       { return (int)m_spherePositions.size(); }
     inline QVector4D getColour() const                  { return m_colour; }
+    inline std::string getName() const                    { return m_name;}
     inline QVector3D getCOM() const                                { return m_COM; }
 
     void getCloseSpheres(uint sphereIndex, std::vector<QVector3D> &positions, std::vector<std::pair<uint, uint> > &pairs);
@@ -145,6 +147,8 @@ private:
 
     //Colour of the mesh
     QVector4D m_colour;
+
+    std::string m_name;
 
     //Array and buffer object for the mesh
     QOpenGLVertexArrayObject m_vao;
