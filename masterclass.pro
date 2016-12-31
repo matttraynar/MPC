@@ -10,10 +10,12 @@ MOC_DIR     = moc
 OBJECTS_DIR = obj
 
 #Include all source files
-SOURCES += $$PWD/src/*.cpp
+SOURCES += $$PWD/src/*.cpp \
+    src/spherepack.cpp
 
 #Include all header files
-HEADERS  += $$PWD/include/*.h
+HEADERS  += $$PWD/include/*.h \
+    include/spherepack.h
 
 #Specify where the UI form is
 FORMS    += $$PWD/forms/mainwindow.ui
