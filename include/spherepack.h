@@ -64,7 +64,7 @@ public:
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index]; }
     inline int getSphereNum() const                       { return (int)m_spherePositions.size(); }
 
-    void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs);
+    void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints);
 
 private:
     void generateDistanceField();
@@ -80,7 +80,9 @@ private:
                                     HaloIntersections &intersectionType);
 
     void validatePoints(vector_V &points);
-    bool triangleEquals(Triangle a, Triangle b);
+    bool checkAgainstMesh(QVector3D point);
+    void checkAgainstSpheres(QVector3D point, vector_V &points);
+
     QVector3D calculateTriNorm(Triangle tri);
 
     float interpolateLinear(const float &x, const float &x1, const float &x2, const float &c00, const float &c01);

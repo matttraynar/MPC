@@ -74,15 +74,14 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addMesh("mesh","objFiles/cubeLARGE.obj",QVector3D(0.0,0.0,1.0));
      shapes->addSphere("sphere",1.0f);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(0,0,0));
-     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,25,0));
+//     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
+     createMesh("objFiles/bunnyREDUCED.obj", "dragon", QVector3D(0,30,0));
 
      //Release the shader program
      m_pgm.release();
@@ -177,6 +176,7 @@ void GLWidget::createGround()
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
     m_sceneObjectPositions.push_back(QVector3D(0,0,0));
+//    m_sphereNumbers.push_back(0);
 
     //Release the shader program
     m_pgm.release();
@@ -231,16 +231,19 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     uint nBodies = m_bullet->getNumCollisionObjects();
     uint nSpheres = m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum();
 
+    m_sphereNumbers.push_back(nSpheres);
+
     int constCount = 0;
 
-    //Create a new container for pairs
-    std::vector< std::pair<uint, uint> > sphereIndices;
 
     qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
     //Iterate through them
     for(uint i = currentNBodies; i < nBodies; ++i)
     {
+        //Create a new container for pairs
+        std::vector< std::pair<uint, uint> > sphereIndices;
+
         //Account for the ground plane (the first object in the bullet world)
         uint sphereIndex = i - currentNBodies;
 
@@ -248,7 +251,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //the sphere pack
         std::vector<QVector3D> spheresToConnect;
 
-        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 100000);
 
         //Check if there are any candidate spheres
         if(spheresToConnect.size() == 0)
@@ -355,7 +358,11 @@ void GLWidget::paintGL()
     uint nBodies = m_bullet->getNumCollisionObjects();
 
     QVector3D middlePosition(0,0,0);
+    vector_V midPositions;
+
     int numSpheres = 0;
+
+    int bodyNumber = 0;
 
     //Iterate through them
     for(uint i = 0; i < nBodies; ++i)
@@ -370,23 +377,12 @@ void GLWidget::paintGL()
         //Get the name of the bullet object
         std::string name = m_bullet->getBodyNameAt(i);
 
-        //Check for the teapot
-        if(name == "mesh")
-        {
-            //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
-
-            //Draw the object
-            m_sceneObjects[i]->draw();
-        }
         //Check for a sphere
-        else if(name == "sphere")
+        if(name == "sphere")
         {
             middlePosition += m_position;
-            numSpheres++;
 
             //Set the colour of the object in the shader
-            sphere.setColour(QVector4D(1 - (1.0f/i), 0.0f, 0.0f, 0.0f));
             m_pgm.setUniformValue("mCol",sphere.getColour());
 
             //Draw an instance of the sphere
@@ -394,6 +390,19 @@ void GLWidget::paintGL()
             {
                 sphere.draw();
             }
+
+            numSpheres++;
+        }
+
+        if(numSpheres == m_sphereNumbers[bodyNumber])
+        {
+            midPositions.push_back(middlePosition / numSpheres);
+
+            middlePosition = QVector3D(0,0,0);
+
+            numSpheres = 0;
+
+            bodyNumber++;
         }
     }
 
@@ -412,9 +421,12 @@ void GLWidget::paintGL()
     //Check if the mesh is being drawn
     if(m_drawMesh)
     {
-        //NEEDS EDITTING
         for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
+            m_position = midPositions[i - 1];
+
+            loadShaderMatrices();
+
             m_sceneObjects[i]->draw();
         }
     }

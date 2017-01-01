@@ -15,7 +15,8 @@ SOURCES += $$PWD/src/*.cpp \
 
 #Include all header files
 HEADERS  += $$PWD/include/*.h \
-    include/spherepack.h
+    include/spherepack.h \
+    include/triangle.h
 
 #Specify where the UI form is
 FORMS    += $$PWD/forms/mainwindow.ui

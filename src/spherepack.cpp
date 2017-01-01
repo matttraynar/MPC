@@ -173,7 +173,7 @@ void SpherePack::generateDistanceField()
 
                                 //By checking the dot of this connection vector with one of the triangle
                                 //normals the check for concave/convex faces is made
-                                float connectType = QVector3D::dotProduct(calculateTriNorm(m_distanceTriangles[yI][zI][xI]), connectVector);
+                                float connectType = QVector3D::dotProduct(m_distanceTriangles[yI][zI][xI].getNormal(), connectVector);
 
                                 if(connectType >= 0.0f)
                                 {
@@ -263,16 +263,40 @@ void SpherePack::packSpheres()
     QVector3D p0 = middlePos;
     QVector3D p1 = p0;
     QVector3D p2 = p0;
-    p0[0] += m_radius;
-    p1[0] -= m_radius;
-    p2[1] += m_radius;
 
+    p0[0]+=m_radius;
+    p1[0] -= m_radius;
+
+//    while(!checkAgainstMesh(p0) && bBoxContains(m_meshAABB, p0))
+//    {
+//        p0[0] += m_radius;
+//    }
+    m_spherePositions.push_back(p0);
+
+//    p1 = p0;
+//    p1[0]+ m_radius;
+//    while(!checkAgainstMesh(p1) && bBoxContains(m_meshAABB, p1))
+//    {
+//        p1[0] += m_radius;
+//    }
+    m_spherePositions.push_back(p1);
+
+    p2[1] += m_radius;
     p2[2] += m_radius * 0.75f;
+//    while(!checkAgainstMesh(p2) && bBoxContains(m_meshAABB, p2))
+//    {
+//        p2[0] += m_radius;
+//    }
+    m_spherePositions.push_back(p2);
 
     //Add these intial positions to the position container
-    m_spherePositions.push_back(p0);
-    m_spherePositions.push_back(p1);
-    m_spherePositions.push_back(p2);
+
+
+
+
+
+//    m_spherePositions.push_back(p1);
+//    m_spherePositions.push_back(p2);
 
     std::vector<QVector3D> frontQueue;
 
@@ -370,11 +394,6 @@ void SpherePack::packSpheres()
         }
 
         count++;
-    }
-
-    for(uint i =0; i < m_spherePositions.size(); ++i)
-    {
-        m_spherePositions[i] += QVector3D(0,10,0);
     }
 
     qInfo()<<"Finished packing spheres";
@@ -759,9 +778,7 @@ void SpherePack::validatePoints(vector_V &points)
 
     while(point != points.end())
     {
-        float distance = interpolateTrilinear(*point);
-
-        if(distance <= m_radius)
+        if(checkAgainstMesh(*point))
         {
             acceptedPoints.push_back(*point);
         }
@@ -805,27 +822,16 @@ void SpherePack::validatePoints(vector_V &points)
 
 }
 
-bool SpherePack::triangleEquals(Triangle a, Triangle b)
+bool SpherePack::checkAgainstMesh(QVector3D point)
 {
-    if(((a.A.x() == b.A.x() && a.A.y() == b.A.y() && a.A.z() == b.A.z()) ) &&
-        ((a.B.x() == b.B.x() && a.B.y() == b.B.y() && a.B.z() == b.B.z()) ) &&
-        ((a.C.x() == b.C.x() && a.C.y() == b.C.y() && a.C.z() == b.C.z()) ))
+    float distance = interpolateTrilinear(point);
+
+    if(distance <= m_radius)
     {
         return true;
     }
 
     return false;
-}
-
-QVector3D SpherePack::calculateTriNorm(Triangle tri)
-{
-    //Calculate two edges of the triangle
-    QVector3D e1 = tri.B - tri.A;
-    QVector3D e2 = tri.C - tri.A;
-
-    //Return the normalised cross product of these
-    //edges (the triangle normal)
-    return QVector3D::crossProduct(e1, e2).normalized();
 }
 
 float SpherePack::interpolateLinear(const float &x, const float &x1, const float &x2,
@@ -918,7 +924,7 @@ int SpherePack::getBestPoint(const QVector3D &currentSphere, vector_V points)
     return index;
 }
 
-void SpherePack::getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs)
+void SpherePack::getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints)
 {
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
@@ -931,6 +937,12 @@ void SpherePack::getCloseSpheres(uint sphereIndex, vector_V &positions, std::vec
         {
             continue;
         }
+
+       if(pairs.size() > maxNumConstraints)
+       {
+           qInfo()<<"Constraint limit reached";
+           break;
+       }
 
         //Get a sphere from the list of positions
         QVector3D testSphere = m_spherePositions[i];
