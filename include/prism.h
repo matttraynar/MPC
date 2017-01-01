@@ -10,6 +10,15 @@ struct Triangle
     QVector3D A = QVector3D(1000000, 1000000, 1000000);
     QVector3D B = QVector3D(1000000, -1000000, 1000000);
     QVector3D C = QVector3D(1000000, 1000000, -1000000);
+
+    inline bool operator == (const Triangle &rhs)
+    {
+        return (( A.x() == rhs.A.x() && A.y() == rhs.A.y() && A.z() == rhs.A.z() ) &&
+                    ( B.x() == rhs.B.x() && B.y() == rhs.B.y() && B.z() == rhs.B.z() ) &&
+                    ( C.x() == rhs.C.x() && C.y() == rhs.C.y() && C.z() == rhs.C.z() ));
+    }
+
+    inline bool operator!= (const Triangle &rhs) { return !operator ==(rhs); }
 };
 
 struct BBox
@@ -22,6 +31,18 @@ struct BBox
 
     float zMin = 1000000.0f;
     float zMax = -1000000.0f;
+
+    void makeBBox(float x, float X,
+                            float y, float Y,
+                            float z, float Z)
+    {
+        xMin = x;
+        xMax = X;
+        yMin = y;
+        yMax = Y;
+        zMin = z;
+        zMax = Z;
+    }
 };
 
 class Prism

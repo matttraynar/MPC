@@ -49,7 +49,9 @@ SOURCES       = src\btshape.cpp \
 		src\main.cpp \
 		src\mainwindow.cpp \
 		src\mesh.cpp \
-		src\prism.cpp moc\moc_glwidget.cpp \
+		src\prism.cpp \
+		src\spherepack.cpp \
+		src\spherepack.cpp moc\moc_glwidget.cpp \
 		moc\moc_mainwindow.cpp
 OBJECTS       = obj\btshape.obj \
 		obj\btworld.obj \
@@ -58,6 +60,8 @@ OBJECTS       = obj\btshape.obj \
 		obj\mainwindow.obj \
 		obj\mesh.obj \
 		obj\prism.obj \
+		obj\spherepack.obj \
+		obj\spherepack.obj \
 		obj\moc_glwidget.obj \
 		obj\moc_mainwindow.obj
 
@@ -68,13 +72,17 @@ DIST          = shaders/vert.glsl \
 		include\mainwindow.h \
 		include\mesh.h \
 		include\prism.h \
-		include\ui_mainwindow.h src\btshape.cpp \
+		include\spherepack.h \
+		include\ui_mainwindow.h \
+		include\spherepack.h src\btshape.cpp \
 		src\btworld.cpp \
 		src\glwidget.cpp \
 		src\main.cpp \
 		src\mainwindow.cpp \
 		src\mesh.cpp \
-		src\prism.cpp
+		src\prism.cpp \
+		src\spherepack.cpp \
+		src\spherepack.cpp
 QMAKE_TARGET  = MPC
 DESTDIR        = debug\ #avoid trailing-slash linebreak
 TARGET         = MPC.exe
@@ -163,7 +171,7 @@ dist:
 	$(ZIP) MPC.zip $(SOURCES) $(DIST) masterclass.pro C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\spec_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\angle.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\msvc-base.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\common\msvc-desktop.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\qconfig.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dcore.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dcore_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dinput.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dinput_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dlogic.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dlogic_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquick.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquick_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickinput.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickinput_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickrender.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3dquickrender_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3drender.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_3drender_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axbase.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axbase_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axcontainer.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axcontainer_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axserver.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_axserver_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bluetooth.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bluetooth_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_bootstrap_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_clucene_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_concurrent.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_concurrent_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_core.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_core_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_dbus.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_dbus_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designer.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designer_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_designercomponents_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_enginio.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_enginio_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_gui.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_gui_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_help.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_help_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_labscontrols_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_labstemplates_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_location.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_location_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimedia.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimedia_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimediawidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_multimediawidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_network.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_network_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_nfc.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_nfc_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_opengl.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_opengl_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_openglextensions.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_openglextensions_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_platformsupport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_positioning.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_positioning_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_printsupport.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_printsupport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qml.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qml_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmldevtools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmltest.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qmltest_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_qtmultimediaquicktools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quick.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quick_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickparticles_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickwidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_quickwidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_script.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_script_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_scripttools.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_scripttools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sensors.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sensors_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_serialport.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_serialport_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sql.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_sql_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_svg.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_svg_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_testlib.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_testlib_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uiplugin.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uitools.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_uitools_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webchannel.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webchannel_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webengine.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webengine_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginecore.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginecore_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginewidgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webenginewidgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_websockets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_websockets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webview.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_webview_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_widgets.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_widgets_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_winextras.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_winextras_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xml.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xml_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xmlpatterns.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_xmlpatterns_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\modules\qt_lib_zlib_private.pri C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt_functions.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\qt_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\win32-msvc2015\qmake.conf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\spec_post.prf .qmake.stash C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exclusive_builds.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\default_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\default_pre.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\resolve_config.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exclusive_builds_post.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\default_post.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\build_pass.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qml_debug.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\rtti.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\precompile_header.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\warn_on.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\qt.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\resources.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\moc.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\opengl.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\uic.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\win32\windows.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\testcase_targets.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\exceptions.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\yacc.prf C:\Qt\Qt5.6.0\5.6\msvc2015_64\mkspecs\features\lex.prf masterclass.pro C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\qtmaind.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5OpenGLd.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Widgetsd.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Guid.prl C:\Qt\Qt5.6.0\5.6\msvc2015_64\lib\Qt5Cored.prl  NO_PCH_SOURCES RESOURCES HEADERS SOURCES OBJECTIVE_SOURCES FORMS YACCSOURCES YACCSOURCES LEXSOURCES 
 
 clean: compiler_clean 
-	-$(DEL_FILE) obj\btshape.obj obj\btworld.obj obj\glwidget.obj obj\main.obj obj\mainwindow.obj obj\mesh.obj obj\prism.obj obj\moc_glwidget.obj obj\moc_mainwindow.obj
+	-$(DEL_FILE) obj\btshape.obj obj\btworld.obj obj\glwidget.obj obj\main.obj obj\mainwindow.obj obj\mesh.obj obj\prism.obj obj\spherepack.obj obj\spherepack.obj obj\moc_glwidget.obj obj\moc_mainwindow.obj
 	-$(DEL_FILE) debug\MPC.exp debug\MPC.ilk debug\MPC.idb
 
 distclean: clean 
@@ -437,6 +445,21 @@ moc\moc_glwidget.cpp: C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\QCoreApplicat
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include\btshape.h \
 		include\mesh.h \
@@ -642,6 +665,7 @@ moc\moc_glwidget.cpp: C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\QCoreApplicat
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtguiversion.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include\spherepack.h \
 		include\prism.h \
 		include\glwidget.h
 	C:\Qt\Qt5.6.0\5.6\msvc2015_64\bin\moc.exe $(DEFINES) -D_MSC_VER=1900 -D_WIN32 -D_WIN64 -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/mkspecs/win32-msvc2015 -IE:/mattt/Documents/MPC -IE:/mattt/Documents/MPC/libs/bullet/src/BulletDynamics -IE:/mattt/Documents/MPC/libs/bullet/src/BulletCollision -IE:/mattt/Documents/MPC/libs/bullet/src/LinearMath -IE:/mattt/Documents/MPC/include -IE:/mattt/Documents/MPC/libs/bullet/src -IE:/mattt/Documents/MPC/libs/assimp/include -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include/QtOpenGL -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include/QtWidgets -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include/QtGui -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include/QtANGLE -IC:/Qt/Qt5.6.0/5.6/msvc2015_64/include/QtCore -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include include\glwidget.h -o moc\moc_glwidget.cpp
@@ -1016,6 +1040,21 @@ ui_mainwindow.h: forms\mainwindow.ui \
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include\btshape.h \
 		include\mesh.h \
@@ -1221,6 +1260,7 @@ ui_mainwindow.h: forms\mainwindow.ui \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtguiversion.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include\spherepack.h \
 		include\prism.h
 	C:\Qt\Qt5.6.0\5.6\msvc2015_64\bin\uic.exe forms\mainwindow.ui -o ui_mainwindow.h
 
@@ -1682,6 +1722,7 @@ obj\btshape.obj: src\btshape.cpp include/btshape.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
+		include/spherepack.h \
 		include/prism.h
 
 obj\btworld.obj: src\btworld.cpp include/btworld.h \
@@ -1783,6 +1824,21 @@ obj\btworld.obj: src\btworld.cpp include/btworld.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qvector3d.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qpoint.h \
@@ -2131,6 +2187,7 @@ obj\btworld.obj: src\btworld.cpp include/btworld.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLShaderProgram \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include/spherepack.h \
 		include/prism.h
 
 obj\glwidget.obj: src\glwidget.cpp include/glwidget.h \
@@ -2387,6 +2444,21 @@ obj\glwidget.obj: src\glwidget.cpp include/glwidget.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -2592,6 +2664,7 @@ obj\glwidget.obj: src\glwidget.cpp include/glwidget.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtguiversion.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include/spherepack.h \
 		include/prism.h
 
 obj\main.obj: src\main.cpp C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QApplication \
@@ -2854,6 +2927,21 @@ obj\main.obj: src\main.cpp C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QAppl
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -3057,6 +3145,7 @@ obj\main.obj: src\main.cpp C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtWidgets\QAppl
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtguiversion.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include/spherepack.h \
 		include/prism.h
 
 obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
@@ -3353,6 +3442,21 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btVehicleRaycaster.h \
 		libs\bullet\src\BulletDynamics\Vehicle\btWheelInfo.h \
 		libs\bullet\src\BulletDynamics\Dynamics\btActionInterface.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactShape.h \
+		libs\bullet\src\BulletCollision\CollisionShapes\btTriangleShape.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGImpactBvh.h \
+		libs\bullet\src\BulletCollision\Gimpact\btBoxCollision.h \
+		libs\bullet\src\BulletCollision\Gimpact\btTriangleShapeEx.h \
+		libs\bullet\src\BulletCollision\Gimpact\btClipPolygon.h \
+		libs\bullet\src\LinearMath\btGeometryUtil.h \
+		libs\bullet\src\BulletCollision\Gimpact\btGeometryOperations.h \
+		libs\bullet\src\BulletCollision\Gimpact\btQuantization.h \
+		libs\bullet\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h \
+		libs\bullet\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
 		include/btshape.h \
 		include/mesh.h \
@@ -3551,6 +3655,7 @@ obj\mainwindow.obj: src\mainwindow.cpp include/mainwindow.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qtguiversion.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLVertexArrayObject \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QOpenGLBuffer \
+		include/spherepack.h \
 		include/prism.h
 
 obj\mesh.obj: src\mesh.cpp libs\assimp\include\assimp\mesh.h \
@@ -3617,6 +3722,102 @@ obj\prism.obj: src\prism.cpp include/prism.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qalgorithms.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs.h \
 		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs_impl.h
+
+obj\spherepack.obj: src\spherepack.cpp include/spherepack.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qvector3d.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qpoint.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnamespace.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobal.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qconfig.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qfeatures.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsystemdetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qprocessordetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcompilerdetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypeinfo.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypetraits.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qisenum.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsysinfo.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qlogging.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qflags.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbasicatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_bootstrap.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qgenericatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_cxx11.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_gcc.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_msvc.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv7.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv6.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv5.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_ia64.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_x86.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_unix.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobalstatic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmutex.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnumeric.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qversiontagging.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmetatype.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbytearray.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qrefcount.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qarraydata.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstring.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qchar.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstringbuilder.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qvarlengtharray.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcontainerfwd.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qalgorithms.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs_impl.h \
+		include/prism.h
+
+obj\spherepack.obj: src\spherepack.cpp include/spherepack.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\QVector3D \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtGui\qvector3d.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qpoint.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnamespace.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobal.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qconfig.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qfeatures.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsystemdetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qprocessordetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcompilerdetection.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypeinfo.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qtypetraits.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qisenum.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qsysinfo.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qlogging.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qflags.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbasicatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_bootstrap.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qgenericatomic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_cxx11.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_gcc.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_msvc.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv7.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv6.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_armv5.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_ia64.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_x86.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qatomic_unix.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qglobalstatic.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmutex.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qnumeric.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qversiontagging.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qmetatype.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qbytearray.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qrefcount.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qarraydata.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstring.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qchar.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qstringbuilder.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qvarlengtharray.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qcontainerfwd.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qalgorithms.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs.h \
+		C:\Qt\Qt5.6.0\5.6\msvc2015_64\include\QtCore\qobjectdefs_impl.h \
+		include/prism.h
 
 obj\moc_glwidget.obj: moc\moc_glwidget.cpp 
 

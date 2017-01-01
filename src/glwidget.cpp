@@ -81,8 +81,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/cubeSTEP1.obj", "bunny", QVector3D(0,25,0));
-     createMesh("objFiles/cubeSTEP2.obj", "cube", QVector3D(0,5,0));
+     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(0,0,0));
+     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,25,0));
 
      //Release the shader program
      m_pgm.release();
@@ -182,122 +182,6 @@ void GLWidget::createGround()
     m_pgm.release();
 }
 
-void GLWidget::createTeapot()
-{
-    //Bind the shader program to the context
-    m_pgm.bind();
-
-    //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> teapot(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), "teapot"));
-
-    //Load the teapot obj
-    teapot->loadMesh("objFiles/cubeVoronoi.obj");
-
-    //Load the neccesary vaos and vbos
-    teapot->prepareMesh(m_pgm);
-
-    //Generate the distance points used to speed up sphere packing
-    teapot->generateDistanceField();
-    teapot->preparePoints(m_pgm);
-
-    //Pack the mesh with spheres
-    teapot->packSpheres();
-
-    //Add the pointer to the vector of scene objects
-    m_sceneObjects.push_back(teapot);
-    m_sceneObjects[1]->setWireMode();
-
-    //Iterate over all the spheres in the pack
-    for(int i = 0; i < m_sceneObjects[1]->getSphereNum(); ++i)
-    {
-        //For each sphere add a new btSphere to the bullet world (and at the
-        //correct position
-        m_bullet->addSphere(m_sceneObjects[1]->getSphereAt(i) + QVector3D(0,5,0), 1.0f, QVector3D(0,0,0));
-    }
-
-
-    //Get the number of collision objects in the world
-    uint nBodies = m_bullet->getNumCollisionObjects();
-    uint nSpheres = m_sceneObjects[1]->getSphereNum();
-
-    int constCount = 0;
-
-    //Create a new container for pairs
-    std::vector< std::pair<uint, uint> > sphereIndices;
-
-    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
-
-    //Iterate through them
-    for(uint i = 1; i < nBodies; ++i)
-    {
-        //Account for the ground plane (the first object in the bullet world)
-        int sphereIndex = i - 1;
-
-        //Get the possible connections the current sphere could have in
-        //the sphere pack
-        std::vector<QVector3D> spheresToConnect;
-        teapot->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
-
-        //Check if there are any candidate spheres
-        if(spheresToConnect.size() == 0)
-        {
-            //We can ignore this sphere if there aren't any
-            continue;
-        }
-        else
-        {
-            //There are some spheres that can be constrained to
-            for(uint j = 0; j < sphereIndices.size(); ++j)
-            {
-                //Iterate through each one, check if the first sphere index
-                //in the container of pairs is the same as the current
-                //bullet rigid body we are testing
-                uint sphereA = sphereIndices[j].first;
-
-                if(sphereIndex == sphereA)
-                {
-                    //If it is find out what the body is paired to
-                    uint sphereB = sphereIndices[j].second;
-
-                    //The indices stored are created from the list of spheres,
-                    //because we also have the static ground plane in the
-                    //bullet world the indices need to be incremented
-                    sphereA++;
-                    sphereB++;
-
-                    //Get the rigid bodies relating to the pair
-                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
-                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
-
-                    //First get the transform of the first body
-                    btTransform transA;
-                    transA.setIdentity();
-                    bodyA->getMotionState()->getWorldTransform(transA);
-
-                    //Now get the second
-                    btTransform transB;
-                    transB.setIdentity();
-
-                    //I originally tried doing this the same was as with A
-                    //but found that this caused the two bodies to fly toward
-                    //each other. Instead I convert the frame of B so that it
-                    //is relative to A.
-                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
-
-                    //Add the constraint to the bullet world
-                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
-
-                    //Mark the addition of a new constraint
-                    constCount++;
-                }
-            }
-        }
-    }
-
-    //Release the shader program
-    m_pgm.release();
-}
-
 void GLWidget::createMesh(const char *filepath, const std::string name, QVector3D position)
 {
     //Bind the shader program to the context
@@ -323,12 +207,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //Load the neccesary vaos and vbos
         mesh->prepareMesh(m_pgm);
 
-        //Generate the distance points used to speed up sphere packing
-        mesh->generateDistanceField();
-        mesh->preparePoints(m_pgm);
-
-        //Pack the mesh with spheres
-        mesh->packSpheres();
+        mesh->runSpherePackAlgorithm();
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
@@ -341,17 +220,16 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     uint currentNBodies = m_bullet->getNumCollisionObjects();
 
     //Iterate over all the spheres in the pack
-    for(int i = 0; i < m_sceneObjects[newMeshPosition]->getSphereNum(); ++i)
+    for(int i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
-        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
+        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
     }
-
 
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
-    uint nSpheres = m_sceneObjects[newMeshPosition]->getSphereNum();
+    uint nSpheres = m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum();
 
     int constCount = 0;
 
@@ -364,12 +242,13 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     for(uint i = currentNBodies; i < nBodies; ++i)
     {
         //Account for the ground plane (the first object in the bullet world)
-        int sphereIndex = i - currentNBodies;
+        uint sphereIndex = i - currentNBodies;
 
         //Get the possible connections the current sphere could have in
         //the sphere pack
         std::vector<QVector3D> spheresToConnect;
-        m_sceneObjects[newMeshPosition]->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
+
+        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices);
 
         //Check if there are any candidate spheres
         if(spheresToConnect.size() == 0)
@@ -655,9 +534,9 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         //Reset all the sphere positions
         for(int i = 0; i < m_sceneObjects.size(); ++i)
         {
-            for(int j = 0; j < m_sceneObjects[i]->getSphereNum(); ++j)
+            for(int j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
             {
-                m_bullet->reset(m_sceneObjects[i]->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
                 objCount++;
             }
         }
