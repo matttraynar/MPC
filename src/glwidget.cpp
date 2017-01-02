@@ -251,7 +251,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //the sphere pack
         std::vector<QVector3D> spheresToConnect;
 
-        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 100000);
+        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 300);
 
         //Check if there are any candidate spheres
         if(spheresToConnect.size() == 0)

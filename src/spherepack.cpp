@@ -264,40 +264,125 @@ void SpherePack::packSpheres()
     QVector3D p1 = p0;
     QVector3D p2 = p0;
 
-    p0[0]+=m_radius;
-    p1[0] -= m_radius;
+//    p0[0]+=m_radius;
+//    p1[0] -= m_radius;
 
-//    while(!checkAgainstMesh(p0) && bBoxContains(m_meshAABB, p0))
-//    {
-//        p0[0] += m_radius;
-//    }
     m_spherePositions.push_back(p0);
+
+    p1[0] += 2 * m_radius;
+
+    int axis = 0;
+    int direction = 1;
+
+    while(!checkAgainstMesh(p1))
+    {
+        if(axis > 3)
+        {
+            qInfo()<<"No suitable position found";
+            exit(1);
+        }
+
+        p1 = p0;
+
+        if(direction == 0)
+        {
+            p1[axis] += 2 * m_radius;
+            direction++;
+        }
+        else if(direction == 1)
+        {
+            p1[axis] -= 2 * m_radius;
+            direction = 0;
+            axis++;
+        }
+    }
+    //If direction = 0 last position was -=
+    //If direction = 1 last position was +=
+
+    m_spherePositions.push_back(p1);
+
+    int axisStore = 10;
+
+    //p0 is reused here to save time
+    if(direction == 0)
+    {
+        p0[axis - 1] -= m_radius;
+        axisStore = axis - 1;
+    }
+    else if(direction == 1)
+    {
+        p0[axis] += m_radius;
+        axisStore = axis;
+    }
+
+    if(axisStore == 10)
+    {
+        qInfo()<<"Something went wrong at p2";
+        exit(1);
+    }
+
+    p2 = p0;
+
+    float thirdLength = sqrt(3.0f) * m_radius;
+    qInfo()<<"Third length: "<<thirdLength;
+
+    direction = 1;
+    switch(axisStore)
+    {
+    case 0:
+        p2[1] += thirdLength;
+        axis = 1;
+        break;
+
+    case 1:
+    case 2:
+        p2[0] += thirdLength;
+        axis = 0;
+        break;
+    }
+
+    while(!checkAgainstMesh(p2))
+    {
+        if(axis > 3)
+        {
+            qInfo()<<"No suitable second position found";
+            exit(1);
+        }
+
+        if(axis == axisStore)
+        {
+            axis++;
+            continue;
+        }
+
+        p2 = p0;
+
+        if(direction == 0)
+        {
+            p2[axis] += thirdLength;
+            direction++;
+        }
+        else if(direction == 1)
+        {
+            p2[axis] -= thirdLength;
+            direction = 0;
+            axis++;
+        }
+    }
+
+    m_spherePositions.push_back(p2);
+
+    return;
 
 //    p1 = p0;
 //    p1[0]+ m_radius;
-//    while(!checkAgainstMesh(p1) && bBoxContains(m_meshAABB, p1))
-//    {
-//        p1[0] += m_radius;
-//    }
-    m_spherePositions.push_back(p1);
-
-    p2[1] += m_radius;
-    p2[2] += m_radius * 0.75f;
-//    while(!checkAgainstMesh(p2) && bBoxContains(m_meshAABB, p2))
-//    {
-//        p2[0] += m_radius;
-//    }
-    m_spherePositions.push_back(p2);
-
-    //Add these intial positions to the position container
-
-
-
-
-
 //    m_spherePositions.push_back(p1);
+
+//    p2[1] += m_radius;
+//    p2[2] += m_radius * 0.75f;
 //    m_spherePositions.push_back(p2);
 
+    //Add these intial positions to the position container
     std::vector<QVector3D> frontQueue;
 
     frontQueue.push_back(p1);
