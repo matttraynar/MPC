@@ -276,7 +276,7 @@ void SpherePack::packSpheres()
 
     while(!checkAgainstMesh(p1))
     {
-        if(axis > 3)
+        if(axis >= 3)
         {
             qInfo()<<"No suitable position found";
             exit(1);
@@ -323,8 +323,10 @@ void SpherePack::packSpheres()
 
     p2 = p0;
 
+    //When three circles are inscribed within an equilateral
+    //triangle the third circle has a 'y' value of root3 different
+    //to the other two. I did these calculations myself.
     float thirdLength = sqrt(3.0f) * m_radius;
-    qInfo()<<"Third length: "<<thirdLength;
 
     direction = 1;
     switch(axisStore)
@@ -343,7 +345,7 @@ void SpherePack::packSpheres()
 
     while(!checkAgainstMesh(p2))
     {
-        if(axis > 3)
+        if(axis >= 3)
         {
             qInfo()<<"No suitable second position found";
             exit(1);
@@ -371,16 +373,6 @@ void SpherePack::packSpheres()
     }
 
     m_spherePositions.push_back(p2);
-
-    return;
-
-//    p1 = p0;
-//    p1[0]+ m_radius;
-//    m_spherePositions.push_back(p1);
-
-//    p2[1] += m_radius;
-//    p2[2] += m_radius * 0.75f;
-//    m_spherePositions.push_back(p2);
 
     //Add these intial positions to the position container
     std::vector<QVector3D> frontQueue;

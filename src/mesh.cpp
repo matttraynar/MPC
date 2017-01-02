@@ -149,9 +149,9 @@ void Mesh::setColour(QVector4D colour)
     m_colour = colour;
 }
 
-void Mesh::runSpherePackAlgorithm()
+void Mesh::runSpherePackAlgorithm(float radius)
 {
-    m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, 1.0f));
+    m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, radius));
 }
 
 

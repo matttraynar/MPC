@@ -13,19 +13,17 @@ class BtShape
 {
 public:
     static BtShape* instance();
+    ~BtShape();
 
     void addMesh(const std::string name, const char* filepath, QVector3D colour);
     void addSphere(const std::string name, float radius);
 
     btCollisionShape* getShape(const std::string name);
-    QVector3D* getColour(const std::string name);
 
 private:
     BtShape();
 
     std::unordered_map< std::string, std::unique_ptr<btCollisionShape> > m_shapes;
-
-    std::unordered_map< std::string, std::unique_ptr<QVector3D> >m_colours;
 
 };
 

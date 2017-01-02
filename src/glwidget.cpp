@@ -74,14 +74,14 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addSphere("sphere",1.0f);
+     shapes->addSphere("sphere", 1.0f);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
 
 //     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
-     createMesh("objFiles/bunnyREDUCED.obj", "dragon", QVector3D(0,30,0));
+     createMesh("objFiles/dragonLARGE.obj", "dragon", QVector3D(0,30,0));
 
      //Release the shader program
      m_pgm.release();
@@ -207,7 +207,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //Load the neccesary vaos and vbos
         mesh->prepareMesh(m_pgm);
 
-        mesh->runSpherePackAlgorithm();
+        mesh->runSpherePackAlgorithm(1.0f);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);

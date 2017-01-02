@@ -35,7 +35,7 @@ public:
     void draw();
 
     //Method which creates a sphere pack for the mesh
-    void runSpherePackAlgorithm();
+    void runSpherePackAlgorithm(float radius);
 
     //Set methods
     void setWireMode();

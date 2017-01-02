@@ -12,6 +12,11 @@ BtShape *BtShape::instance()
     return &s_instance;
 }
 
+BtShape::~BtShape()
+{
+
+}
+
 void BtShape::addMesh(const std::string name, const char* filepath, QVector3D colour)
 {
     Mesh mesh;
@@ -27,7 +32,6 @@ void BtShape::addMesh(const std::string name, const char* filepath, QVector3D co
     }
 
     m_shapes[name].reset(shape);
-    m_colours[name].reset(&colour);
 
 }
 
@@ -50,18 +54,4 @@ btCollisionShape* BtShape::getShape(const std::string name)
     }
 
     return shape;
-}
-
-QVector3D* BtShape::getColour(const std::string name)
-{
-    QVector3D* colour = nullptr;
-
-    auto foundColour = m_colours.find(name);
-
-    if(foundColour != m_colours.end())
-    {
-        colour = foundColour->second.get();
-    }
-
-    return colour;
 }
