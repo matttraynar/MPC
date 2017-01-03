@@ -243,31 +243,12 @@ void SpherePack::generateDistanceField()
 
 }
 
-void SpherePack::packSpheres()
+bool SpherePack::findStartingPosition(const QVector3D &start)
 {
-    //Set some variables for later use
-    QVector3D middlePos;
+    m_spherePositions.clear();
+    m_spherePositions.push_back(start);
 
-    //Calculate the middle of the mesh
-    vector_Iter point = m_verts.begin();
-
-    while(point != m_verts.end())
-    {
-        middlePos += *point;
-        point++;
-    }
-
-    middlePos /= m_verts.size();
-
-    //Create the start positions for the first 3 spheres
-    QVector3D p0 = middlePos;
-    QVector3D p1 = p0;
-    QVector3D p2 = p0;
-
-//    p0[0]+=m_radius;
-//    p1[0] -= m_radius;
-
-    m_spherePositions.push_back(p0);
+    QVector3D p1 = start;
 
     p1[0] += 2 * m_radius;
 
@@ -278,11 +259,10 @@ void SpherePack::packSpheres()
     {
         if(axis >= 3)
         {
-            qInfo()<<"No suitable position found";
-            exit(1);
+            return false;
         }
 
-        p1 = p0;
+        p1 = start;
 
         if(direction == 0)
         {
@@ -303,15 +283,17 @@ void SpherePack::packSpheres()
 
     int axisStore = 10;
 
-    //p0 is reused here to save time
+    p1 = start;
+
+    //p1 is reused here to save time
     if(direction == 0)
     {
-        p0[axis - 1] -= m_radius;
+        p1[axis - 1] -= m_radius;
         axisStore = axis - 1;
     }
     else if(direction == 1)
     {
-        p0[axis] += m_radius;
+        p1[axis] += m_radius;
         axisStore = axis;
     }
 
@@ -321,7 +303,7 @@ void SpherePack::packSpheres()
         exit(1);
     }
 
-    p2 = p0;
+    QVector3D p2 = p1;
 
     //When three circles are inscribed within an equilateral
     //triangle the third circle has a 'y' value of root3 different
@@ -347,8 +329,7 @@ void SpherePack::packSpheres()
     {
         if(axis >= 3)
         {
-            qInfo()<<"No suitable second position found";
-            exit(1);
+            return false;
         }
 
         if(axis == axisStore)
@@ -357,7 +338,7 @@ void SpherePack::packSpheres()
             continue;
         }
 
-        p2 = p0;
+        p2 = p1;
 
         if(direction == 0)
         {
@@ -372,6 +353,48 @@ void SpherePack::packSpheres()
         }
     }
 
+    m_spherePositions.push_back(p2);
+
+    return true;
+
+}
+
+void SpherePack::packSpheres()
+{
+    //Set some variables for later use
+    QVector3D middlePos;
+
+    //Calculate the middle of the mesh
+    vector_Iter point = m_verts.begin();
+
+    while(point != m_verts.end())
+    {
+        middlePos += *point;
+        point++;
+    }
+
+    middlePos /= m_verts.size();
+
+    //Create the start positions for the first 3 spheres
+    QVector3D p0 = middlePos;
+    QVector3D p1 = p0;
+    QVector3D p2 = p0;
+
+    Triangle startTri = m_shell[m_shell.size() / 2].getTriangle();
+    QVector3D triNorm = startTri.getNormal();
+    QVector3D triMiddle = startTri.getMiddle();
+
+    p0 = triMiddle - (triNorm * m_radius);
+
+    m_spherePositions.push_back(p0);
+
+    p1 = p0 - (2 * triNorm * m_radius);
+
+    p2 = p0 - (triNorm);
+    QVector3D up = QVector3D::crossProduct(triNorm, QVector3D(1,0,0));
+    p2 += up * sqrt(3.0) * m_radius;
+
+    m_spherePositions.push_back(p1);
     m_spherePositions.push_back(p2);
 
     //Add these intial positions to the position container

@@ -80,8 +80,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-//     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
-     createMesh("objFiles/dragonLARGE.obj", "dragon", QVector3D(0,30,0));
+     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
+     createMesh("objFiles/dragonBEST.obj", "dragon", QVector3D(0,30,0));
 
      //Release the shader program
      m_pgm.release();

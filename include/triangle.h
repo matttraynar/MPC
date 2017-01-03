@@ -27,6 +27,12 @@ public:
         return QVector3D::crossProduct(e1, e2).normalized();
     }
 
+    QVector3D getMiddle()
+    {
+        QVector3D middle = A + B + C;
+        return middle/3.0f;
+    }
+
 };
 
 #endif // TRIANGLE_H
