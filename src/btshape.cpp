@@ -19,9 +19,8 @@ BtShape::~BtShape()
 
 void BtShape::addMesh(const std::string name, const char* filepath, QVector3D colour)
 {
-    Mesh mesh;
+    Mesh mesh(QVector4D(colour, 1.0f), name);
     mesh.loadMesh(filepath);
-    mesh.setColour(colour);
 
     btConvexHullShape* shape = new btConvexHullShape();
     auto verts = mesh.getVerts();

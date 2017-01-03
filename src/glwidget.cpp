@@ -15,7 +15,7 @@ GLWidget::GLWidget( QWidget* parent )
     m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
-    m_radius = 2.0f;
+    m_radius = 1.0f;
 
     //Initialise variables for mouse control to 0
     m_xRot = 0;
@@ -83,7 +83,7 @@ void GLWidget::initializeGL()
      createGround();
 
 //     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
-     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
+     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,30,0));
 
      //Release the shader program
      m_pgm.release();
@@ -167,7 +167,7 @@ void GLWidget::createGround()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(1.0,1.0,1.0,1.0), "ground"));
+    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(0.9,1.0,1.0,1.0), "ground"));
 
     //Load the ground plane obj
     ground->loadMesh("objFiles/ground.obj");
@@ -201,7 +201,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     else
     {
         //Create a new mesh shared pointer and use the colour constructor
-        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), name));
+        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.4f,0.5f,1.0f,1.0f), name));
 
         //Load the teapot obj
         mesh->loadMesh(filepath);
@@ -210,6 +210,11 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         mesh->prepareMesh(m_pgm);
 
         mesh->runSpherePackAlgorithm(m_radius);
+
+        mesh->skinMeshToSpheres(2);
+        mesh->updateSkinnedMesh(mesh->m_spherePack->getSpheres());
+
+        mesh->prepareSkinnedMesh(m_pgm);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
@@ -240,6 +245,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
     qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
+    std::vector< std::pair<uint, uint> > sphereConstraints;
     //Iterate through them
     for(uint i = currentNBodies; i < nBodies; ++i)
     {
@@ -276,9 +282,12 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
                     //If it is find out what the body is paired to
                     uint sphereB = sphereIndices[j].second;
 
+                    sphereConstraints.push_back(std::make_pair(sphereA, sphereB));
+
                     //The indices stored are created from the list of spheres,
                     //because we also have the static ground plane in the
-                    //bullet world the indices need to be incremented
+                    //bullet world as well as other spheres the value
+                    //needs to be adjusted
                     sphereA += currentNBodies;
                     sphereB += currentNBodies;
 
@@ -304,12 +313,15 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
                     //Add the constraint to the bullet world
                     m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
 
+
                     //Mark the addition of a new constraint
                     constCount++;
                 }
             }
         }
     }
+
+    m_constraints.push_back(sphereConstraints);
 
     //Release the shader program
     m_pgm.release();
@@ -327,6 +339,43 @@ bool GLWidget::checkExisting(const std::string name, int &position)
     }
 
     return false;
+}
+
+void GLWidget::updateConstraintDrawing()
+{
+    constraintVerts.clear();
+
+    for(uint i = 0; i < m_constraints.size(); ++i)
+    {
+        for(uint j = 0; j < m_constraints[i].size(); ++j)
+        {
+            constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].first]);
+            constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].second]);
+        }
+    }
+
+    if(!m_vaoConstraint.isCreated())
+    {
+        m_vaoConstraint.create();
+    }
+
+    m_vaoConstraint.bind();
+
+    if(!m_vboConstraint.isCreated())
+    {
+        m_vboConstraint.create();
+    }
+
+    m_vboConstraint.bind();
+    m_vboConstraint.allocate(&constraintVerts[0], (int)constraintVerts.size() * sizeof(GLfloat) * 3);
+
+    m_pgm.enableAttributeArray("vertexPos");
+    m_pgm.setAttributeArray("vertexPos", GL_FLOAT, 0, 3);
+
+    m_vboConstraint.release();
+
+    m_vaoConstraint.release();
+
 }
 
 //------------------------------------------------- RESIZE AND PAINT WINDOW -------------------------------------------------//
@@ -351,20 +400,22 @@ void GLWidget::paintGL()
     m_pgm.bind();
 
     //Create a sphere we are going to draw in the correct places
-    Mesh sphere;
+    Mesh sphere(QVector4D(1.0f, 0.0f, 0.0f, 1.0f), "sphere");
     sphere.loadMesh("objFiles/sphere.obj");
     sphere.prepareMesh(m_pgm);
-    sphere.setColour(QVector4D(1.0,0.0,0.0,1.0));
 
     //Get the number of bullet bodies
     uint nBodies = m_bullet->getNumCollisionObjects();
 
     QVector3D middlePosition(0,0,0);
     vector_V midPositions;
+    vector_V spherePositions;
 
     int numSpheres = 0;
 
     int bodyNumber = 0;
+
+    m_spherePositions.clear();
 
     //Iterate through them
     for(uint i = 0; i < nBodies; ++i)
@@ -372,33 +423,25 @@ void GLWidget::paintGL()
         //Get the position of the bullet mesh
         m_position = m_bullet->getTransform(i);
 
-        //Load the viewing and object transformation matrices
-        //to the shader program
-        loadShaderMatrices(m_radius);
-
         //Get the name of the bullet object
         std::string name = m_bullet->getBodyNameAt(i);
 
         //Check for a sphere
         if(name == "sphere")
         {
+            spherePositions.push_back(m_position);
             middlePosition += m_position;
-
-            //Set the colour of the object in the shader
-            m_pgm.setUniformValue("mCol",sphere.getColour());
-
-            //Draw an instance of the sphere
-            if(m_drawSpheres)
-            {
-                sphere.draw();
-            }
 
             numSpheres++;
         }
 
         if(numSpheres == m_sphereNumbers[bodyNumber])
         {
+            m_spherePositions.push_back(spherePositions);
+
             midPositions.push_back(middlePosition / numSpheres);
+
+            spherePositions.clear();
 
             middlePosition = QVector3D(0,0,0);
 
@@ -408,12 +451,54 @@ void GLWidget::paintGL()
         }
     }
 
+    m_position = QVector3D(0,0,0);
+    loadShaderMatrices(1.0f);
+
+    int sphereIndex = 0;
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->hasSpherePack())
+        {
+            m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
+            m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
+            sphereIndex++;
+        }
+    }
+
+    m_pgm.setUniformValue("mCol",sphere.getColour());
+
+    if(m_drawSpheres)
+    {
+        for(uint i = 0; i < m_spherePositions.size(); ++i)
+        {
+            for(uint j = 0; j < m_spherePositions[i].size(); ++j)
+            {
+                m_position = m_spherePositions[i][j];
+
+                loadShaderMatrices(m_radius);
+
+                sphere.draw();
+            }
+        }
+    }
+    else
+    {
+        updateConstraintDrawing();
+
+        m_vaoConstraint.bind();
+        m_pgm.setUniformValue("mCol",sphere.getColour());
+
+        glLineWidth(0.25f);
+        glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
+        m_vaoConstraint.release();
+    }
+
     //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
     loadShaderMatrices(1.0f);
 
     //Again set the shader colour for the plane
-    m_pgm.setUniformValue("mCol",m_sceneObjects[1]->getColour());
+    m_pgm.setUniformValue("mCol",m_sceneObjects[0]->getColour());
 
     //The plane is always created first, so we can assume it's index
     //which we can use to draw
@@ -424,7 +509,8 @@ void GLWidget::paintGL()
     {
         for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
-            m_position = midPositions[i - 1];
+            m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
+//            m_position = midPositions[i - 1];
 
             loadShaderMatrices(1.0f);
 
@@ -684,14 +770,6 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_adjustPos = QVector3D(0,0,0);
             m_adjust = false;
         }
-
-//        if(m_plastic)
-//        {
-//            m_bullet->checkPlastic();
-//        }
-
-        //Check nothing is moving too fast
-//        m_bullet->checkVelocities();
 
         //Step the simulation
         m_bullet->step(1.0f/60.0f, 10);

@@ -21,6 +21,6 @@ void main()
 
     float brightness = clamp(dot(out_norm,normalize(ws_pos)), 0.0, 1.0);
 
-    fragColour = vec4(brightness * lCol.rgb * mCol.rgb, 1.0);
+	fragColour = vec4(brightness * lCol.rgb * mCol.rgb, 1.0);
 
 }

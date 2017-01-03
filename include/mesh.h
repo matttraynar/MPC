@@ -19,11 +19,18 @@
 
 #include "spherepack.h"
 
+struct SortPair
+{
+    bool operator() (const std::pair<uint, float> &i, const std::pair<uint, float> &j)
+    {
+        return(i.second < j.second);
+    }
+};
+
 class Mesh
 {
 public:
     //Ctors
-    Mesh() = default;
     Mesh(QVector4D colour, const std::string name);
 
     //Dtor
@@ -32,10 +39,14 @@ public:
     //Methods for loading, passing to the shader and drawing the mesh
     void loadMesh(const char* filepath);
     void prepareMesh(QOpenGLShaderProgram &program);
+    void prepareSkinnedMesh(QOpenGLShaderProgram &program);
     void draw();
 
     //Method which creates a sphere pack for the mesh
     void runSpherePackAlgorithm(float radius);
+
+    void skinMeshToSpheres(uint numControlSpheres);
+    void updateSkinnedMesh(const vector_V &spherePositions);
 
     //Set methods
     void setWireMode();
@@ -43,16 +54,23 @@ public:
     void setName(const std::string name) { m_name = name;}
 
     //Get methods
-    inline std::vector<QVector3D> getVerts() const { return m_verts; }
+    inline vector_V getVerts() const { return m_verts; }
+    inline vector_V getSkinnedVerts() const { return m_skinnedVerts; }
+
     inline QVector4D getColour() const                  { return m_colour; }
     inline std::string getName() const                    { return m_name;}
     inline QVector3D getCOM() const                                { return m_COM; }
 
     inline bool hasSpherePack() const { return m_hasSpherePack;}
+    inline bool isSkinned() const { return m_isSkinned; }
 
     std::shared_ptr<SpherePack> m_spherePack;
 
 private:
+    Mesh() = default;
+
+    inline bool sortPair(std::pair<uint, float> i, std::pair<uint, float> j) { return (i.second < j.second); }
+
     //Colour of the mesh
     QVector4D m_colour;
 
@@ -65,18 +83,27 @@ private:
     QOpenGLBuffer m_ibo;
 
     //Array and buffer object for the point field
-    QOpenGLVertexArrayObject m_vaoP;
-    QOpenGLBuffer m_vboP;
+    QOpenGLVertexArrayObject m_vaoSkin;
+    QOpenGLBuffer m_vboSkin;
 
     //Containers for the mesh data
-    std::vector<QVector3D> m_verts;
-    std::vector<QVector3D> m_norms;
-    std::vector<uint> m_meshIndex;
+    vector_V m_verts;
+    vector_V m_norms;
+    uint_V m_meshIndex;
     QVector3D m_COM;
+
+    vector_V m_oldSpherePositions;
+    vector_V m_skinnedVerts;
+    std::vector< std::vector< std::pair< uint, float> > > m_vertSkinData;
+    std::vector< std::pair< uint, float> > m_skinData;
+
+//    std::unordered_map< uint, uint_V> m_skinIndices;
+//    std::unordered_map< uint, std::vector<float> > m_skinDistances;
 
     //Wireframe state of the mesh
     bool m_wireframeMode;
     bool m_hasSpherePack;
+    bool m_isSkinned;
 };
 
 #endif // MESH_H_

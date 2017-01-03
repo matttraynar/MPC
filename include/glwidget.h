@@ -61,12 +61,21 @@ private:
     void createGround();
     void createMesh(const char* filepath, const std::string name, QVector3D position);
 
+    void updateConstraintDrawing();
+
     bool checkExisting(const std::string name, int &position);
 
     //Container which contains all the objects in the scene
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
     std::vector<QVector3D> m_sceneObjectPositions;
     int_V m_sphereNumbers;
+    std::vector< vector_V> m_spherePositions;
+
+    vector_V constraintVerts;
+    std::vector< std::vector< std::pair<uint, uint> > >m_constraints;
+    QOpenGLVertexArrayObject m_vaoConstraint;
+    QOpenGLBuffer m_vboConstraint;
+
     float m_radius;
 
     //An unordered map used to refer to each mesh by a name

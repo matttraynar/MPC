@@ -6,6 +6,7 @@ Mesh::Mesh(QVector4D colour, const std::string name)
     m_colour = colour;
     m_name = name;
     m_hasSpherePack = false;
+    m_isSkinned = false;
 }
 
 Mesh::~Mesh()
@@ -117,10 +118,71 @@ void Mesh::prepareMesh(QOpenGLShaderProgram& program)
     m_vao.release();
 }
 
+void Mesh::prepareSkinnedMesh(QOpenGLShaderProgram &program)
+{
+    //Create a vertex array object and bind it to the context
+    if(!m_vaoSkin.isCreated())
+    {
+        m_vaoSkin.create();
+    }
+    else
+    {
+        m_vaoSkin.destroy();
+        m_vaoSkin.create();
+    }
+    m_vaoSkin.bind();
+
+    //Create a buffer object with the vertex data
+    m_vboSkin.create();
+    m_vboSkin.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vboSkin.bind();
+    m_vboSkin.allocate(&m_skinnedVerts[0], (int)m_skinnedVerts.size() * sizeof(GLfloat) * 3);
+
+    //Tell the shader program the currently bound buffer object contains
+    //vertex position data
+    program.enableAttributeArray("vertexPos");
+    program.setAttributeArray("vertexPos", GL_FLOAT, 0, 3);
+
+    //Release the vertex buffer object
+    m_vboSkin.release();
+
+    //Next we create the normal buffer object, process is the same
+    //as with the vertex buffer object
+    m_nbo.create();
+    m_nbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_nbo.bind();
+    m_nbo.allocate(&m_norms[0], (int)m_norms.size() * sizeof(GLfloat) * 3);
+
+    program.enableAttributeArray("vertexNorm");
+    program.setAttributeArray("vertexNorm", GL_FLOAT, 0, 3);
+
+    m_nbo.release();
+
+    //Finally we have an index buffer object for storing the indices used
+    //to draw the mesh with
+    m_ibo.create();
+    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_ibo.bind();
+    m_ibo.allocate(&m_meshIndex[0], (int)m_meshIndex.size() * sizeof(uint));
+
+    //Don't release the ibo from the vao but do release the vertex array object,
+    //we'll bind to it later when it is needed for drawing
+    m_vaoSkin.release();
+
+    m_isSkinned = true;
+}
+
 void Mesh::draw()
 {
     //Bind to the vertex array object
-    m_vao.bind();
+    if(m_isSkinned)
+    {
+        m_vaoSkin.bind();
+    }
+    else
+    {
+        m_vao.bind();
+    }
 
     //Check if we need to draw in wireframe mode or not
     if(m_wireframeMode)
@@ -135,7 +197,14 @@ void Mesh::draw()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     //Finally release the vertex array object
-    m_vao.release();
+    if(m_isSkinned)
+    {
+        m_vaoSkin.release();
+    }
+    else
+    {
+        m_vao.release();
+    }
 }
 
 void Mesh::setWireMode()
@@ -156,4 +225,71 @@ void Mesh::runSpherePackAlgorithm(float radius)
     m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, radius));
 }
 
+void Mesh::skinMeshToSpheres(uint numControlSpheres)
+{
+    if(numControlSpheres > m_spherePack->getSphereNum())
+    {
+        numControlSpheres = m_spherePack->getSphereNum();
+    }
 
+    for(uint i = 0; i < m_verts.size(); ++i)
+    {
+        m_skinData.resize(numControlSpheres, std::make_pair(LARGE_PVE, LARGE_PVE));
+
+        for(uint j = 0; j < m_spherePack->getSphereNum(); ++j)
+        {
+            float dist = (m_spherePack->getSphereAt(j) - m_verts[i]).length();
+
+            if(dist < m_skinData.back().second)
+            {
+                m_skinData.pop_back();
+
+                m_skinData.push_back(std::make_pair(j, dist));
+
+                std::sort(m_skinData.begin(), m_skinData.end(), SortPair());
+            }
+        }
+
+
+        float total = 0.0f;
+
+        for(uint j = 0; j < numControlSpheres; ++j)
+        {
+            total += m_skinData[j].second;
+        }
+
+        for(uint j = 0; j < numControlSpheres; ++j)
+        {
+            //Set the distance as a percentage of all the distances.
+            //Also invert so small distance = large weight.
+            m_skinData[j].second = (1.0f - (m_skinData[j].second / total))/(numControlSpheres - 1);
+        }
+
+        m_vertSkinData.push_back(m_skinData);
+    }
+
+    m_skinnedVerts = m_verts;
+}
+
+void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
+{
+    vector_V sphereDisplacements;
+    m_skinnedVerts.clear();
+
+    for(uint i = 0; i < m_spherePack->getSphereNum(); ++i)
+    {
+        sphereDisplacements.push_back(spherePositions[i] - m_spherePack->getSphereAt(i));
+    }
+
+    for(uint i = 0; i < m_verts.size(); i++)
+    {
+        QVector3D disp(0,0,0);
+
+        for(uint j = 0; j < m_vertSkinData[i].size(); ++j)
+        {
+            disp += m_vertSkinData[i][j].second * sphereDisplacements[m_vertSkinData[i][j].first];
+        }
+
+        m_skinnedVerts.push_back(m_verts[i] + disp);
+    }
+}

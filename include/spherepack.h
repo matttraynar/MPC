@@ -62,7 +62,8 @@ public:
     SpherePack(const vector_V &verts, const uint_V &indices, float radius);
 
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index]; }
-    inline int getSphereNum() const                       { return (int)m_spherePositions.size(); }
+    inline uint getSphereNum() const                       { return (uint)m_spherePositions.size(); }
+    inline vector_V getSpheres() const{ return m_spherePositions; }
 
     void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints);
 
