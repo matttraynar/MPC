@@ -48,6 +48,8 @@ public:
     inline std::string getName() const                    { return m_name;}
     inline QVector3D getCOM() const                                { return m_COM; }
 
+    inline bool hasSpherePack() const { return m_hasSpherePack;}
+
     std::shared_ptr<SpherePack> m_spherePack;
 
 private:
@@ -74,6 +76,7 @@ private:
 
     //Wireframe state of the mesh
     bool m_wireframeMode;
+    bool m_hasSpherePack;
 };
 
 #endif // MESH_H_

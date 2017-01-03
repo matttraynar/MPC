@@ -55,7 +55,7 @@ private:
     //Method for creating the shader program and loading
     //the view/position matrices
     bool prepareShaderProgram( const QString& vertexShaderPath, const QString& fragmentShaderPath );
-    void loadShaderMatrices();
+    void loadShaderMatrices(float radius);
 
     //Methods for creating each mesh
     void createGround();
@@ -67,6 +67,7 @@ private:
     std::vector<std::shared_ptr<Mesh> > m_sceneObjects;
     std::vector<QVector3D> m_sceneObjectPositions;
     int_V m_sphereNumbers;
+    float m_radius;
 
     //An unordered map used to refer to each mesh by a name
     std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;

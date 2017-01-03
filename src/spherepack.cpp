@@ -247,7 +247,7 @@ void SpherePack::findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p
 {
     m_spherePositions.clear();
 
-    Triangle startTri = m_shell[m_shell.size() / 2].getTriangle();
+    Triangle startTri = m_shell[triIndex].getTriangle();
     QVector3D triNorm = startTri.getNormal();
     QVector3D triMiddle = startTri.getMiddle();
 
@@ -289,19 +289,19 @@ void SpherePack::packSpheres()
 
     if(!checkAgainstMesh(p0) || !checkAgainstMesh(p1) || !checkAgainstMesh(p2))
     {
-        findStartingPosition(m_shell.size() / 2, p1, p2);
+        findStartingPosition(int(m_shell.size()) / 2, p1, p2);
 
         if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
         {
             qInfo()<<"First triangle position didn't work";
 
-            findStartingPosition(m_shell.size() / 4, p1, p2);
+            findStartingPosition(int(m_shell.size()) / 4, p1, p2);
 
             if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
             {
                 qInfo()<<"Second triangle position didn't work";
 
-                findStartingPosition((m_shell.size() / 4) * 3, p1, p2);
+                findStartingPosition((int(m_shell.size()) / 4) * 3, p1, p2);
 
                 if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
                 {

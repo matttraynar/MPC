@@ -5,6 +5,7 @@ Mesh::Mesh(QVector4D colour, const std::string name)
     //Set the colour to the specified value
     m_colour = colour;
     m_name = name;
+    m_hasSpherePack = false;
 }
 
 Mesh::~Mesh()
@@ -151,6 +152,7 @@ void Mesh::setColour(QVector4D colour)
 
 void Mesh::runSpherePackAlgorithm(float radius)
 {
+    m_hasSpherePack = true;
     m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, radius));
 }
 

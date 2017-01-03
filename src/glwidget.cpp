@@ -15,6 +15,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
+    m_radius = 2.0f;
+
     //Initialise variables for mouse control to 0
     m_xRot = 0;
     m_yRot = 0;
@@ -74,14 +76,14 @@ void GLWidget::initializeGL()
 
      //Add two meshes to it
      shapes->addMesh("groundPlane","objFiles/ground.obj",QVector3D(1.0,1.0,1.0));
-     shapes->addSphere("sphere", 1.0f);
+     shapes->addSphere("sphere", m_radius);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
 
 //     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
-     createMesh("objFiles/dragonBEST.obj", "dragon", QVector3D(0,30,0));
+     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
 
      //Release the shader program
      m_pgm.release();
@@ -122,7 +124,7 @@ bool GLWidget::prepareShaderProgram( const QString& vertexShaderPath, const QStr
      return result;
 }
 
-void GLWidget::loadShaderMatrices()
+void GLWidget::loadShaderMatrices(float radius)
 {
     //Get vector from camera to the origin
     QVector3D o(0,0,0);
@@ -149,7 +151,6 @@ void GLWidget::loadShaderMatrices()
     m_model.rotate(m_yRot / 16.0f, QVector3D(0, 1, 0));
 
     m_model.translate(m_position);
-    m_model.translate(0.0f, -1.0f, 0.0f);
 
     //Calculate the MVP
     m_mvp = m_proj * m_view * m_model;
@@ -157,6 +158,7 @@ void GLWidget::loadShaderMatrices()
     //Pass the MVP into the shader
     m_pgm.setUniformValue("M",m_model);
     m_pgm.setUniformValue("MVP",m_mvp);
+    m_pgm.setUniformValue("scale", radius);
 }
 
 void GLWidget::createGround()
@@ -207,7 +209,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //Load the neccesary vaos and vbos
         mesh->prepareMesh(m_pgm);
 
-        mesh->runSpherePackAlgorithm(5.0f);
+        mesh->runSpherePackAlgorithm(m_radius);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
@@ -372,7 +374,7 @@ void GLWidget::paintGL()
 
         //Load the viewing and object transformation matrices
         //to the shader program
-        loadShaderMatrices();
+        loadShaderMatrices(m_radius);
 
         //Get the name of the bullet object
         std::string name = m_bullet->getBodyNameAt(i);
@@ -406,10 +408,9 @@ void GLWidget::paintGL()
         }
     }
 
-
     //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
-    loadShaderMatrices();
+    loadShaderMatrices(1.0f);
 
     //Again set the shader colour for the plane
     m_pgm.setUniformValue("mCol",m_sceneObjects[1]->getColour());
@@ -425,12 +426,11 @@ void GLWidget::paintGL()
         {
             m_position = midPositions[i - 1];
 
-            loadShaderMatrices();
+            loadShaderMatrices(1.0f);
 
             m_sceneObjects[i]->draw();
         }
     }
-
 
     //Finally release the shader program
     m_pgm.release();
@@ -476,7 +476,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 
 void GLWidget::keyPressEvent(QKeyEvent *e)
 {    
-    int objCount = 1;
+    int objCount = 0;
 
     switch(e->key())
     {
@@ -546,9 +546,16 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         //Reset all the sphere positions
         for(int i = 0; i < m_sceneObjects.size(); ++i)
         {
-            for(int j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
+            if(m_sceneObjects[i]->hasSpherePack())
             {
-                m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                for(int j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
+                {
+                    m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                    objCount++;
+                }
+            }
+            else
+            {
                 objCount++;
             }
         }
