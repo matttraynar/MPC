@@ -243,120 +243,23 @@ void SpherePack::generateDistanceField()
 
 }
 
-bool SpherePack::findStartingPosition(const QVector3D &start)
+void SpherePack::findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p2)
 {
     m_spherePositions.clear();
-    m_spherePositions.push_back(start);
 
-    QVector3D p1 = start;
+    Triangle startTri = m_shell[m_shell.size() / 2].getTriangle();
+    QVector3D triNorm = startTri.getNormal();
+    QVector3D triMiddle = startTri.getMiddle();
 
-    p1[0] += 2 * m_radius;
+    QVector3D p0 = triMiddle - (triNorm * m_radius);
 
-    int axis = 0;
-    int direction = 1;
+    m_spherePositions.push_back(p0);
 
-    while(!checkAgainstMesh(p1))
-    {
-        if(axis >= 3)
-        {
-            return false;
-        }
+    p1 = p0 - (2 * triNorm * m_radius);
 
-        p1 = start;
-
-        if(direction == 0)
-        {
-            p1[axis] += 2 * m_radius;
-            direction++;
-        }
-        else if(direction == 1)
-        {
-            p1[axis] -= 2 * m_radius;
-            direction = 0;
-            axis++;
-        }
-    }
-    //If direction = 0 last position was -=
-    //If direction = 1 last position was +=
-
-    m_spherePositions.push_back(p1);
-
-    int axisStore = 10;
-
-    p1 = start;
-
-    //p1 is reused here to save time
-    if(direction == 0)
-    {
-        p1[axis - 1] -= m_radius;
-        axisStore = axis - 1;
-    }
-    else if(direction == 1)
-    {
-        p1[axis] += m_radius;
-        axisStore = axis;
-    }
-
-    if(axisStore == 10)
-    {
-        qInfo()<<"Something went wrong at p2";
-        exit(1);
-    }
-
-    QVector3D p2 = p1;
-
-    //When three circles are inscribed within an equilateral
-    //triangle the third circle has a 'y' value of root3 different
-    //to the other two. I did these calculations myself.
-    float thirdLength = sqrt(3.0f) * m_radius;
-
-    direction = 1;
-    switch(axisStore)
-    {
-    case 0:
-        p2[1] += thirdLength;
-        axis = 1;
-        break;
-
-    case 1:
-    case 2:
-        p2[0] += thirdLength;
-        axis = 0;
-        break;
-    }
-
-    while(!checkAgainstMesh(p2))
-    {
-        if(axis >= 3)
-        {
-            return false;
-        }
-
-        if(axis == axisStore)
-        {
-            axis++;
-            continue;
-        }
-
-        p2 = p1;
-
-        if(direction == 0)
-        {
-            p2[axis] += thirdLength;
-            direction++;
-        }
-        else if(direction == 1)
-        {
-            p2[axis] -= thirdLength;
-            direction = 0;
-            axis++;
-        }
-    }
-
-    m_spherePositions.push_back(p2);
-
-    return true;
-
+    p2 = p0 - (triNorm);
+    QVector3D up = QVector3D::crossProduct(triNorm, QVector3D(1,0,0));
+    p2 += up * sqrt(3.0) * m_radius;
 }
 
 void SpherePack::packSpheres()
@@ -380,19 +283,34 @@ void SpherePack::packSpheres()
     QVector3D p1 = p0;
     QVector3D p2 = p0;
 
-    Triangle startTri = m_shell[m_shell.size() / 2].getTriangle();
-    QVector3D triNorm = startTri.getNormal();
-    QVector3D triMiddle = startTri.getMiddle();
+    p1[0] += 2 * m_radius;
+    p2[0] += m_radius;
+    p2[1] += sqrt(3.0f) * m_radius;
 
-    p0 = triMiddle - (triNorm * m_radius);
+    if(!checkAgainstMesh(p0) || !checkAgainstMesh(p1) || !checkAgainstMesh(p2))
+    {
+        findStartingPosition(m_shell.size() / 2, p1, p2);
 
-    m_spherePositions.push_back(p0);
+        if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
+        {
+            qInfo()<<"First triangle position didn't work";
 
-    p1 = p0 - (2 * triNorm * m_radius);
+            findStartingPosition(m_shell.size() / 4, p1, p2);
 
-    p2 = p0 - (triNorm);
-    QVector3D up = QVector3D::crossProduct(triNorm, QVector3D(1,0,0));
-    p2 += up * sqrt(3.0) * m_radius;
+            if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
+            {
+                qInfo()<<"Second triangle position didn't work";
+
+                findStartingPosition((m_shell.size() / 4) * 3, p1, p2);
+
+                if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
+                {
+                    qWarning()<<"Can't find a position, radius is probably too big";
+                    exit(1);
+                }
+            }
+        }
+    }
 
     m_spherePositions.push_back(p1);
     m_spherePositions.push_back(p2);

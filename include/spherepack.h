@@ -68,7 +68,7 @@ public:
 
 private:
     void generateDistanceField();
-    bool findStartingPosition(const QVector3D &start);
+    void findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p2);
     void packSpheres();
 
     void calculateMAABB();

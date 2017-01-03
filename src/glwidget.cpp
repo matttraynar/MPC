@@ -80,7 +80,7 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
+//     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
      createMesh("objFiles/dragonBEST.obj", "dragon", QVector3D(0,30,0));
 
      //Release the shader program
@@ -207,7 +207,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         //Load the neccesary vaos and vbos
         mesh->prepareMesh(m_pgm);
 
-        mesh->runSpherePackAlgorithm(1.0f);
+        mesh->runSpherePackAlgorithm(5.0f);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
