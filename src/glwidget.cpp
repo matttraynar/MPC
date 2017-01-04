@@ -47,7 +47,8 @@ GLWidget::~GLWidget()
 void GLWidget::initializeGL()
 {
     //Set the background colour for the window
-     glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );
+//     glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );
+    glClearColor( 0.1f, 0.1f, 0.2f, 1.0f );
 
      //Enable depth testing for rendering later
      glEnable(GL_DEPTH_TEST);
@@ -82,8 +83,9 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-//     createMesh("objFiles/cubeSTEP2.obj", "step", QVector3D(7,10,0));
-     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,30,0));
+     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(7,10,0));
+     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
+
 
      //Release the shader program
      m_pgm.release();
@@ -134,8 +136,6 @@ void GLWidget::loadShaderMatrices(float radius)
     camToOrig.normalize();
     QVector3D newCamPos = m_cameraPos + (m_mouseDelta * camToOrig);
 
-    m_pgm.setUniformValue("camPos", newCamPos);
-
     //Reset the view matrix and set to look at origin from the new position
     m_view.setToIdentity();
     m_view.lookAt(newCamPos + m_dir, QVector3D(0,1,0), QVector3D(0,1,0));
@@ -158,6 +158,7 @@ void GLWidget::loadShaderMatrices(float radius)
     //Pass the MVP into the shader
     m_pgm.setUniformValue("M",m_model);
     m_pgm.setUniformValue("MVP",m_mvp);
+    m_pgm.setUniformValue("camPos", newCamPos);//* m_model);
     m_pgm.setUniformValue("scale", radius);
 }
 
@@ -195,13 +196,21 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     if(checkExisting(name, index))
     {
         qInfo()<<"Mesh has already been added, duplicating";
-        m_sceneObjects.push_back(m_sceneObjects[index]);
+        std::shared_ptr<Mesh> mesh(new Mesh(*m_sceneObjects[index]));
+
+        //These two methods make sure the mesh VAOs which do not
+        //have copy constructors/assignment operators are created
+        mesh->prepareMesh(m_pgm);
+        mesh->prepareSkinnedMesh(m_pgm);
+
+        m_sceneObjects.push_back(mesh);
         newMeshPosition = (int)m_sceneObjects.size() - 1;
+        qInfo()<<"Position: "<<newMeshPosition;
     }
     else
     {
         //Create a new mesh shared pointer and use the colour constructor
-        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(0.4f,0.5f,1.0f,1.0f), name));
+        std::shared_ptr<Mesh> mesh(new Mesh(QVector4D(1.0f,0.1f,0.1f,1.0f), name));
 
         //Load the teapot obj
         mesh->loadMesh(filepath);
@@ -211,8 +220,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
         mesh->runSpherePackAlgorithm(m_radius);
 
-        mesh->skinMeshToSpheres(2);
-        mesh->updateSkinnedMesh(mesh->m_spherePack->getSpheres());
+        mesh->skinMeshToSpheres(8);
 
         mesh->prepareSkinnedMesh(m_pgm);
 
@@ -226,13 +234,17 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
     uint currentNBodies = m_bullet->getNumCollisionObjects();
 
+    vector_V spherePositions;
     //Iterate over all the spheres in the pack
     for(int i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
+        spherePositions.push_back(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position);
         m_bullet->addSphere(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
     }
+
+    m_sceneObjects[newMeshPosition]->updateSkinnedMesh(spherePositions);
 
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
@@ -241,7 +253,6 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     m_sphereNumbers.push_back(nSpheres);
 
     int constCount = 0;
-
 
     qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
@@ -471,6 +482,7 @@ void GLWidget::paintGL()
     {
         for(uint i = 0; i < m_spherePositions.size(); ++i)
         {
+
             for(uint j = 0; j < m_spherePositions[i].size(); ++j)
             {
                 m_position = m_spherePositions[i][j];
@@ -481,17 +493,17 @@ void GLWidget::paintGL()
             }
         }
     }
-    else
-    {
-        updateConstraintDrawing();
+//    else
+//    {
+//        updateConstraintDrawing();
 
-        m_vaoConstraint.bind();
-        m_pgm.setUniformValue("mCol",sphere.getColour());
+//        m_vaoConstraint.bind();
+//        m_pgm.setUniformValue("mCol",sphere.getColour());
 
-        glLineWidth(0.25f);
-        glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
-        m_vaoConstraint.release();
-    }
+//        glLineWidth(0.25f);
+//        glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
+//        m_vaoConstraint.release();
+//    }
 
     //Finally create a new position for the ground plane and load it
     m_position = QVector3D(0.0f, 0.0f, 0.0f);
@@ -510,7 +522,6 @@ void GLWidget::paintGL()
         for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
             m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
-//            m_position = midPositions[i - 1];
 
             loadShaderMatrices(1.0f);
 
@@ -557,6 +568,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 
     //Update the last position
     m_lastPos = e->pos();
+
     update();
 }
 
@@ -770,6 +782,7 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_adjustPos = QVector3D(0,0,0);
             m_adjust = false;
         }
+
 
         //Step the simulation
         m_bullet->step(1.0f/60.0f, 10);

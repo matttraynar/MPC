@@ -9,6 +9,30 @@ Mesh::Mesh(QVector4D colour, const std::string name)
     m_isSkinned = false;
 }
 
+Mesh::Mesh(const Mesh &copy)
+{
+    m_spherePack = copy.m_spherePack;
+
+    m_colour = copy.m_colour;
+    m_name = copy.m_name;
+
+    m_verts = copy.m_verts;
+    m_norms = copy.m_norms;
+    m_meshIndex = copy.m_meshIndex;
+
+    m_COM = copy.m_COM;
+
+    m_oldSpherePositions = copy.m_oldSpherePositions;
+    m_skinnedVerts = copy.m_skinnedVerts;
+    m_vertSkinData = copy.m_vertSkinData;
+    m_skinData = copy.m_skinData;
+
+    //Wireframe state of the mesh
+    m_wireframeMode = copy.m_wireframeMode;
+    m_hasSpherePack = copy.m_hasSpherePack;
+    m_isSkinned = copy.m_isSkinned;
+}
+
 Mesh::~Mesh()
 {
 
@@ -146,12 +170,27 @@ void Mesh::prepareSkinnedMesh(QOpenGLShaderProgram &program)
     //Release the vertex buffer object
     m_vboSkin.release();
 
+    vector_V skinnedNorms;
+    skinnedNorms.resize(m_skinnedVerts.size(), QVector3D(0,0,0));
+    for(uint i = 0; i < m_meshIndex.size(); i += 3)
+    {
+        Triangle face;
+        face.A = m_skinnedVerts[m_meshIndex[i]];
+        face.B = m_skinnedVerts[m_meshIndex[i + 1]];
+        face.C = m_skinnedVerts[m_meshIndex[i + 2]];
+
+        QVector3D norm = face.getNormal();
+        skinnedNorms[m_meshIndex[i]] = norm;
+        skinnedNorms[m_meshIndex[i + 1]] = norm;
+        skinnedNorms[m_meshIndex[i + 2]] = norm;
+    }
+
     //Next we create the normal buffer object, process is the same
     //as with the vertex buffer object
     m_nbo.create();
     m_nbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_nbo.bind();
-    m_nbo.allocate(&m_norms[0], (int)m_norms.size() * sizeof(GLfloat) * 3);
+    m_nbo.allocate(&skinnedNorms[0], (int)skinnedNorms.size() * sizeof(GLfloat) * 3);
 
     program.enableAttributeArray("vertexNorm");
     program.setAttributeArray("vertexNorm", GL_FLOAT, 0, 3);
@@ -234,13 +273,18 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
 
     for(uint i = 0; i < m_verts.size(); ++i)
     {
+        m_skinData.clear();
         m_skinData.resize(numControlSpheres, std::make_pair(LARGE_PVE, LARGE_PVE));
 
         for(uint j = 0; j < m_spherePack->getSphereNum(); ++j)
         {
-            float dist = (m_spherePack->getSphereAt(j) - m_verts[i]).length();
+            float dist = (m_verts[i] - m_spherePack->getSphereAt(j)).length();
 
-            if(dist < m_skinData.back().second)
+            if(dist == m_skinData.back().second)
+            {
+                continue;
+            }
+            else if(dist < m_skinData.back().second)
             {
                 m_skinData.pop_back();
 
@@ -249,7 +293,6 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
                 std::sort(m_skinData.begin(), m_skinData.end(), SortPair());
             }
         }
-
 
         float total = 0.0f;
 
@@ -274,15 +317,19 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
 void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
 {
     vector_V sphereDisplacements;
-    m_skinnedVerts.clear();
+//    m_skinnedVerts.clear();
 
     for(uint i = 0; i < m_spherePack->getSphereNum(); ++i)
     {
         sphereDisplacements.push_back(spherePositions[i] - m_spherePack->getSphereAt(i));
     }
 
+//    vector_V updatedVerts;
+
     for(uint i = 0; i < m_verts.size(); i++)
     {
+//        auto vectorPosition = std::find_if(updatedVerts.begin(), updatedVerts.end(), FindVector(m_verts[i]));
+
         QVector3D disp(0,0,0);
 
         for(uint j = 0; j < m_vertSkinData[i].size(); ++j)
@@ -290,6 +337,22 @@ void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
             disp += m_vertSkinData[i][j].second * sphereDisplacements[m_vertSkinData[i][j].first];
         }
 
-        m_skinnedVerts.push_back(m_verts[i] + disp);
+
+        m_skinnedVerts[i] = m_verts[i] + disp;
+
+//        if(vectorPosition == updatedVerts.end())
+//        {
+//            m_skinnedVerts[i] = m_verts[i] + disp;
+////            m_skinnedVerts.push_back(m_verts[i] + disp);
+//        }
+//        else
+//        {
+//            int vectorIndex = vectorPosition - updatedVerts.begin();
+
+//            m_skinnedVerts[i] = (m_skinnedVerts[vectorIndex] + (m_verts[i] + disp)) / 2.0f;
+////            m_skinnedVerts.push_back(m_skinnedVerts[vectorIndex]);
+//        }
+
+//        updatedVerts.push_back(m_verts[i]);
     }
 }

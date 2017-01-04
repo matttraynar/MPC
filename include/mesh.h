@@ -19,6 +19,20 @@
 
 #include "spherepack.h"
 
+struct FindVector
+{
+    FindVector(QVector3D vec) : m_toFind(vec) {}
+
+    QVector3D m_toFind;
+
+    bool operator() (const QVector3D &i)
+    {
+        return((i.x() == m_toFind.x()) &&
+                 (i.y() == m_toFind.y()) &&
+                 (i.z() == m_toFind.z()));
+    }
+};
+
 struct SortPair
 {
     bool operator() (const std::pair<uint, float> &i, const std::pair<uint, float> &j)
@@ -32,6 +46,7 @@ class Mesh
 public:
     //Ctors
     Mesh(QVector4D colour, const std::string name);
+    Mesh(const Mesh &copy);
 
     //Dtor
     ~Mesh();
