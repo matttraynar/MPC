@@ -274,38 +274,49 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
     for(uint i = 0; i < m_verts.size(); ++i)
     {
         m_skinData.clear();
-        m_skinData.resize(numControlSpheres, std::make_pair(LARGE_PVE, LARGE_PVE));
+
+        float maxDist = -1.0f;
+        float totalDist = 0.0f;
 
         for(uint j = 0; j < m_spherePack->getSphereNum(); ++j)
         {
             float dist = (m_verts[i] - m_spherePack->getSphereAt(j)).length();
 
-            if(dist == m_skinData.back().second)
+            if(m_skinData.size() <= numControlSpheres)
             {
-                continue;
-            }
-            else if(dist < m_skinData.back().second)
-            {
-                m_skinData.pop_back();
-
+                totalDist += dist;
                 m_skinData.push_back(std::make_pair(j, dist));
 
                 std::sort(m_skinData.begin(), m_skinData.end(), SortPair());
+
+                maxDist = m_skinData.back().second;
+                continue;
+            }
+
+            if(dist == maxDist)
+            {
+                continue;
+            }
+            else if(dist < maxDist)
+            {
+                totalDist -= m_skinData.back().second;
+                m_skinData.pop_back();
+
+                totalDist += dist;
+                m_skinData.push_back(std::make_pair(j, dist));
+
+                std::sort(m_skinData.begin(), m_skinData.end(), SortPair());
+
+                maxDist = m_skinData.back().second;
             }
         }
 
-        float total = 0.0f;
-
-        for(uint j = 0; j < numControlSpheres; ++j)
-        {
-            total += m_skinData[j].second;
-        }
-
-        for(uint j = 0; j < numControlSpheres; ++j)
+        for(uint j = 0; j <= numControlSpheres; ++j)
         {
             //Set the distance as a percentage of all the distances.
-            //Also invert so small distance = large weight.
-            m_skinData[j].second = (1.0f - (m_skinData[j].second / total))/(numControlSpheres - 1);
+            //Also invert so small distance = large weight. Finally average
+            //for each control sphere
+            m_skinData[j].second = (1.0f - (m_skinData[j].second / totalDist)) / numControlSpheres;
         }
 
         m_vertSkinData.push_back(m_skinData);
@@ -317,19 +328,14 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
 void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
 {
     vector_V sphereDisplacements;
-//    m_skinnedVerts.clear();
 
     for(uint i = 0; i < m_spherePack->getSphereNum(); ++i)
     {
         sphereDisplacements.push_back(spherePositions[i] - m_spherePack->getSphereAt(i));
     }
 
-//    vector_V updatedVerts;
-
     for(uint i = 0; i < m_verts.size(); i++)
     {
-//        auto vectorPosition = std::find_if(updatedVerts.begin(), updatedVerts.end(), FindVector(m_verts[i]));
-
         QVector3D disp(0,0,0);
 
         for(uint j = 0; j < m_vertSkinData[i].size(); ++j)
@@ -337,22 +343,6 @@ void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
             disp += m_vertSkinData[i][j].second * sphereDisplacements[m_vertSkinData[i][j].first];
         }
 
-
         m_skinnedVerts[i] = m_verts[i] + disp;
-
-//        if(vectorPosition == updatedVerts.end())
-//        {
-//            m_skinnedVerts[i] = m_verts[i] + disp;
-////            m_skinnedVerts.push_back(m_verts[i] + disp);
-//        }
-//        else
-//        {
-//            int vectorIndex = vectorPosition - updatedVerts.begin();
-
-//            m_skinnedVerts[i] = (m_skinnedVerts[vectorIndex] + (m_verts[i] + disp)) / 2.0f;
-////            m_skinnedVerts.push_back(m_skinnedVerts[vectorIndex]);
-//        }
-
-//        updatedVerts.push_back(m_verts[i]);
     }
 }

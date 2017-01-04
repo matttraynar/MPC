@@ -83,8 +83,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(7,10,0));
-     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
+     createMesh("objFiles/bunnySMOOTHED.obj", "bunny", QVector3D(0,5,0));
+//     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
 
 
      //Release the shader program
@@ -168,7 +168,7 @@ void GLWidget::createGround()
     m_pgm.bind();
 
     //Create a new mesh shared pointer and use the colour constructor
-    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(0.9,1.0,1.0,1.0), "ground"));
+    std::shared_ptr<Mesh> ground(new Mesh(QVector4D(0.9f,1.0f,1.0f,1.0f), "ground"));
 
     //Load the ground plane obj
     ground->loadMesh("objFiles/ground.obj");
@@ -205,7 +205,6 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
         m_sceneObjects.push_back(mesh);
         newMeshPosition = (int)m_sceneObjects.size() - 1;
-        qInfo()<<"Position: "<<newMeshPosition;
     }
     else
     {
@@ -236,7 +235,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
     vector_V spherePositions;
     //Iterate over all the spheres in the pack
-    for(int i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
+    for(uint i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
     {
         //For each sphere add a new btSphere to the bullet world (and at the
         //correct position
@@ -646,7 +645,7 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         {
             if(m_sceneObjects[i]->hasSpherePack())
             {
-                for(int j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
+                for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
                 {
                     m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
                     objCount++;

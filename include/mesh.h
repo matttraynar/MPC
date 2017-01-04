@@ -109,6 +109,7 @@ private:
 
     vector_V m_oldSpherePositions;
     vector_V m_skinnedVerts;
+    std::vector<float> m_skinnedDistances;
     std::vector< std::vector< std::pair< uint, float> > > m_vertSkinData;
     std::vector< std::pair< uint, float> > m_skinData;
 
