@@ -83,8 +83,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-//     createMesh("objFiles/bunnySMOOTHED.obj", "bunny", QVector3D(0,5,0));
-     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,10,0));
+     createMesh("objFiles/dragonBEST.obj", "dragon", QVector3D(0,10,0));
+//     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,10,0));
 
 
      //Release the shader program
@@ -219,9 +219,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
         mesh->runSpherePackAlgorithm(m_radius);
 
-        mesh->skinMeshToSpheres(8);
-
-        mesh->prepareSkinnedMesh(m_pgm);
+        mesh->skinMeshToSpheres(2);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
@@ -242,8 +240,6 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         spherePositions.push_back(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position);
         m_bullet->addSphere(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
     }
-
-    m_sceneObjects[newMeshPosition]->updateSkinnedMesh(spherePositions);
 
     //Get the number of collision objects in the world
     uint nBodies = m_bullet->getNumCollisionObjects();
@@ -469,7 +465,9 @@ void GLWidget::paintGL()
     {
         if(m_sceneObjects[i]->hasSpherePack())
         {
+
             m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
+
             m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
             sphereIndex++;
         }
@@ -781,7 +779,6 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_adjustPos = QVector3D(0,0,0);
             m_adjust = false;
         }
-
 
         //Step the simulation
         m_bullet->step(1.0f/60.0f, 10);

@@ -84,7 +84,7 @@ public:
 private:
     Mesh() = default;
 
-    float getVectorAngle(const QVector3D &a, const QVector3D &b);
+    bool vectorIsSmall(const QVector3D &a);
 
     //Colour of the mesh
     QVector4D m_colour;
@@ -108,14 +108,9 @@ private:
     QVector3D m_COM;
 
     vector_V m_skinnedVerts;
-    std::vector<float> m_skinnedDistances;
 
-    std::vector< std::pair< uint, QVector3D> > m_vertSkinVectors;
-    std::vector< std::vector< std::pair< uint, float> > > m_vertSkinData;
-    std::vector< std::pair< uint, float> > m_skinData;
-
-//    std::unordered_map< uint, uint_V> m_skinIndices;
-//    std::unordered_map< uint, std::vector<float> > m_skinDistances;
+    std::vector< std::vector< std::pair< uint, QVector3D> > > m_vertSkinVectors;
+    std::vector< std::vector< uint > > m_vertSkinIndices;
 
     //Wireframe state of the mesh
     bool m_wireframeMode;
