@@ -30,12 +30,6 @@ enum HaloIntersections
     TwoHits
 };
 
-struct Ray
-{
-    QVector3D pos;
-    QVector3D dir;
-};
-
 /*-----------------------------
  * This struct uses a slightly modified version of code that can be found here:
  * http://stackoverflow.com/questions/33557276/using-find-with-vectorpairint-int
@@ -102,6 +96,8 @@ private:
     uint_V m_indices;
     vector_V m_spherePositions;
 
+    //These two vectors are linked but I decided not to do these as a pair
+    //as it would probably not be worth the hastle
     std::vector< std::vector< int_V > > m_distancePoints;
     std::vector< std::vector< triangle_V > > m_distanceTriangles;
 
