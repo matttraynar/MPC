@@ -68,7 +68,6 @@ private:
     QVector3D m_normal;
 
     BBox m_boundingBox;
-
 };
 
 #endif // PRISM_H

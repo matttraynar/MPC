@@ -85,7 +85,7 @@ void GLWidget::initializeGL()
      createGround();
 
      //Add a mesh
-     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,10,0));
+     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,10,0));
 
      //Release the shader program
      m_pgm.release();

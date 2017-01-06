@@ -2,12 +2,18 @@
 
 SpherePack::SpherePack(const vector_V &verts, const uint_V &indices, float radius)
 {
+    //Create local copies of the data so we can use it later
     m_verts = verts;
     m_indices = indices;
     m_radius = radius;
 
     generateDistanceField();
     packSpheres();
+}
+
+SpherePack::~SpherePack()
+{
+
 }
 
 void SpherePack::generateDistanceField()

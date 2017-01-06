@@ -9,6 +9,7 @@
 #include <QDebug>
 
 #include <vector>
+#include <memory>
 
 #include "prism.h"
 
@@ -60,6 +61,7 @@ class SpherePack
 public:
     SpherePack() = default;
     SpherePack(const vector_V &verts, const uint_V &indices, float radius);
+    ~SpherePack();
 
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index]; }
     inline uint getSphereNum() const                       { return (uint)m_spherePositions.size(); }

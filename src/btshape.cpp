@@ -56,7 +56,6 @@ void BtShape::addMesh(const std::string name, const char* filepath, QVector3D co
 
     //Add the shape to the stored shapes
     m_shapes[name].reset(shape);
-
 }
 
 void BtShape::addSphere(const std::string name, float radius)

@@ -24,7 +24,7 @@ private:
     BtShape();
     ~BtShape();
 
-    std::unordered_map< std::string, std::unique_ptr<btCollisionShape> > m_shapes;
+    std::unordered_map< std::string, std::shared_ptr<btCollisionShape> > m_shapes;
 
     static BtShape *s_instance;
 

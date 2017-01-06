@@ -4,19 +4,35 @@
 
 BtWorld::BtWorld()
 {
-    //Set up the bullet world using the normal settings
-    m_collisionConfig.reset(new btDefaultCollisionConfiguration());
+    //Set up the bullet world using the normal settings. It
+    //would addmitedly be nicer to do this with smart pointers
+    //but this program doesn't have ownership so can' be done
+    m_collisionConfig = new btDefaultCollisionConfiguration();
 
-    m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfig.get()));
+    m_dispatcher = new btCollisionDispatcher(m_collisionConfig);
 
-    m_broadphase.reset(new btDbvtBroadphase());
+    m_broadphase = new btDbvtBroadphase();
 
-    m_solver.reset(new btSequentialImpulseConstraintSolver);
+    m_solver = new btSequentialImpulseConstraintSolver();
 
-    m_dynamicsWorld.reset(new btDiscreteDynamicsWorld(m_dispatcher.get(),
-                                                      m_broadphase.get(),
-                                                      m_solver.get(),
-                                                      m_collisionConfig.get()));
+    m_dynamicsWorld = new btDiscreteDynamicsWorld(m_dispatcher,
+                                                      m_broadphase,
+                                                      m_solver,
+                                                      m_collisionConfig);
+}
+
+BtWorld::~BtWorld()
+{
+    for(int i = 0; i < m_bodies.size(); ++i)
+    {
+        m_dynamicsWorld->removeRigidBody(m_bodies[i].body.get());
+    }
+
+    delete m_collisionConfig;
+    delete m_dispatcher;
+    delete m_broadphase;
+    delete m_solver;
+    delete m_dynamicsWorld;
 }
 
 void BtWorld::setGravity(float x, float y, float z)

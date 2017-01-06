@@ -15,6 +15,7 @@ class BtWorld
 {
 public:
     BtWorld();
+    ~BtWorld();
 
     void setGravity(float x, float y, float z);
     void step(float time, float step);
@@ -39,11 +40,11 @@ public:
     void stopAdjusting();
 
 private:
-    std::unique_ptr<btDefaultCollisionConfiguration>     m_collisionConfig;
-    std::unique_ptr<btCollisionDispatcher>               m_dispatcher;
-    std::unique_ptr<btDbvtBroadphase>                    m_broadphase;
-    std::unique_ptr<btSequentialImpulseConstraintSolver> m_solver;
-    std::unique_ptr< btDiscreteDynamicsWorld>            m_dynamicsWorld;
+    btDefaultCollisionConfiguration*               m_collisionConfig;
+    btCollisionDispatcher*                            m_dispatcher;
+    btDbvtBroadphase*                                 m_broadphase;
+    btSequentialImpulseConstraintSolver*      m_solver;
+    btDiscreteDynamicsWorld*                     m_dynamicsWorld;
 
     std::shared_ptr<btCollisionShape> m_groundPlane;
 
