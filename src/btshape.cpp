@@ -1,5 +1,7 @@
 #include "btshape.h"
 
+BtShape* BtShape::s_instance = NULL;
+
 BtShape::BtShape()
 {
 
@@ -7,9 +9,19 @@ BtShape::BtShape()
 
 BtShape *BtShape::instance()
 {
-    static BtShape s_instance;
+    //test for null
+    if(s_instance == NULL)
+    {
+        s_instance = new BtShape;
+    }
 
-    return &s_instance;
+    return s_instance;
+}
+
+void BtShape::destroy()
+{
+    delete s_instance;
+    s_instance = NULL;
 }
 
 BtShape::~BtShape()

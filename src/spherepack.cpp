@@ -413,8 +413,6 @@ void SpherePack::packSpheres()
 
         count++;
     }
-
-    qInfo()<<"Finished packing spheres";
 }
 
 void SpherePack::calculateMAABB()

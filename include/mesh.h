@@ -110,7 +110,6 @@ private:
     vector_V m_skinnedVerts;
 
     std::vector< std::vector< std::pair< uint, QVector3D> > > m_vertSkinVectors;
-    std::vector< std::vector< uint > > m_vertSkinIndices;
 
     //Wireframe state of the mesh
     bool m_wireframeMode;
