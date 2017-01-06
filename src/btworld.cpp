@@ -214,7 +214,7 @@ QVector3D BtWorld::getTransform(uint index) const
 void BtWorld::moveBodies(QVector3D moveVec)
 {
     //Iterate through the bodies in the world
-    for(uint i = 0; i < m_dynamicsWorld->getNumCollisionObjects(); ++i)
+    for(uint i = 0; i < (uint)m_dynamicsWorld->getNumCollisionObjects(); ++i)
     {
         //Get each body and set its velocity using
         //the movement vector
@@ -226,7 +226,7 @@ void BtWorld::moveBodies(QVector3D moveVec)
 void BtWorld::stopAdjusting()
 {
     //Iterate through the bodies
-    for(uint i = 0; i < m_dynamicsWorld->getNumCollisionObjects(); ++i)
+    for(uint i = 0; i < (uint)m_dynamicsWorld->getNumCollisionObjects(); ++i)
     {
         //Set the velocity of each body to 0
         btRigidBody* body = m_bodies[i].body.get();

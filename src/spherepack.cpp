@@ -950,7 +950,7 @@ void SpherePack::validatePoints(vector_V &points)
 
     //Now we need to go through the points and remove the ones which will
     //cause overlaps
-    for(uint i = 0; i < numPoints.size(); ++i)
+    for(uint i = 0; i < numPoints; ++i)
     {
         //This is actually done by only adding points to our 'accepted' container
         //which were not marked for removal. This way we don't alter the size of
