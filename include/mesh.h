@@ -84,7 +84,7 @@ public:
 private:
     Mesh() = default;
 
-    inline bool sortPair(std::pair<uint, float> i, std::pair<uint, float> j) { return (i.second < j.second); }
+    float getVectorAngle(const QVector3D &a, const QVector3D &b);
 
     //Colour of the mesh
     QVector4D m_colour;
@@ -107,9 +107,10 @@ private:
     uint_V m_meshIndex;
     QVector3D m_COM;
 
-    vector_V m_oldSpherePositions;
     vector_V m_skinnedVerts;
     std::vector<float> m_skinnedDistances;
+
+    std::vector< std::pair< uint, QVector3D> > m_vertSkinVectors;
     std::vector< std::vector< std::pair< uint, float> > > m_vertSkinData;
     std::vector< std::pair< uint, float> > m_skinData;
 

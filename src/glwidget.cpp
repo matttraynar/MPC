@@ -83,8 +83,8 @@ void GLWidget::initializeGL()
      //it gets drawn
      createGround();
 
-     createMesh("objFiles/bunnySMOOTHED.obj", "bunny", QVector3D(0,5,0));
-//     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,30,0));
+//     createMesh("objFiles/bunnySMOOTHED.obj", "bunny", QVector3D(0,5,0));
+     createMesh("objFiles/cubeLARGE.obj", "cube", QVector3D(0,10,0));
 
 
      //Release the shader program
