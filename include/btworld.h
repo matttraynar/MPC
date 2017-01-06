@@ -27,13 +27,13 @@ public:
 
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
 
-    void checkVelocities();
-    void checkPlastic();
-
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;
+
+    //These functions enable me to easily get rigid bodies and also refer
+    //to them by 'name'
     inline std::string getBodyNameAt(uint i) const { return m_bodies[i].name; }
-    inline btRigidBody* getBodyAt(uint i) const { return m_bodies[i].body; }
+    inline btRigidBody* getBodyAt(uint i) const { return m_bodies[i].body.get(); }
 
     void moveBodies(QVector3D moveVec);
     void stopAdjusting();
@@ -50,11 +50,9 @@ private:
     typedef struct
     {
       std::string name;
-      btRigidBody* body;
+      std::shared_ptr<btRigidBody> body;
 
     }Body;
-
-    std::vector<btTypedConstraint*> m_constraints;
 
     std::vector<Body> m_bodies;
 };

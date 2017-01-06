@@ -4,11 +4,10 @@
 
 BtWorld::BtWorld()
 {
+    //Set up the bullet world using the normal settings
     m_collisionConfig.reset(new btDefaultCollisionConfiguration());
 
-    m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfig.get()));    
-
-    btGImpactCollisionAlgorithm::registerAlgorithm(new btCollisionDispatcher(m_collisionConfig.get())   );
+    m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfig.get()));
 
     m_broadphase.reset(new btDbvtBroadphase());
 
@@ -22,16 +21,20 @@ BtWorld::BtWorld()
 
 void BtWorld::setGravity(float x, float y, float z)
 {
+    //Set the world's gravity accordingly
     m_dynamicsWorld->setGravity(btVector3(x,y,z));
 }
 
 void BtWorld::step(float time, float step)
 {
+    //Step the simulation forward
     m_dynamicsWorld->stepSimulation(time,step);
 }
 
 void BtWorld::stop()
 {
+    //Stop the simulation by iterating through each
+    //body and clearing all forces
     uint bodies = getNumCollisionObjects();
 
     for(uint i = 0; i < bodies; ++i)
@@ -44,39 +47,56 @@ void BtWorld::stop()
 
 void BtWorld::reset(QVector3D position, uint index)
 {
-    btTransform resetPosition(btQuaternion::getIdentity(), btVector3(position.x(), position.y() + 5, position.z()));
+    //Reset the simulation by moving everything back to where it started
+    btTransform resetPosition(btQuaternion::getIdentity(), btVector3(position.x(), position.y(), position.z()));
     m_bodies[index].body->setWorldTransform(resetPosition);
 }
 
 void BtWorld::addGround()
 {
+    //Create a new ground plane and store it in the member variable
     m_groundPlane.reset(new btStaticPlaneShape(btVector3(0.0f, 1.0f, 0.0f), 0.0f));
 
+    //Set up the transformation and construction info for the new rigid body
     btTransform groundTrans;
     groundTrans.setIdentity();
 
     btDefaultMotionState* groundMotion = new btDefaultMotionState(groundTrans);
     btRigidBody::btRigidBodyConstructionInfo groundCI(0.0, groundMotion, m_groundPlane.get());
 
+    //Create a rigid body for the ground. Wanted to do this using smart
+    //pointers but because of some ownership issues this just
+    //causes the program to crash.
     btRigidBody* groundRB = new btRigidBody(groundCI);
     groundRB->setFriction(1.0);
     groundRB->setRollingFriction(2.0);
 
+    //Add the body to the bullet world
     m_dynamicsWorld->addRigidBody(groundRB);
 
+    //Finally create a new 'body' (my own class)
     Body ground;
     ground.name = "groundPlane";
-    ground.body = groundRB;
+    ground.body.reset(groundRB);// = groundRB;
 
+    //Store the body in a container so it can be accessed later
     m_bodies.push_back(ground);
-
-    groundRB->setUserPointer(&m_bodies[m_bodies.size() - 1]);
 }
 
 void BtWorld::addMesh(const std::string name, QVector3D pos)
 {
+    //Add a new mesh collision shape using the stored shapes in BtShape
     btCollisionShape* newMesh = BtShape::instance()->getShape(name);
 
+    //Check if it returned properly or not
+    if(newMesh == NULL)
+    {
+        qInfo()<<"You haven't added"<<(QString)name.c_str()<<"to the shapes list so this mesh"
+                                                             "cannot be added to the physics world";
+        return;
+    }
+
+    //Everything else is much the same as with adding the ground plane
     btTransform meshTrans;
     meshTrans.setIdentity();
 
@@ -97,14 +117,14 @@ void BtWorld::addMesh(const std::string name, QVector3D pos)
 
     Body mesh;
     mesh.name = name;
-    mesh.body = meshRB;
+    mesh.body.reset(meshRB);// = meshRB;
     m_bodies.push_back(mesh);
-
-    meshRB->setUserPointer(&m_bodies[m_bodies.size() - 1]);
 }
 
 void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia)
 {
+    //This is the same as the addMesh function, only here the shape we want
+    //from BtShape is known
     btCollisionShape* newSphere = BtShape::instance()->getShape("sphere");
 
     btTransform startPos;
@@ -123,112 +143,53 @@ void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inert
     sphereRB->setFriction(1.0);
     sphereRB->setRollingFriction(1.0);
 
-//    body->setDamping(btScalar(0.5f), btScalar(0.5f));
-
     m_dynamicsWorld->addRigidBody(sphereRB);
     Body sphere;
     sphere.name = "sphere";
-    sphere.body = sphereRB;
+    sphere.body.reset(sphereRB);//= sphereRB;
 
     m_bodies.push_back(sphere);
-
-    sphereRB->setUserPointer(&m_bodies[m_bodies.size() - 1]);
 }
 
 void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB)
 {
     //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
-    connection->enableFeedback(true);
 
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
-
-    m_constraints.push_back(connection);
-}
-
-void BtWorld::checkVelocities()
-{
-    uint nBodies = m_dynamicsWorld->getNumCollisionObjects();
-
-    btScalar maxSpeed = 5.0f;
-
-    //Iterate through them
-    for(uint i = 0; i < nBodies; ++i)
-    {
-        btRigidBody* body = m_bodies[i].body;
-
-        btVector3 bodyVel = body->getLinearVelocity();
-        btScalar bodySpd  = bodyVel.length();
-
-        if(bodySpd > maxSpeed)
-        {
-            bodyVel *= maxSpeed/bodySpd;
-
-            body->setLinearVelocity(bodyVel);
-        }
-    }
-}
-
-void BtWorld::checkPlastic()
-{
-    uint nConstraints = m_constraints.size();
-
-    //Iterate through them
-    for(uint i = 0; i < nConstraints; ++i)
-    {
-        btTypedConstraint* currentConstraint = m_constraints[i];
-        btScalar appliedImpulse = currentConstraint->getAppliedImpulse();
-
-        if(appliedImpulse > 0.8f)
-        {
-            qInfo()<<"Impulse too high";
-            btRigidBody* bodyA = &(currentConstraint->getRigidBodyA());
-            btRigidBody* bodyB = &(currentConstraint->getRigidBodyB());
-
-
-            m_dynamicsWorld->removeConstraint(m_constraints[i]);
-
-            btTransform transA;
-            transA.setIdentity();
-            bodyA->getMotionState()->getWorldTransform(transA);
-
-            btTransform transB;
-            transB.setIdentity();
-
-            transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
-
-            addFixedConstraint(bodyA, bodyB, transA, transB);
-        }
-    }
 }
 
 uint BtWorld::getNumCollisionObjects() const
 {
+    //Pretty simply function but avoids chaining
     return m_dynamicsWorld->getNumCollisionObjects();
 }
 
 QVector3D BtWorld::getTransform(uint index) const
 {
+    //Again it would be nice to use smart pointers here but bullet doesn't
+    //'allow' it
     btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[index];
     btRigidBody* rBody = btRigidBody::upcast(obj);
 
+    //Check if the rigid body exists and is moving
     if(rBody && rBody->getMotionState())
     {
+        //Create a new transform and store the objects
+        //movement in there
         btTransform bodyTrans;
-
         rBody->getMotionState()->getWorldTransform(bodyTrans);
 
-        float matrix[16];
-        bodyTrans.getOpenGLMatrix(matrix);
-
-
+        //Get the position from the transform
         btVector3 origin = bodyTrans.getOrigin();
 
+        //Return it as a QVector3D
         return QVector3D(origin.x(),origin.y(),origin.z());
     }
     else
     {
+        //The object isn't moving, return a 0 vector
         return QVector3D(0.0f, 0.0f, 0.0f);
     }
 
@@ -236,25 +197,23 @@ QVector3D BtWorld::getTransform(uint index) const
 
 void BtWorld::moveBodies(QVector3D moveVec)
 {
-    uint nBodies = m_dynamicsWorld->getNumCollisionObjects();
-
-    //Iterate through them
-    for(uint i = 0; i < nBodies; ++i)
+    //Iterate through the bodies in the world
+    for(uint i = 0; i < m_dynamicsWorld->getNumCollisionObjects(); ++i)
     {
-        btRigidBody* body = m_bodies[i].body;
-
+        //Get each body and set its velocity using
+        //the movement vector
+        btRigidBody* body = m_bodies[i].body.get();
         body->setLinearVelocity(btVector3(moveVec.x(), moveVec.y(), moveVec.z()));
     }
 }
 
 void BtWorld::stopAdjusting()
 {
-    uint nBodies = m_dynamicsWorld->getNumCollisionObjects();
-
-    //Iterate through them
-    for(uint i = 0; i < nBodies; ++i)
+    //Iterate through the bodies
+    for(uint i = 0; i < m_dynamicsWorld->getNumCollisionObjects(); ++i)
     {
-        btRigidBody* body = m_bodies[i].body;
+        //Set the velocity of each body to 0
+        btRigidBody* body = m_bodies[i].body.get();
 
         body->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
     }
