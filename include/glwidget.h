@@ -51,8 +51,14 @@ protected:
     void setZRotation(int angle);
 
 public slots:
-    void setWorldColor(QColor colour);
+    void setMeshColour(QColor colour, QString meshName);
+    void setWorldColour(QColor colour);
+    void setPlaneColour(QColor colour);
+    void addNewMesh(QString fileName, QString meshName, QVector3D position);
 
+    void toggleDrawMesh(bool isDrawing, QString meshName);
+    void toggleWireframeMesh(bool isWireframe, QString meshName);
+    void toggleSimulation(bool isSimulating);
 
 private:
     //Method for creating the shader program and loading
@@ -103,8 +109,6 @@ private:
     QVector3D m_cameraPos;
     QVector3D m_dir;
 
-    QColor m_worldColour;
-
     //Values editted when the camera is moved
     int m_mouseDelta;
     int m_xRot;
@@ -114,6 +118,7 @@ private:
     int m_yDis;
     int m_zDis;
 
+    std::vector<bool> m_drawMeshStates;
     bool m_isSimulating;
     bool m_drawMesh;
     bool m_drawSpheres;

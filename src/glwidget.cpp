@@ -18,8 +18,6 @@ GLWidget::GLWidget( QWidget* parent )
     //The radius of the spheres being packed
     m_radius = 1.0f;
 
-    m_worldColour = QColor(0.1f * 255, 0.1f* 255, 0.1f* 255);
-
     //Initialise variables for mouse control to 0
     m_xRot = 0;
     m_yRot = 0;
@@ -49,15 +47,80 @@ GLWidget::~GLWidget()
     BtShape::destroy();
 }
 
-void GLWidget::setWorldColor(QColor colour)
+void GLWidget::setMeshColour(QColor colour, QString meshName)
 {
-    m_worldColour = colour;
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        {
+            m_sceneObjects[i]->setColour(QVector4D((float)colour.red()/255.0f,
+                                                                          (float)colour.green()/255.0f,
+                                                                          (float)colour.blue()/255.0f,
+                                                                          1.0f ));
+            update();
+            break;
+        }
+    }
+}
+
+void GLWidget::setWorldColour(QColor colour)
+{
+    glClearColor((float)colour.red()/255.0f,
+                      (float)colour.green()/255.0f,
+                      (float)colour.blue()/255.0f,
+                      1.0f );
+}
+
+void GLWidget::setPlaneColour(QColor colour)
+{
+    m_sceneObjects[0]->setColour(QVector4D((float)colour.red()/255.0f,
+                                                 (float)colour.green()/255.0f,
+                                                 (float)colour.blue()/255.0f,
+                                                 1.0f ));
+}
+
+void GLWidget::addNewMesh(QString fileName, QString meshName, QVector3D position)
+{
+    createMesh(fileName.toStdString().c_str(), meshName.toStdString(), position);
+
+    update();
+}
+
+void GLWidget::toggleDrawMesh(bool isDrawing, QString meshName)
+{
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        {
+            m_drawMeshStates[i] = isDrawing;
+            update();
+            break;
+        }
+    }
+}
+
+void GLWidget::toggleWireframeMesh(bool isWireframe, QString meshName)
+{
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        {
+            m_sceneObjects[i]->setWireMode();
+            update();
+            break;
+        }
+    }
+}
+
+void GLWidget::toggleSimulation(bool isSimulating)
+{
+    m_isSimulating = isSimulating;
 }
 
 void GLWidget::initializeGL()
 {
     //Set the background colour for the window
-    glClearColor( 0.1f, 0.1f, 0.2f, 1.0f );
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
      //Enable depth testing for rendering later
      glEnable(GL_DEPTH_TEST);
@@ -90,9 +153,6 @@ void GLWidget::initializeGL()
      //Create a ground plane in the scene objects so that
      //it gets drawn
      createGround();
-
-     //Add a mesh
-     createMesh("objFiles/dragonBEST.obj", "cube", QVector3D(0,10,0));
 
      //Release the shader program
      m_pgm.release();
@@ -186,6 +246,7 @@ void GLWidget::createGround()
     //Add the pointer to the vector of scene objects
     m_sceneObjects.push_back(ground);
     m_sceneObjectPositions.push_back(QVector3D(0,0,0));
+    m_drawMeshStates.push_back(true);
 
     //Release the shader program
     m_pgm.release();
@@ -246,6 +307,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
     //Finally add the desired position of the mesh to a container
     m_sceneObjectPositions.push_back(position);
+    m_drawMeshStates.push_back(true);
 
     //Get the number of bodies in the bullet world *before* adding
     //the sphere from the sphere pack
@@ -448,114 +510,138 @@ void GLWidget::paintGL()
     //Now bind the shader program to the current context
     m_pgm.bind();
 
-    //Create a sphere which will be used to draw the sphere pack
-    Mesh sphere(QVector4D(1.0f, 0.0f, 0.0f, 1.0f), "sphere");
-    sphere.loadMesh("objFiles/sphere.obj");
-    sphere.prepareMesh(m_pgm);
-
-    //Get the number of bullet bodies
-    uint nBodies = m_bullet->getNumCollisionObjects();
-
-    //A container used to store the positions of the spheres
-    //in the sphere pack
-    vector_V spherePositions;
-
-    //Two counters, one for the number of bodies/meshes in
-    //the scene and the other for the number of spheres
-    int numSpheres = 0;
-    int bodyNumber = 0;
-
-    m_spherePositions.clear();
-
-    //Iterate through them
-    for(uint i = 0; i < nBodies; ++i)
+    if(m_sceneObjects.size() > 1)
     {
-        //Get the position of the bullet mesh
-        m_position = m_bullet->getTransform(i);
+        //Create a sphere which will be used to draw the sphere pack
+        Mesh sphere(QVector4D(1.0f, 0.0f, 0.0f, 1.0f), "sphere");
+        sphere.loadMesh("objFiles/sphere.obj");
+        sphere.prepareMesh(m_pgm);
 
-        //Get the name of the bullet object
-        std::string name = m_bullet->getBodyNameAt(i);
+        //Get the number of bullet bodies
+        uint nBodies = m_bullet->getNumCollisionObjects();
 
-        //Check for a sphere
-        if(name == "sphere")
+        //A container used to store the positions of the spheres
+        //in the sphere pack
+        vector_V spherePositions;
+
+        //Two counters, one for the number of bodies/meshes in
+        //the scene and the other for the number of spheres
+        int numSpheres = 0;
+        int bodyNumber = 0;
+
+        m_spherePositions.clear();
+
+        //Iterate through them
+        for(uint i = 0; i < nBodies; ++i)
         {
-            //Add the position and increment the count
-            spherePositions.push_back(m_position);
+            //Get the position of the bullet mesh
+            m_position = m_bullet->getTransform(i);
 
-            numSpheres++;
-        }
+            //Get the name of the bullet object
+            std::string name = m_bullet->getBodyNameAt(i);
 
-        //Check to see if all the spheres from the current
-        //mesh have been added to the position container
-        if(numSpheres == m_sphereNumbers[bodyNumber])
-        {
-            //We have, add the positions to the container of all
-            //sphere positions and clear the vector for further use
-            m_spherePositions.push_back(spherePositions);
-
-            spherePositions.clear();
-
-            //Reset the sphere count
-            numSpheres = 0;
-
-            //Increment the body number
-            bodyNumber++;
-        }
-    }
-
-    //Iterate through all the objects in the mesh
-    int sphereIndex = 0;
-    for(uint i = 0; i < m_sceneObjects.size(); ++i)
-    {
-        //Check if the object has been sphere packed
-        if(m_sceneObjects[i]->hasSpherePack())
-        {
-            //Update the skinned mesh
-            m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
-
-            //Update the skinned mesh VAO for drawing later
-            m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
-            sphereIndex++;
-        }
-    }
-
-    //Set the drawing colour to the sphere colour
-    m_pgm.setUniformValue("mCol",sphere.getColour());
-
-    //Are we currently drawing the spheres or not?
-    if(m_drawSpheres)
-    {
-        //We are, iterate through the 2x2 sphere position
-        //matrix
-        for(uint i = 0; i < m_spherePositions.size(); ++i)
-        {
-            for(uint j = 0; j < m_spherePositions[i].size(); ++j)
+            //Check for a sphere
+            if(name == "sphere")
             {
-                //Set the drawing position accordingly and load
-                //it to the shader. Make sure to set the drawing
-                //scale to the radius (the sphere mesh has a
-                //radius of one to facilitate this).
-                m_position = m_spherePositions[i][j];
+                //Add the position and increment the count
+                spherePositions.push_back(m_position);
 
-                loadShaderMatrices(m_radius);
+                numSpheres++;
+            }
 
-                //Finally draw the sphere
-                sphere.draw();
+            //Check to see if all the spheres from the current
+            //mesh have been added to the position container
+            if(numSpheres == m_sphereNumbers[bodyNumber])
+            {
+                //We have, add the positions to the container of all
+                //sphere positions and clear the vector for further use
+                m_spherePositions.push_back(spherePositions);
+
+                spherePositions.clear();
+
+                //Reset the sphere count
+                numSpheres = 0;
+
+                //Increment the body number
+                bodyNumber++;
             }
         }
+
+        //Iterate through all the objects in the mesh
+        int sphereIndex = 0;
+        for(uint i = 0; i < m_sceneObjects.size(); ++i)
+        {
+            //Check if the object has been sphere packed
+            if(m_sceneObjects[i]->hasSpherePack())
+            {
+                //Update the skinned mesh
+                m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
+
+                //Update the skinned mesh VAO for drawing later
+                m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
+                sphereIndex++;
+            }
+        }
+
+
+        //Set the drawing colour to the sphere colour
+        m_pgm.setUniformValue("mCol",sphere.getColour());
+
+        //Are we currently drawing the spheres or not?
+        if(m_drawSpheres)
+        {
+            //We are, iterate through the 2x2 sphere position
+            //matrix
+            for(uint i = 0; i < m_spherePositions.size(); ++i)
+            {
+                for(uint j = 0; j < m_spherePositions[i].size(); ++j)
+                {
+                    //Set the drawing position accordingly and load
+                    //it to the shader. Make sure to set the drawing
+                    //scale to the radius (the sphere mesh has a
+                    //radius of one to facilitate this).
+                    m_position = m_spherePositions[i][j];
+
+                    loadShaderMatrices(m_radius);
+
+                    //Finally draw the sphere
+                    sphere.draw();
+                }
+            }
+        }
+        //    else
+        //    {
+        //        updateConstraintDrawing();
+
+        //        m_vaoConstraint.bind();
+        //        m_pgm.setUniformValue("mCol",sphere.getColour());
+
+        //        glLineWidth(0.25f);
+        //        glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
+        //        m_vaoConstraint.release();
+        //    }
+
+        //Reset the drawing position
+        m_position = QVector3D(0,0,0);
+        loadShaderMatrices(1.0f);
+
+        //If it is, iterate through the objects in the scene starting
+        //at 1 because 0 (the ground plane) has already been drawn
+        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        {
+            if(m_drawMeshStates[i])
+            {
+
+                //Set the right colour
+                m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
+
+                //Because this uses the skinned verts which were updated later
+                //the drawing position doesn't need updating
+                m_sceneObjects[i]->draw();
+            }
+        }
+
     }
-//    else
-//    {
-//        updateConstraintDrawing();
-
-//        m_vaoConstraint.bind();
-//        m_pgm.setUniformValue("mCol",sphere.getColour());
-
-//        glLineWidth(0.25f);
-//        glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
-//        m_vaoConstraint.release();
-//    }
-
     //Reset the drawing position
     m_position = QVector3D(0,0,0);
     loadShaderMatrices(1.0f);
@@ -566,22 +652,6 @@ void GLWidget::paintGL()
     //The plane is always created first, so we can assume it's index
     //which we can use to draw
     m_sceneObjects[0]->draw();
-
-    //Check if the mesh is being drawn
-    if(m_drawMesh)
-    {
-        //If it is, iterate through the objects in the scene starting
-        //at 1 because 0 (the ground plane) has already been drawn
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
-        {
-            //Set the right colour
-            m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
-
-            //Because this uses the skinned verts which were updated later
-            //the drawing position doesn't need updating
-            m_sceneObjects[i]->draw();
-        }
-    }
 
     //Finally release the shader program
     m_pgm.release();

@@ -34,6 +34,17 @@ public:
 
     void addMeshToList(QString name, QString hasSpherePack);
 
+signals:
+    void passMeshColour(QColor colour, QString meshName);
+    void passWorldColour(QColor colour);
+    void passPlaneColour(QColor colour);
+
+    void passLoadMesh(QString fileName, QString meshName, QVector3D position);
+
+    void passDrawMesh(bool isDrawing, QString meshName);
+    void passWireframMesh(bool isWireframe, QString meshName);
+    void passSimulating(bool isSimulating);
+
 private slots:
     void on_horizontalSlider_valueChanged(int value);
 
@@ -54,6 +65,10 @@ private slots:
     void on_groundColourButton_clicked();
 
     void on_worldColourButton_clicked();
+
+    void on_treeWidget_itemSelectionChanged();
+
+    void on_runButton_clicked();
 
 private:
     Ui::MainWindow *ui;

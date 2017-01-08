@@ -19,8 +19,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->settingsToolbar->raise();
     ui->meshToolbar->raise();
 
+    ui->meshToolbar->removeTab(1);
 
-
+    connect(this, SIGNAL(passMeshColour(QColor,QString)), m_glWidget, SLOT(setMeshColour(QColor,QString)));
+    connect(this, SIGNAL(passWorldColour(QColor)), m_glWidget, SLOT(setWorldColour(QColor)));
+    connect(this, SIGNAL(passPlaneColour(QColor)), m_glWidget, SLOT(setPlaneColour(QColor)));
+    connect(this, SIGNAL(passLoadMesh(QString,QString, QVector3D)), m_glWidget, SLOT(addNewMesh(QString,QString, QVector3D)));
+    connect(this, SIGNAL(passDrawMesh(bool,QString)), m_glWidget, SLOT(toggleDrawMesh(bool,QString)));
+    connect(this, SIGNAL(passWireframMesh(bool,QString)), m_glWidget, SLOT(toggleWireframeMesh(bool,QString)));
+    connect(this, SIGNAL(passSimulating(bool)), m_glWidget, SLOT(toggleSimulation(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -78,6 +85,12 @@ void MainWindow::on_loadMeshButton_clicked()
         m_settings.push_back(std::make_pair(meshName, new ShaderSettings));
 
         ui->filenameLine->setText(QString());
+
+        QVector3D position(ui->positionX->value(),
+                                     ui->positionY->value(),
+                                     ui->positionZ->value());
+
+        emit passLoadMesh(fileName, meshName, position);
     }
 }
 
@@ -87,7 +100,6 @@ void MainWindow::on_filenameButton_clicked()
 
     ui->filenameLine->setText(filename);
 }
-
 
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
@@ -131,6 +143,8 @@ void MainWindow::on_meshColourButton_clicked()
                 m_settings[i].second->red = (float)colour.red()/255.0f;
                 m_settings[i].second->green = (float)colour.green()/255.0f;
                 m_settings[i].second->blue = (float)colour.blue()/255.0f;
+
+                emit passMeshColour(colour, name);
             }
         }
     }
@@ -147,6 +161,7 @@ void MainWindow::on_wireframeCheck_toggled(bool checked)
         if(name == m_settings[i].first)
         {
             m_settings[i].second->wireframe = checked;
+            emit passWireframMesh(checked, name);
         }
     }
 }
@@ -162,6 +177,7 @@ void MainWindow::on_drawCheck_toggled(bool checked)
         if(name == m_settings[i].first)
         {
             m_settings[i].second->drawMesh = checked;
+            emit passDrawMesh(checked, name);
         }
     }
 }
@@ -191,6 +207,8 @@ void MainWindow::on_groundColourButton_clicked()
         palette.setColor(ui->groundColour->backgroundRole(), colour);
         ui->groundColour->setAutoFillBackground(true);
         ui->groundColour->setPalette(palette);
+
+        emit passPlaneColour(colour);
     }
 }
 
@@ -204,5 +222,17 @@ void MainWindow::on_worldColourButton_clicked()
         palette.setColor(ui->worldColour->backgroundRole(), colour);
         ui->worldColour->setAutoFillBackground(true);
         ui->worldColour->setPalette(palette);
+
+        emit passWorldColour(colour);
     }
+}
+
+void MainWindow::on_treeWidget_itemSelectionChanged()
+{
+    ui->meshToolbar->insertTab(1, ui->Shading, "Shading");
+}
+
+void MainWindow::on_runButton_clicked()
+{
+    emit passSimulating(true);
 }
