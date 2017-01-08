@@ -18,6 +18,8 @@ GLWidget::GLWidget( QWidget* parent )
     //The radius of the spheres being packed
     m_radius = 1.0f;
 
+    m_worldColour = QColor(0.1f * 255, 0.1f* 255, 0.1f* 255);
+
     //Initialise variables for mouse control to 0
     m_xRot = 0;
     m_yRot = 0;
@@ -45,6 +47,11 @@ GLWidget::~GLWidget()
 {
     //Clean up the BtShape incase an instance was made
     BtShape::destroy();
+}
+
+void GLWidget::setWorldColor(QColor colour)
+{
+    m_worldColour = colour;
 }
 
 void GLWidget::initializeGL()

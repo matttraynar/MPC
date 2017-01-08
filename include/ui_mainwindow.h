@@ -15,7 +15,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "glwidget.h"
 
@@ -25,8 +24,6 @@ class Ui_MainWindow
 {
 public:
     QWidget *centralWidget;
-    QVBoxLayout *verticalLayout;
-    GLWidget *widget;
 
     void setupUi(QMainWindow *MainWindow)
     {
@@ -36,15 +33,6 @@ public:
         MainWindow->resize(400, 300);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
-        verticalLayout = new QVBoxLayout(centralWidget);
-        verticalLayout->setSpacing(6);
-        verticalLayout->setContentsMargins(11, 11, 11, 11);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        widget = new GLWidget(centralWidget);
-        widget->setObjectName(QStringLiteral("widget"));
-
-        verticalLayout->addWidget(widget);
-
         MainWindow->setCentralWidget(centralWidget);
 
         retranslateUi(MainWindow);

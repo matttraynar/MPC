@@ -50,6 +50,9 @@ protected:
     void setYRotation(int angle);
     void setZRotation(int angle);
 
+public slots:
+    void setWorldColor(QColor colour);
+
 
 private:
     //Method for creating the shader program and loading
@@ -99,6 +102,8 @@ private:
     //Vectors for storing camera data
     QVector3D m_cameraPos;
     QVector3D m_dir;
+
+    QColor m_worldColour;
 
     //Values editted when the camera is moved
     int m_mouseDelta;
