@@ -6,14 +6,14 @@
 
 int main( int argc, char* argv[] )
 {
- QApplication a( argc, argv );
+    QApplication a( argc, argv );
 
-// Create a GLWidget requesting our format
- MainWindow w;
+    // Create a GLWidget requesting our format
+    MainWindow w;
 
- w.move(QApplication::desktop()->screen()->rect().center() - w.rect().center());
+    w.move(QApplication::desktop()->screen()->rect().center() - w.rect().center());
+    w.resize(1120, 600);
+    w.show();
 
- w.show();
-
-return a.exec();
+    return a.exec();
 }

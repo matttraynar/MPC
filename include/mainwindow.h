@@ -125,6 +125,7 @@ private:
     bool m_isSimulating;
 
     std::vector<QString> m_existingMeshes;
+    std::vector< std::pair< QString, MeshSettings*>> m_meshSettings;
     std::vector< std::pair< QString, ShaderSettings*>> m_shaderSettings;
     std::vector< std::pair< QString, DistanceFieldSettings*>> m_distanceSettings;
     std::vector< std::pair< QString, SpherePackSettings*>> m_sphereSettings;

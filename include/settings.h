@@ -1,6 +1,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+struct MeshSettings
+{
+    bool hasDistanceField = false;
+    bool hasSpherePack = false;
+};
+
 struct DistanceFieldSettings
 {
     float xRes = 2.0f;

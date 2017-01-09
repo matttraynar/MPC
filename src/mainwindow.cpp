@@ -19,12 +19,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->LayoutForWidget->addWidget(m_glWidget);
     ui->ToolbarChecks->raise();
+    ui->settingsCheck->hide();
     ui->settingsToolbar->raise();
+    ui->settingsToolbar->hide();
     ui->meshToolbar->raise();
 
     m_isSimulating = false;
 
     ui->meshToolbar->removeTab(1);
+
+    ui->settingsToolbar->removeTab(1);
+    ui->settingsToolbar->removeTab(2);
+    ui->settingsToolbar->removeTab(3);
 
     connect(this, SIGNAL(passWorldColour(QColor)), m_glWidget, SLOT(setWorldColour(QColor)));
     connect(this, SIGNAL(passPlaneColour(QColor)), m_glWidget, SLOT(setPlaneColour(QColor)));
@@ -200,6 +206,7 @@ void MainWindow::on_loadMeshButton_clicked()
 
         addMeshToList(meshName,"No");
 
+        m_meshSettings.push_back(std::make_pair(meshName, new MeshSettings));
         m_shaderSettings.push_back(std::make_pair(meshName, new ShaderSettings));
         m_distanceSettings.push_back(std::make_pair(meshName, new DistanceFieldSettings));
         m_sphereSettings.push_back(std::make_pair(meshName, new SpherePackSettings));
@@ -250,12 +257,25 @@ void MainWindow::on_deleteMeshButton_clicked()
             int i = ui->treeWidget->indexOfTopLevelItem(ui->treeWidget->currentItem());
             ui->treeWidget->takeTopLevelItem(i);
 
+            auto selected = ui->treeWidget->selectedItems();
+
+            if(selected.length() == 0)
+            {
+                ui->meshToolbar->removeTab(1);
+
+                for(uint i = 0; i < ui->settingsToolbar->count(); ++i)
+                {
+                    ui->settingsToolbar->removeTab(1);
+                }
+
+                ui->settingsCheck->setChecked(false);
+                ui->settingsCheck->hide();
+            }
             break;
         }
     }
 
 }
-
 
 void MainWindow::on_filenameButton_clicked()
 {
@@ -270,6 +290,33 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     {
         if(item->text(0) == m_shaderSettings[i].first)
         {
+            if(m_meshSettings[i].second->hasDistanceField)
+            {
+                ui->settingsToolbar->insertTab(1, ui->spherepack, "Sphere Packing");
+            }
+            else
+            {
+                ui->settingsToolbar->removeTab(1);
+            }
+
+            if(m_meshSettings[i].second->hasSpherePack)
+            {
+                ui->settingsToolbar->insertTab(2, ui->constraints, "Constraint Manager");
+                ui->settingsToolbar->insertTab(3, ui->simulation, "Simulation");
+            }
+            else if(m_meshSettings[i].second->hasDistanceField)
+            {
+                ui->settingsToolbar->removeTab(2);
+                ui->settingsToolbar->removeTab(2);
+            }
+            else
+            {
+                ui->settingsToolbar->removeTab(1);
+                ui->settingsToolbar->removeTab(1);
+                ui->settingsToolbar->removeTab(1);
+            }
+
+
             //Update shader tab
             QColor colour(m_shaderSettings[i].second->red * 255,
                                 m_shaderSettings[i].second->green * 255,
@@ -317,6 +364,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 
             ui->strengthValue->setValue(m_constraintSettings[i].second->constraintStrength);
             ui->drawConstraintCheck->setChecked(m_constraintSettings[i].second->isDrawing);
+
+
         }
     }
 }
@@ -437,6 +486,9 @@ void MainWindow::on_worldColourButton_clicked()
 void MainWindow::on_treeWidget_itemSelectionChanged()
 {
     ui->meshToolbar->insertTab(1, ui->Shading, "Shading");
+
+    ui->settingsCheck->show();
+    ui->settingsCheck->setChecked(true);
 
     ui->deleteMeshButton->setEnabled(true);
 
@@ -621,6 +673,11 @@ void MainWindow::on_generateDistanceField_clicked()
 
             emit runDistanceField(name, *m_distanceSettings[i].second);            
 
+            m_meshSettings[i].second->hasDistanceField = true;
+
+            ui->settingsToolbar->insertTab(1, ui->spherepack, "Sphere Packing");
+
+
             ui->statusBar->showMessage("Distance field complete", 1000);
         }
     }
@@ -757,6 +814,11 @@ void MainWindow::on_packSphereButton_clicked()
             ui->statusBar->showMessage(message);
 
             emit runSpherePack(name, *m_sphereSettings[i].second);
+
+            m_meshSettings[i].second->hasSpherePack = true;
+
+            ui->settingsToolbar->insertTab(2, ui->constraints, "Constraint Manager");
+            ui->settingsToolbar->insertTab(3, ui->simulation, "Simulation");
 
             ui->statusBar->showMessage("Sphere packing complete", 1000);
         }
