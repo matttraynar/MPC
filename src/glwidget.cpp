@@ -15,6 +15,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
+    m_simulationStep = 1.0f/60.0f;
+
     //The radius of the spheres being packed
     m_radius = 1.0f;
 
@@ -47,22 +49,6 @@ GLWidget::~GLWidget()
     BtShape::destroy();
 }
 
-void GLWidget::setMeshColour(QColor colour, QString meshName)
-{
-    for(uint i = 0; i < m_sceneObjects.size(); ++i)
-    {
-        if(m_sceneObjects[i]->getName() == meshName.toStdString())
-        {
-            m_sceneObjects[i]->setColour(QVector4D((float)colour.red()/255.0f,
-                                                                          (float)colour.green()/255.0f,
-                                                                          (float)colour.blue()/255.0f,
-                                                                          1.0f ));
-            update();
-            break;
-        }
-    }
-}
-
 void GLWidget::setWorldColour(QColor colour)
 {
     glClearColor((float)colour.red()/255.0f,
@@ -86,26 +72,75 @@ void GLWidget::addNewMesh(QString fileName, QString meshName, QVector3D position
     update();
 }
 
-void GLWidget::toggleDrawMesh(bool isDrawing, QString meshName)
+void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 {
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
-            m_drawMeshStates[i] = isDrawing;
+            qInfo()<<"updating shader";
+            m_sceneObjects[i]->setColour(QVector4D(settings.red,
+                                                                          settings.green,
+                                                                          settings.blue,
+                                                                          1.0f ));
+
+            m_sceneObjects[i]->setWireMode(settings.wireframe);
+
+            //ADD SKIN
+            m_drawMeshStates[i] = settings.drawMesh;
             update();
             break;
         }
     }
 }
 
-void GLWidget::toggleWireframeMesh(bool isWireframe, QString meshName)
+void GLWidget::runDistanceField(QString meshName, DistanceFieldSettings &settings)
 {
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
-            m_sceneObjects[i]->setWireMode();
+            m_sceneObjects[i]->generateDistanceField(settings);
+            update();
+            break;
+        }
+    }
+}
+
+void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
+{
+    for(uint i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        {
+            m_sceneObjects[i]->runSpherePackAlgorithm(settings);
+
+            qInfo()<<"Finished sphere pack";
+
+            //Get the number of bodies in the bullet world *before* adding
+            //the sphere from the sphere pack
+            uint currentNBodies = m_bullet->getNumCollisionObjects();
+
+            //A container for storing the sphere positions (used later)
+            vector_V spherePositions = m_sceneObjects[i]->m_spherePack->getSpheres();
+
+            uint sphereNum = m_sceneObjects[i]->m_spherePack->getSphereNum();
+
+            //Iterate over all the spheres in the pack
+            for(uint j = 0; j < sphereNum; ++j)
+            {
+                //For each sphere add a new btSphere to the bullet world (and add the displacement
+                //specified by 'position')
+                spherePositions.push_back(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i]);
+                m_bullet->addSphere(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], 1.0f, QVector3D(0,0,0));
+            }
+
+            //Get the number of collision objects in the world now
+            uint nBodies = m_bullet->getNumCollisionObjects();
+
+            //Mark how many spheres were added for this mesh
+            m_sphereNumbers.push_back(sphereNum);
+
             update();
             break;
         }
@@ -115,6 +150,43 @@ void GLWidget::toggleWireframeMesh(bool isWireframe, QString meshName)
 void GLWidget::toggleSimulation(bool isSimulating)
 {
     m_isSimulating = isSimulating;
+}
+
+void GLWidget::resetSimulation()
+{
+    //User pressed 'home' so stop the simulation
+    m_bullet->stop();
+
+    int objCount = 0;
+
+    //Reset all the sphere positions
+    for(int i = 0; i < m_sceneObjects.size(); ++i)
+    {
+        if(m_sceneObjects[i]->hasSpherePack())
+        {
+            for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
+            {
+                m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
+                objCount++;
+            }
+        }
+        else
+        {
+            objCount++;
+        }
+    }
+
+    //Step the simulation once so that everything
+    //changes properly
+    m_bullet->step(1.0f/60.0f, 10);
+
+    //Stop the simulation
+    m_isSimulating = false;
+}
+
+void GLWidget::setSimulation(float stepValue)
+{
+    m_simulationStep = stepValue;
 }
 
 void GLWidget::initializeGL()
@@ -293,10 +365,10 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
         mesh->prepareMesh(m_pgm);
 
         //Sphere pack the mesh
-        mesh->runSpherePackAlgorithm(m_radius);
+//        mesh->runSpherePackAlgorithm(m_radius);
 
         //Set up the skinned vertex positions
-        mesh->skinMeshToSpheres(2);
+//        mesh->skinMeshToSpheres(2);
 
         //Add the pointer to the vector of scene objects
         m_sceneObjects.push_back(mesh);
@@ -311,109 +383,109 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
 
     //Get the number of bodies in the bullet world *before* adding
     //the sphere from the sphere pack
-    uint currentNBodies = m_bullet->getNumCollisionObjects();
+//    uint currentNBodies = m_bullet->getNumCollisionObjects();
 
-    //A container for storing the sphere positions (used later)
-    vector_V spherePositions;
+//    //A container for storing the sphere positions (used later)
+//    vector_V spherePositions;
 
-    //Iterate over all the spheres in the pack
-    for(uint i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
-    {
-        //For each sphere add a new btSphere to the bullet world (and add the displacement
-        //specified by 'position')
-        spherePositions.push_back(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position);
-        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
-    }
+//    //Iterate over all the spheres in the pack
+//    for(uint i = 0; i < m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum(); ++i)
+//    {
+//        //For each sphere add a new btSphere to the bullet world (and add the displacement
+//        //specified by 'position')
+//        spherePositions.push_back(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position);
+//        m_bullet->addSphere(m_sceneObjects[newMeshPosition]->m_spherePack->getSphereAt(i) + position, 1.0f, QVector3D(0,0,0));
+//    }
 
-    //Get the number of collision objects in the world now
-    uint nBodies = m_bullet->getNumCollisionObjects();
-    uint nSpheres = m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum();
+//    //Get the number of collision objects in the world now
+//    uint nBodies = m_bullet->getNumCollisionObjects();
+//    uint nSpheres = m_sceneObjects[newMeshPosition]->m_spherePack->getSphereNum();
 
-    //Mark how many spheres were added for this mesh
-    m_sphereNumbers.push_back(nSpheres);
+//    //Mark how many spheres were added for this mesh
+//    m_sphereNumbers.push_back(nSpheres);
 
-    int constCount = 0;
+//    int constCount = 0;
 
-    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
+//    qInfo()<<"Spheres: "<<nSpheres<<" Bodies: "<<nBodies;
 
-    //A container for storing the constraints of the spheres by index
-    std::vector< std::pair<uint, uint> > sphereConstraints;
+//    //A container for storing the constraints of the spheres by index
+//    std::vector< std::pair<uint, uint> > sphereConstraints;
 
-    //Iterate through the bodies in the 'world'
-    for(uint i = currentNBodies; i < nBodies; ++i)
-    {
-        //Create a new container for pairs of sphere indices
-        std::vector< std::pair<uint, uint> > sphereIndices;
+//    //Iterate through the bodies in the 'world'
+//    for(uint i = currentNBodies; i < nBodies; ++i)
+//    {
+//        //Create a new container for pairs of sphere indices
+//        std::vector< std::pair<uint, uint> > sphereIndices;
 
-        //Mark the index of the sphere (accounting for any other objects
-        //in the bullet world).
-        uint sphereIndex = i - currentNBodies;
+//        //Mark the index of the sphere (accounting for any other objects
+//        //in the bullet world).
+//        uint sphereIndex = i - currentNBodies;
 
-        //Get the possible connections the current sphere could have in
-        //the sphere pack
-        std::vector<QVector3D> spheresToConnect;
-        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 300);
+//        //Get the possible connections the current sphere could have in
+//        //the sphere pack
+//        std::vector<QVector3D> spheresToConnect;
+//        m_sceneObjects[newMeshPosition]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 300);
 
-        //Check if there are any candidate spheres
-        if(spheresToConnect.size() == 0)
-        {
-            //We can ignore this sphere if there aren't any
-            continue;
-        }
-        else
-        {
-            //There are some spheres that can be constrained to
-            for(uint j = 0; j < sphereIndices.size(); ++j)
-            {
-                //Iterate through each one, check if the first sphere index
-                //in the container of pairs is the same as the current
-                //bullet rigid body we are testing
-                uint sphereA = sphereIndices[j].first;
+//        //Check if there are any candidate spheres
+//        if(spheresToConnect.size() == 0)
+//        {
+//            //We can ignore this sphere if there aren't any
+//            continue;
+//        }
+//        else
+//        {
+//            //There are some spheres that can be constrained to
+//            for(uint j = 0; j < sphereIndices.size(); ++j)
+//            {
+//                //Iterate through each one, check if the first sphere index
+//                //in the container of pairs is the same as the current
+//                //bullet rigid body we are testing
+//                uint sphereA = sphereIndices[j].first;
 
-                if(sphereIndex == sphereA)
-                {
-                    //If it is find out what the body is paired to
-                    uint sphereB = sphereIndices[j].second;
+//                if(sphereIndex == sphereA)
+//                {
+//                    //If it is find out what the body is paired to
+//                    uint sphereB = sphereIndices[j].second;
 
-                    sphereConstraints.push_back(std::make_pair(sphereA, sphereB));
+//                    sphereConstraints.push_back(std::make_pair(sphereA, sphereB));
 
-                    //The indices stored are created from the list of spheres,
-                    //because we may also have other objects in the
-                    //bullet world the value needs to be adjusted
-                    sphereA += currentNBodies;
-                    sphereB += currentNBodies;
+//                    //The indices stored are created from the list of spheres,
+//                    //because we may also have other objects in the
+//                    //bullet world the value needs to be adjusted
+//                    sphereA += currentNBodies;
+//                    sphereB += currentNBodies;
 
-                    //Get the rigid bodies relating to the pair
-                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
-                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
+//                    //Get the rigid bodies relating to the pair
+//                    btRigidBody* bodyA = m_bullet->getBodyAt(sphereA);
+//                    btRigidBody* bodyB = m_bullet->getBodyAt(sphereB);
 
-                    //First get the transform of the first body
-                    btTransform transA;
-                    transA.setIdentity();
-                    bodyA->getMotionState()->getWorldTransform(transA);
+//                    //First get the transform of the first body
+//                    btTransform transA;
+//                    transA.setIdentity();
+//                    bodyA->getMotionState()->getWorldTransform(transA);
 
-                    //Now get the second
-                    btTransform transB;
-                    transB.setIdentity();
+//                    //Now get the second
+//                    btTransform transB;
+//                    transB.setIdentity();
 
-                    //I originally tried doing this the same way as with A
-                    //but found that this caused the two bodies to fly toward
-                    //each other. Instead I convert the frame of B so that it
-                    //is relative to A.
-                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
+//                    //I originally tried doing this the same way as with A
+//                    //but found that this caused the two bodies to fly toward
+//                    //each other. Instead I convert the frame of B so that it
+//                    //is relative to A.
+//                    transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
-                    //Add the constraint to the bullet world
-                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+//                    //Add the constraint to the bullet world
+//                    m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
 
-                    //Mark the addition of a new constraint
-                    constCount++;
-                }
-            }
-        }
-    }
+//                    //Mark the addition of a new constraint
+//                    constCount++;
+//                }
+//            }
+//        }
+//    }
 
-    //Add the constraints to a container so they can be draw later
-    m_constraints.push_back(sphereConstraints);
+//    //Add the constraints to a container so they can be draw later
+//    m_constraints.push_back(sphereConstraints);
 
     //Release the shader program
     m_pgm.release();
@@ -547,23 +619,23 @@ void GLWidget::paintGL()
                 spherePositions.push_back(m_position);
 
                 numSpheres++;
-            }
 
-            //Check to see if all the spheres from the current
-            //mesh have been added to the position container
-            if(numSpheres == m_sphereNumbers[bodyNumber])
-            {
-                //We have, add the positions to the container of all
-                //sphere positions and clear the vector for further use
-                m_spherePositions.push_back(spherePositions);
+                //Check to see if all the spheres from the current
+                //mesh have been added to the position container
+                if(numSpheres == m_sphereNumbers[bodyNumber])
+                {
+                    //We have, add the positions to the container of all
+                    //sphere positions and clear the vector for further use
+                    m_spherePositions.push_back(spherePositions);
 
-                spherePositions.clear();
+                    spherePositions.clear();
 
-                //Reset the sphere count
-                numSpheres = 0;
+                    //Reset the sphere count
+                    numSpheres = 0;
 
-                //Increment the body number
-                bodyNumber++;
+                    //Increment the body number
+                    bodyNumber++;
+                }
             }
         }
 
@@ -574,11 +646,15 @@ void GLWidget::paintGL()
             //Check if the object has been sphere packed
             if(m_sceneObjects[i]->hasSpherePack())
             {
-                //Update the skinned mesh
-                m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
+                if(m_sceneObjects[i]->isSkinned())
+                {
+                    //Update the skinned mesh
+                    m_sceneObjects[i]->updateSkinnedMesh(m_spherePositions[sphereIndex]);
 
-                //Update the skinned mesh VAO for drawing later
-                m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
+                    //Update the skinned mesh VAO for drawing later
+                    m_sceneObjects[i]->prepareSkinnedMesh(m_pgm);
+                }
+
                 sphereIndex++;
             }
         }
@@ -635,9 +711,20 @@ void GLWidget::paintGL()
                 //Set the right colour
                 m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
 
-                //Because this uses the skinned verts which were updated later
-                //the drawing position doesn't need updating
-                m_sceneObjects[i]->draw();
+                if(m_sceneObjects[i]->isSkinned())
+                {
+                    //Because this uses the skinned verts which were updated later
+                    //the drawing position doesn't need updating
+                    m_sceneObjects[i]->draw();
+                }
+                else
+                {
+                    m_position = m_sceneObjectPositions[i];
+
+                    loadShaderMatrices(1.0f);
+
+                    m_sceneObjects[i]->draw();
+                }
             }
         }
 
@@ -707,7 +794,7 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         //of each mesh in the scene
         for(uint i = 1; i < m_sceneObjects.size(); ++i)
         {
-            m_sceneObjects[i]->setWireMode();
+//            m_sceneObjects[i]->setWireMode();
         }
 
         break;
@@ -904,7 +991,7 @@ void GLWidget::timerEvent(QTimerEvent *e)
         }
 
         //Step the simulation
-        m_bullet->step(1.0f/60.0f, 10);
+        m_bullet->step(m_simulationStep, 10);
 
         //Update the window
         update();

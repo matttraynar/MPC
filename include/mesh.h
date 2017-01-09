@@ -58,13 +58,16 @@ public:
     void draw();
 
     //Method which creates a sphere pack for the mesh
+    void generateDistanceField(DistanceFieldSettings &settings);
+    void runSpherePackAlgorithm(SpherePackSettings &settings);
+
     void runSpherePackAlgorithm(float radius);
 
     void skinMeshToSpheres(uint numControlSpheres);
     void updateSkinnedMesh(const vector_V &spherePositions);
 
     //Set methods
-    void setWireMode();
+    void setWireMode(bool wiremode);
     void setColour(QVector4D colour);
     void setName(const std::string name) { m_name = name;}
 

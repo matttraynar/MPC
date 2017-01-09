@@ -116,7 +116,7 @@ background-color: rgb(20, 20, 80);</string>
      <enum>QTabWidget::Triangular</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="Mesh">
      <attribute name="title">
@@ -517,7 +517,7 @@ background-color: rgb(20, 20, 80);</string>
      <enum>QTabWidget::Triangular</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideRight</enum>
@@ -1087,7 +1087,7 @@ background-color: rgb(20, 20, 80);</string>
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="drawSpheres">
             <property name="layoutDirection">
              <enum>Qt::RightToLeft</enum>
             </property>
@@ -1349,6 +1349,9 @@ background-color: rgb(20, 20, 80);</string>
            </item>
            <item>
             <widget class="QPushButton" name="pauseButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Pause</string>
              </property>
@@ -1356,6 +1359,9 @@ background-color: rgb(20, 20, 80);</string>
            </item>
            <item>
             <widget class="QPushButton" name="resetButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Reset</string>
              </property>
@@ -1426,7 +1432,7 @@ background-color: rgb(20, 20, 80);</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>686</x>
+     <x>936</x>
      <y>35</y>
     </hint>
    </hints>
@@ -1438,12 +1444,12 @@ background-color: rgb(20, 20, 80);</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>860</x>
-     <y>41</y>
+     <x>1111</x>
+     <y>52</y>
     </hint>
     <hint type="destinationlabel">
-     <x>758</x>
-     <y>40</y>
+     <x>1009</x>
+     <y>44</y>
     </hint>
    </hints>
   </connection>
@@ -1454,12 +1460,12 @@ background-color: rgb(20, 20, 80);</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>860</x>
-     <y>41</y>
+     <x>1111</x>
+     <y>52</y>
     </hint>
     <hint type="destinationlabel">
-     <x>819</x>
-     <y>45</y>
+     <x>1070</x>
+     <y>55</y>
     </hint>
    </hints>
   </connection>

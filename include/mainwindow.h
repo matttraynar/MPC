@@ -5,20 +5,10 @@
 #include <QTreeWidgetItem>
 
 #include "glwidget.h"
+#include "settings.h"
 
 #include <vector>
 #include <memory>
-
-struct ShaderSettings
-{
-    float red = 0.0f;
-    float green = 0.0f;
-    float blue = 0.0f;
-
-    bool wireframe = false;
-    bool skinMesh = false;
-    bool drawMesh = true;
-};
 
 namespace Ui {
 class MainWindow;
@@ -35,15 +25,21 @@ public:
     void addMeshToList(QString name, QString hasSpherePack);
 
 signals:
-    void passMeshColour(QColor colour, QString meshName);
     void passWorldColour(QColor colour);
     void passPlaneColour(QColor colour);
 
     void passLoadMesh(QString fileName, QString meshName, QVector3D position);
 
-    void passDrawMesh(bool isDrawing, QString meshName);
-    void passWireframMesh(bool isWireframe, QString meshName);
+    void passMeshShader(QString meshName, ShaderSettings &settings);
+
+    void runDistanceField(QString meshName, DistanceFieldSettings &settings);
+    void runSpherePack(QString meshName, SpherePackSettings &settings);
+    void runConstraintGen(QString meshName, ConstraintSettings &settings);
+
     void passSimulating(bool isSimulating);
+
+    void passReset();
+    void passNewStep(float stepValue);
 
 private slots:
     void on_horizontalSlider_valueChanged(int value);
@@ -70,12 +66,49 @@ private slots:
 
     void on_runButton_clicked();
 
+    void on_pauseButton_clicked();
+
+    void on_resetButton_clicked();
+
+    void on_comboBox_currentIndexChanged(int index);
+
+    void on_resolutionX_valueChanged(double arg1);
+
+    void on_resolutionY_valueChanged(double arg1);
+
+    void on_resolutionZ_valueChanged(double arg1);
+
+    void on_innerValue_valueChanged(double arg1);
+
+    void on_outerValue_valueChanged(double arg1);
+
+    void on_boundsValue_valueChanged(double arg1);
+
+    void on_sphereSizeValue_valueChanged(double arg1);
+
+    void on_sphereSpacingValue_valueChanged(double arg1);
+
+    void on_maxSphereNumValue_valueChanged(int arg1);
+
+    void on_limitSpheres_toggled(bool checked);
+
+    void on_drawSpheres_toggled(bool checked);
+
+    void on_generateDistanceField_clicked();
+
+    void on_packSphereButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     GLWidget* m_glWidget;
 
-    std::vector< std::pair< QString, ShaderSettings*>> m_settings;
+    bool m_isSimulating;
+
+    std::vector< std::pair< QString, ShaderSettings*>> m_shaderSettings;
+    std::vector< std::pair< QString, DistanceFieldSettings*>> m_distanceSettings;
+    std::vector< std::pair< QString, SpherePackSettings*>> m_sphereSettings;
+    std::vector< std::pair< QString, ConstraintSettings*>> m_constraintSettings;
 
 };
 

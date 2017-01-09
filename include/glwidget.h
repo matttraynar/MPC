@@ -14,6 +14,7 @@
 #include <memory>
 #include <utility>
 
+#include "settings.h"
 #include "mesh.h"
 #include "btworld.h"
 #include "btshape.h"
@@ -51,14 +52,20 @@ protected:
     void setZRotation(int angle);
 
 public slots:
-    void setMeshColour(QColor colour, QString meshName);
     void setWorldColour(QColor colour);
     void setPlaneColour(QColor colour);
+
     void addNewMesh(QString fileName, QString meshName, QVector3D position);
 
-    void toggleDrawMesh(bool isDrawing, QString meshName);
-    void toggleWireframeMesh(bool isWireframe, QString meshName);
+    void setMeshShader(QString meshName, ShaderSettings &settings);
+
+    void runDistanceField(QString meshName, DistanceFieldSettings &settings);
+    void runSpherePack(QString meshName, SpherePackSettings &settings);
+
     void toggleSimulation(bool isSimulating);
+
+    void resetSimulation();
+    void setSimulation(float stepValue);
 
 private:
     //Method for creating the shader program and loading
@@ -85,7 +92,10 @@ private:
     QOpenGLVertexArrayObject m_vaoConstraint;
     QOpenGLBuffer m_vboConstraint;
 
+    std::vector<float> m_sphereRadii;
     float m_radius;
+
+    float m_simulationStep;
 
     //An unordered map used to refer to each mesh by a name
     std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;

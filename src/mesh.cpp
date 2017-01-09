@@ -211,8 +211,6 @@ void Mesh::prepareSkinnedMesh(QOpenGLShaderProgram &program)
     //we'll bind to it later when it is needed for drawing
     m_vaoSkin.release();
 
-    //Finally set the state of 'skinned' for future use
-    m_isSkinned = true;
 }
 
 void Mesh::draw()
@@ -251,16 +249,31 @@ void Mesh::draw()
     }
 }
 
-void Mesh::setWireMode()
+void Mesh::setWireMode(bool wiremode)
 {
     //Toggle the wireframe state of the mesh
-    m_wireframeMode = !m_wireframeMode;
+    m_wireframeMode = wiremode;
 }
 
 void Mesh::setColour(QVector4D colour)
 {
     //Method for setting the colour of the mesh
     m_colour = colour;
+}
+
+void Mesh::generateDistanceField(DistanceFieldSettings &settings)
+{
+    m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, 1.0f));
+
+    m_spherePack->generateDistanceField(settings);
+
+//    m_spherePack->generateDistanceField();
+}
+
+void Mesh::runSpherePackAlgorithm(SpherePackSettings &settings)
+{
+    m_spherePack->packSpheres(settings);
+    m_hasSpherePack = true;
 }
 
 void Mesh::runSpherePackAlgorithm(float radius)
@@ -367,6 +380,9 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
     }
 
     m_COM /= m_spherePack->getSphereNum();
+
+    //Finally set the state of 'skinned' for future use
+    m_isSkinned = true;
 }
 
 void Mesh::updateSkinnedMesh(const vector_V &spherePositions)

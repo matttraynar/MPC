@@ -34,7 +34,7 @@ struct BBox
 class Prism
 {
 public:
-    Prism(Triangle middle);
+    Prism(Triangle middle, float inner, float outer);
     ~Prism();
 
     bool bBoxContains(QVector3D point);

@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 
+#include "settings.h"
 #include "prism.h"
 
 typedef std::vector<QVector3D> vector_V;
@@ -53,9 +54,13 @@ struct FindPair
 class SpherePack
 {
 public:
-    SpherePack() = default;
+    SpherePack();
     SpherePack(const vector_V &verts, const uint_V &indices, float radius);
-    ~SpherePack();
+    ~SpherePack();    
+
+    void generateDistanceField(DistanceFieldSettings &settings);
+    void generateDistanceField();
+    void packSpheres(SpherePackSettings &settings);
 
     inline QVector3D getSphereAt(int index) const  { return m_spherePositions[index]; }
     inline uint getSphereNum() const                       { return (uint)m_spherePositions.size(); }
@@ -64,11 +69,12 @@ public:
     void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints);
 
 private:
-    void generateDistanceField();
+
     void findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p2);
+
     void packSpheres();
 
-    void calculateMAABB();
+    void calculateMAABB(float margin);
     BBox makeNeighbourhood(const QVector3D &p);
     bool bBoxContains(const BBox &box, const QVector3D &point);
 
@@ -89,7 +95,13 @@ private:
     int getBestPoint(const QVector3D &currentSphere, vector_V points);
 
     float m_radius;
+    float m_spacing;
+
+    int m_sphereNum;
+
+    QVector3D m_boxRes;
     float m_boxResolution;
+
     BBox m_meshAABB;
 
     vector_V m_verts;
