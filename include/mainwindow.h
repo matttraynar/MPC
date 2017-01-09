@@ -29,6 +29,7 @@ signals:
     void passPlaneColour(QColor colour);
 
     void passLoadMesh(QString fileName, QString meshName, QVector3D position);
+    void passDeleteMesh(QString fileName);
 
     void passMeshShader(QString meshName, ShaderSettings &settings);
 
@@ -114,6 +115,8 @@ private slots:
 
     void on_strengthValue_valueChanged(double arg1);
 
+    void on_deleteMeshButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -121,6 +124,7 @@ private:
 
     bool m_isSimulating;
 
+    std::vector<QString> m_existingMeshes;
     std::vector< std::pair< QString, ShaderSettings*>> m_shaderSettings;
     std::vector< std::pair< QString, DistanceFieldSettings*>> m_distanceSettings;
     std::vector< std::pair< QString, SpherePackSettings*>> m_sphereSettings;

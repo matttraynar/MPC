@@ -17,10 +17,13 @@ public:
     BtWorld();
     ~BtWorld();
 
-    void setGravity(float x, float y, float z);
+    void setGravity(float x, float
+                    y, float z);
     void step(float time, float step);
     void stop();
     void reset(QVector3D position, uint index);
+    void remove(uint index);
+    void removeBodies(uint index, uint size);
 
     void addGround();
     void addMesh(const std::string name, QVector3D pos);

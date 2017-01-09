@@ -71,6 +71,66 @@ void GLWidget::addNewMesh(QString fileName, QString meshName, QVector3D position
     update();
 }
 
+void GLWidget::removeMesh(QString meshName)
+{
+    uint numObjects = m_sceneObjects.size();
+
+    int bodyCount = 0;
+
+//    qInfo()<<m_sceneObjects.size();
+//    qInfo()<<m_sceneObjectPositions.size();
+//    qInfo()<<m_drawMeshStates.size();
+
+//    qInfo()<<m_sphereNumbers.size();
+//    qInfo()<<m_spherePositions.size();
+
+//    qInfo()<<m_sphereRadii.size();
+
+//    qInfo()<<m_drawSphereStates.size();
+//    qInfo()<<m_drawConstraintStates.size();
+//    qInfo()<<m_constraints.size();
+
+
+    for(uint i = 0; i < numObjects; ++i)
+    {
+        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        {
+            if(m_sceneObjects[i]->hasSpherePack())
+            {
+                m_sphereNumbers.erase(m_sphereNumbers.begin() + i - 1);
+                m_spherePositions.erase(m_spherePositions.begin() + i - 1);
+//                m_sphereRadii.erase(m_sphereRadii.begin() + i - 1);
+                m_drawSphereStates.erase(m_drawSphereStates.begin() + i - 1);
+                m_drawConstraintStates.erase(m_drawConstraintStates.begin() + i - 1);
+                m_constraints.erase(m_constraints.begin() + i - 1);
+
+                for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
+                {
+                    m_bullet->remove(j + bodyCount - 1);
+                }
+
+                m_bullet->removeBodies(bodyCount - 1, m_sceneObjects[i]->m_spherePack->getSphereNum());
+            }
+
+            m_sceneObjectPositions.erase(m_sceneObjectPositions.begin() + i);
+            m_drawMeshStates.erase(m_drawMeshStates.begin() + i);
+            m_sceneObjects.erase(m_sceneObjects.begin() + i);
+            break;
+        }
+
+        if(m_sceneObjects[i]->hasSpherePack())
+        {
+            bodyCount += m_sceneObjects[i]->m_spherePack->getSphereNum();
+        }
+        else
+        {
+            bodyCount++;
+        }
+    }
+
+    update();
+}
+
 void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 {
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
@@ -118,6 +178,7 @@ void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
+            qInfo()<<i;
             m_sceneObjects[i]->runSpherePackAlgorithm(settings);
 
             qInfo()<<"Finished sphere pack";
@@ -677,19 +738,23 @@ void GLWidget::paintGL()
 
                 //Check to see if all the spheres from the current
                 //mesh have been added to the position container
-                if(numSpheres == m_sphereNumbers[bodyNumber])
+
+                if(m_sphereNumbers.size() > 0)
                 {
-                    //We have, add the positions to the container of all
-                    //sphere positions and clear the vector for further use
-                    m_spherePositions.push_back(spherePositions);
+                    if(numSpheres == m_sphereNumbers[bodyNumber])
+                    {
+                        //We have, add the positions to the container of all
+                        //sphere positions and clear the vector for further use
+                        m_spherePositions.push_back(spherePositions);
 
-                    spherePositions.clear();
+                        spherePositions.clear();
 
-                    //Reset the sphere count
-                    numSpheres = 0;
+                        //Reset the sphere count
+                        numSpheres = 0;
 
-                    //Increment the body number
-                    bodyNumber++;
+                        //Increment the body number
+                        bodyNumber++;
+                    }
                 }
             }
         }
@@ -716,26 +781,29 @@ void GLWidget::paintGL()
 
         //Are we currently drawing the spheres or not?
 
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        if(m_drawSphereStates.size() > 0)
         {
-            if(m_drawSphereStates[i - 1])
+            for(uint i = 1; i < m_sceneObjects.size(); ++i)
             {
-                //We are, iterate through the 2x2 sphere position
-                //matrix
-                for(uint j = 0; j < m_spherePositions.size(); ++j)
+                if(m_drawSphereStates[i - 1])
                 {
-                    for(uint k = 0; k < m_spherePositions[j].size(); ++k)
+                    //We are, iterate through the 2x2 sphere position
+                    //matrix
+                    for(uint j = 0; j < m_spherePositions.size(); ++j)
                     {
-                        //Set the drawing position accordingly and load
-                        //it to the shader. Make sure to set the drawing
-                        //scale to the radius (the sphere mesh has a
-                        //radius of one to facilitate this).
-                        m_position = m_spherePositions[j][k];
+                        for(uint k = 0; k < m_spherePositions[j].size(); ++k)
+                        {
+                            //Set the drawing position accordingly and load
+                            //it to the shader. Make sure to set the drawing
+                            //scale to the radius (the sphere mesh has a
+                            //radius of one to facilitate this).
+                            m_position = m_spherePositions[j][k];
 
-                        loadShaderMatrices(m_radius);
+                            loadShaderMatrices(m_radius);
 
-                        //Finally draw the sphere
-                        sphere.draw();
+                            //Finally draw the sphere
+                            sphere.draw();
+                        }
                     }
                 }
             }
@@ -746,44 +814,50 @@ void GLWidget::paintGL()
         m_position = QVector3D(0,0,0);
         loadShaderMatrices(1.0f);
 
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        if(m_drawConstraintStates.size() > 0)
         {
-            if(m_drawConstraintStates[i - 1])
+            for(uint i = 1; i < m_sceneObjects.size(); ++i)
             {
-                updateConstraintDrawing();
+                if(m_drawConstraintStates[i - 1])
+                {
+                    updateConstraintDrawing();
 
-                m_vaoConstraint.bind();
-                m_pgm.setUniformValue("mCol",sphere.getColour());
+                    m_vaoConstraint.bind();
+                    m_pgm.setUniformValue("mCol",sphere.getColour());
 
-                glLineWidth(0.25f);
-                glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
-                m_vaoConstraint.release();
+                    glLineWidth(0.25f);
+                    glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
+                    m_vaoConstraint.release();
+                }
             }
         }
 
-        //If it is, iterate through the objects in the scene starting
-        //at 1 because 0 (the ground plane) has already been drawn
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
+        if(m_drawMeshStates.size() > 1)
         {
-            if(m_drawMeshStates[i])
+            //If it is, iterate through the objects in the scene starting
+            //at 1 because 0 (the ground plane) has already been drawn
+            for(uint i = 1; i < m_sceneObjects.size(); ++i)
             {
-
-                //Set the right colour
-                m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
-
-                if(m_sceneObjects[i]->isSkinned())
+                if(m_drawMeshStates[i])
                 {
-                    //Because this uses the skinned verts which were updated later
-                    //the drawing position doesn't need updating
-                    m_sceneObjects[i]->draw();
-                }
-                else
-                {
-                    m_position = m_sceneObjectPositions[i];
 
-                    loadShaderMatrices(1.0f);
+                    //Set the right colour
+                    m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
 
-                    m_sceneObjects[i]->draw();
+                    if(m_sceneObjects[i]->isSkinned())
+                    {
+                        //Because this uses the skinned verts which were updated later
+                        //the drawing position doesn't need updating
+                        m_sceneObjects[i]->draw();
+                    }
+                    else
+                    {
+                        m_position = m_sceneObjectPositions[i];
+
+                        loadShaderMatrices(1.0f);
+
+                        m_sceneObjects[i]->draw();
+                    }
                 }
             }
         }

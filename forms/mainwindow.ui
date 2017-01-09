@@ -116,7 +116,7 @@ background-color: rgb(20, 20, 80);</string>
      <enum>QTabWidget::Triangular</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="Mesh">
      <attribute name="title">
@@ -289,6 +289,16 @@ background-color: rgb(20, 20, 80);</string>
           <widget class="QPushButton" name="loadMeshButton">
            <property name="text">
             <string>Load Mesh</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="deleteMeshButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Delete Mesh</string>
            </property>
           </widget>
          </item>
@@ -1312,8 +1322,8 @@ background-color: rgb(20, 20, 80);</string>
    </widget>
    <zorder>ToolbarChecks</zorder>
    <zorder>settingsToolbar</zorder>
-   <zorder>meshToolbar</zorder>
    <zorder>horizontalLayoutWidget</zorder>
+   <zorder>meshToolbar</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport_File">

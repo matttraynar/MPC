@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(passPlaneColour(QColor)), m_glWidget, SLOT(setPlaneColour(QColor)));
 
     connect(this, SIGNAL(passLoadMesh(QString,QString, QVector3D)), m_glWidget, SLOT(addNewMesh(QString,QString, QVector3D)));
+    connect(this, SIGNAL(passDeleteMesh(QString)), m_glWidget, SLOT(removeMesh(QString)));
     connect(this, SIGNAL(passMeshShader(QString,ShaderSettings&)), m_glWidget, SLOT(setMeshShader(QString,ShaderSettings&)));
 
     connect(this, SIGNAL(runDistanceField(QString,DistanceFieldSettings&)), m_glWidget, SLOT(runDistanceField(QString,DistanceFieldSettings&)));
@@ -134,17 +135,59 @@ void MainWindow::on_loadMeshButton_clicked()
 
         meshName.truncate(meshName.length() - 5);
 
-        message.append(meshName);
-        ui->statusBar->showMessage(message,1000);
-
         int existingCount = 0;
-        for(uint i = 0; i < m_shaderSettings.size(); ++i)
+        int maxCount = 0;
+        bool allDigits = true;
+        for(uint i = 0; i < m_existingMeshes.size(); ++i)
         {
-            if(meshName == m_shaderSettings[i].first)
+            if(meshName == m_existingMeshes[i])
             {
-                existingCount++;
+                QString value;
+
+                auto position = m_shaderSettings[i].first.end();
+                position--;
+                QChar character = *position;
+
+                if(character.isDigit())
+                {
+                    while(character.isDigit() && position != value.begin())
+                    {
+                        value.insert(0, character);
+                        position--;
+                        character = *position;
+                    }
+
+                    if(atoi(value.toStdString().c_str()) > maxCount)
+                    {
+                        existingCount -= maxCount;
+                        maxCount = atoi(value.toStdString().c_str());
+                        existingCount += maxCount;
+                    }
+
+                }
+                else
+                {
+                    allDigits = false;
+                    existingCount++;
+                }
+            }
+            else
+            {
+                allDigits = false;
             }
         }
+
+        if(m_existingMeshes.size() == 0)
+        {
+            allDigits = false;
+        }
+
+        if(allDigits)
+        {
+            existingCount++;
+        }
+
+        m_existingMeshes.push_back(meshName);
 
         if(existingCount > 0)
         {
@@ -152,6 +195,8 @@ void MainWindow::on_loadMeshButton_clicked()
             meshName.append("_");
             meshName.append(itoa(existingCount,newCount,10));
         }
+        message.append(meshName);
+        ui->statusBar->showMessage(message,1000);
 
         addMeshToList(meshName,"No");
 
@@ -175,6 +220,42 @@ void MainWindow::on_loadMeshButton_clicked()
         m_shaderSettings[m_shaderSettings.size() - 1].second->blue = meshColour.z();
     }
 }
+
+void MainWindow::on_deleteMeshButton_clicked()
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, nothing to delete");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    uint size = m_shaderSettings.size();
+
+    for(uint i = 0; i < size; ++i)
+    {
+        if(name == m_shaderSettings[i].first)
+        {
+            emit passDeleteMesh(name);
+
+            m_existingMeshes.erase(m_existingMeshes.begin() + i);
+            m_shaderSettings.erase(m_shaderSettings.begin() + i);
+            m_distanceSettings.erase(m_distanceSettings.begin() + i);
+            m_sphereSettings.erase(m_sphereSettings.begin() + i);
+            m_constraintSettings.erase(m_constraintSettings.begin() + i);
+
+            int i = ui->treeWidget->indexOfTopLevelItem(ui->treeWidget->currentItem());
+            ui->treeWidget->takeTopLevelItem(i);
+
+            break;
+        }
+    }
+
+}
+
 
 void MainWindow::on_filenameButton_clicked()
 {
@@ -356,6 +437,8 @@ void MainWindow::on_worldColourButton_clicked()
 void MainWindow::on_treeWidget_itemSelectionChanged()
 {
     ui->meshToolbar->insertTab(1, ui->Shading, "Shading");
+
+    ui->deleteMeshButton->setEnabled(true);
 
     auto selected = ui->treeWidget->selectedItems();
 
@@ -668,10 +751,10 @@ void MainWindow::on_packSphereButton_clicked()
     {
         if(name == m_sphereSettings[i].first)
         {
-            QString message = "Running packing algorithm on ";
+            QString message = "Running sphere packing algorithm on ";
             message.append(name);
             message.append("...");
-            ui->statusBar->showMessage(message, 2500);
+            ui->statusBar->showMessage(message);
 
             emit runSpherePack(name, *m_sphereSettings[i].second);
 

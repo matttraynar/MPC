@@ -62,6 +62,7 @@ public slots:
     void setPlaneColour(QColor colour);
 
     void addNewMesh(QString fileName, QString meshName, QVector3D position);
+    void removeMesh(QString meshName);
 
     void setMeshShader(QString meshName, ShaderSettings &settings);
 
@@ -105,9 +106,6 @@ private:
     float m_radius;
 
     float m_simulationStep;
-
-    //An unordered map used to refer to each mesh by a name
-    std::unordered_map< std::string, std::shared_ptr<Mesh> > m_objs;
 
     //An instance of the bullet world
     std::unique_ptr<BtWorld> m_bullet;

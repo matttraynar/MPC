@@ -263,8 +263,6 @@ void SpherePack::generateDistanceField(DistanceFieldSettings &settings)
     //Calculate the MAABB
     calculateMAABB(settings.meshMargin);
 
-//    m_boxResolution = 2.0f;
-
     float deltaPercent = (settings.yRes/(m_meshAABB.yMax - m_meshAABB.yMin)) * 100;
     float totalPercent = 0.0f;
 

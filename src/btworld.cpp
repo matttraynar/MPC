@@ -68,6 +68,27 @@ void BtWorld::reset(QVector3D position, uint index)
     m_bodies[index].body->setWorldTransform(resetPosition);
 }
 
+void BtWorld::remove(uint index)
+{
+    m_dynamicsWorld->removeRigidBody(m_bodies[index].body.get());
+}
+
+void BtWorld::removeBodies(uint index, uint size)
+{
+    uint removed = 0;
+
+    while(removed != (size - 1))
+    {
+        if(removed > 1000000)
+        {
+            break;
+        }
+
+        m_bodies.erase(m_bodies.begin() + index);
+        removed++;
+    }
+}
+
 void BtWorld::addGround()
 {
     //Create a new ground plane and store it in the member variable
