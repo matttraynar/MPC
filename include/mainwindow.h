@@ -36,12 +36,18 @@ signals:
     void runSpherePack(QString meshName, SpherePackSettings &settings);
     void runConstraintGen(QString meshName, ConstraintSettings &settings);
 
+    void passDrawSpheres(QString meshName, bool drawSpheres);
+    void passDrawConstraints(QString meshName, bool drawConstraints);
     void passSimulating(bool isSimulating);
 
     void passReset();
     void passNewStep(float stepValue);
 
 private slots:
+    void setSphereNumber(int number);
+
+    void setMeshColour(QVector4D colour);
+
     void on_horizontalSlider_valueChanged(int value);
 
     void on_loadMeshButton_clicked();
@@ -97,6 +103,16 @@ private slots:
     void on_generateDistanceField_clicked();
 
     void on_packSphereButton_clicked();
+
+    void on_addConstraints_clicked();
+
+    void on_drawConstraintCheck_toggled(bool checked);
+
+    void on_limitConstraints_toggled(bool checked);
+
+    void on_maxConstraintsValue_valueChanged(int arg1);
+
+    void on_strengthValue_valueChanged(double arg1);
 
 private:
     Ui::MainWindow *ui;

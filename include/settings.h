@@ -19,6 +19,7 @@ struct SpherePackSettings
     bool isMax = false;
     int maxNumber = 1000000;
     bool drawSpheres = true;
+    float numSpheres= 0;
 };
 
 struct ConstraintSettings

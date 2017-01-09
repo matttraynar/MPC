@@ -27,6 +27,8 @@ public:
     GLWidget(QWidget* parent = 0 );
     ~GLWidget();
 
+    inline QVector4D getLastAddedColour() const { return m_sceneObjects[m_sceneObjects.size() - 1]->getColour(); }
+
 protected:
     //Declare the OpenGL functions we will overload
     virtual void initializeGL();
@@ -51,6 +53,10 @@ protected:
     void setYRotation(int angle);
     void setZRotation(int angle);
 
+signals:
+    void setSphereNumber(int number);
+    void setMeshColour(QVector4D colour);
+
 public slots:
     void setWorldColour(QColor colour);
     void setPlaneColour(QColor colour);
@@ -61,7 +67,10 @@ public slots:
 
     void runDistanceField(QString meshName, DistanceFieldSettings &settings);
     void runSpherePack(QString meshName, SpherePackSettings &settings);
+    void runConstraints(QString meshName, ConstraintSettings &settings);
 
+    void toggleDrawSpheres(QString meshName, bool drawSpheres);
+    void toggleDrawConstraints(QString meshName, bool drawConstraints);
     void toggleSimulation(bool isSimulating);
 
     void resetSimulation();
@@ -129,6 +138,11 @@ private:
     int m_zDis;
 
     std::vector<bool> m_drawMeshStates;
+    std::vector<bool> m_drawSphereStates;
+    std::vector<bool> m_drawConstraintStates;
+
+    std::vector<bool> m_meshSkinStates;
+
     bool m_isSimulating;
     bool m_drawMesh;
     bool m_drawSpheres;

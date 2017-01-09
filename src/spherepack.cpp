@@ -1564,14 +1564,14 @@ int SpherePack::getBestPoint(const QVector3D &currentSphere, vector_V points)
     return index;
 }
 
-void SpherePack::getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints)
+void SpherePack::getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints, float strength)
 {
     //Get the position of the current sphere 'locally' so we don't have to
     //keep indexing into the vector
     QVector3D curSphere = m_spherePositions[sphereIndex];
 
     //Set a margin for the points
-    float margin = 10 * m_radius;
+    float margin = 10 * strength * m_radius;
 
     //Iterate through all the spheres
     for(uint i = 0; i < m_spherePositions.size(); ++i)

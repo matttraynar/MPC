@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QColorDialog>
+#include <QMessageBox>
+#include <QtGui>
+#include <QtCore>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,16 +34,79 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(this, SIGNAL(runDistanceField(QString,DistanceFieldSettings&)), m_glWidget, SLOT(runDistanceField(QString,DistanceFieldSettings&)));
     connect(this, SIGNAL(runSpherePack(QString,SpherePackSettings&)), m_glWidget, SLOT(runSpherePack(QString,SpherePackSettings&)));
+    connect(this, SIGNAL(runConstraintGen(QString,ConstraintSettings&)), m_glWidget, SLOT(runConstraints(QString,ConstraintSettings&)));
 
+    connect(this, SIGNAL(passDrawSpheres(QString,bool)), m_glWidget, SLOT(toggleDrawSpheres(QString,bool)));
+    connect(this, SIGNAL(passDrawConstraints(QString,bool)), m_glWidget, SLOT(toggleDrawConstraints(QString,bool)));
     connect(this, SIGNAL(passSimulating(bool)), m_glWidget, SLOT(toggleSimulation(bool)));
 
     connect(this, SIGNAL(passReset()), m_glWidget, SLOT(resetSimulation()));
     connect(this, SIGNAL(passNewStep(float)), m_glWidget, SLOT(setSimulation(float)));
+
+    connect(m_glWidget, SIGNAL(setSphereNumber(int)), this, SLOT(setSphereNumber(int)));
+    connect(m_glWidget, SIGNAL(setMeshColour(QVector4D)), this, SLOT(setMeshColour(QVector4D)));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+//SLOTS
+void MainWindow::setSphereNumber(int number)
+{
+    ui->numSphereValue->setValue(number);
+
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->numSpheres = number;
+        }
+    }
+
+}
+
+void MainWindow::setMeshColour(QVector4D colour)
+{
+    QColor newColour(colour.x() * 255.0f,
+                                colour.y() * 225.0f,
+                                colour.z() * 255.0f,
+                                1.0f);
+
+    QPalette palette = ui->meshColour->palette();
+    palette.setColor(ui->meshColour->backgroundRole(), newColour);
+    ui->meshColour->setAutoFillBackground(true);
+    ui->meshColour->setPalette(palette);
+
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_shaderSettings.size(); ++i)
+    {
+        if(name == m_shaderSettings[i].first)
+        {
+            m_shaderSettings[i].second->red = (float)newColour.red()/255.0f;
+            m_shaderSettings[i].second->green = (float)newColour.green()/255.0f;
+            m_shaderSettings[i].second->blue = (float)newColour.blue()/255.0f;
+        }
+    }
 }
 
 void MainWindow::addMeshToList(QString name, QString hasSpherePack)
@@ -50,15 +116,11 @@ void MainWindow::addMeshToList(QString name, QString hasSpherePack)
     mesh->setText(1, hasSpherePack);
 }
 
-void MainWindow::on_horizontalSlider_valueChanged(int value)
-{
-    ui->strengthValue->setValue(float(value)/100.0f);
-}
-
 void MainWindow::on_loadMeshButton_clicked()
 {
     if(ui->filenameLine->text().length() > 0)
     {
+        QString message = "Loading Mesh : ";
         QString fileName = ui->filenameLine->text();
         QString meshName;
 
@@ -71,6 +133,9 @@ void MainWindow::on_loadMeshButton_clicked()
         }
 
         meshName.truncate(meshName.length() - 5);
+
+        message.append(meshName);
+        ui->statusBar->showMessage(message,1000);
 
         int existingCount = 0;
         for(uint i = 0; i < m_shaderSettings.size(); ++i)
@@ -102,6 +167,12 @@ void MainWindow::on_loadMeshButton_clicked()
                                      ui->positionZ->value());
 
         emit passLoadMesh(fileName, meshName, position);
+
+        QVector4D meshColour = m_glWidget->getLastAddedColour();
+
+        m_shaderSettings[m_shaderSettings.size() - 1].second->red = meshColour.x();
+        m_shaderSettings[m_shaderSettings.size() - 1].second->green = meshColour.y();
+        m_shaderSettings[m_shaderSettings.size() - 1].second->blue = meshColour.z();
     }
 }
 
@@ -152,6 +223,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->maxSphereNumValue->setValue(m_sphereSettings[i].second->maxNumber);
             }
 
+            ui->numSphereValue->setValue(m_sphereSettings[i].second->numSpheres);
             ui->drawSpheres->setChecked(m_sphereSettings[i].second->drawSpheres);
 
             //Update constraint tab
@@ -167,6 +239,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
         }
     }
 }
+
+//Shader settings
 
 void MainWindow::on_meshColourButton_clicked()
 {
@@ -282,10 +356,459 @@ void MainWindow::on_worldColourButton_clicked()
 void MainWindow::on_treeWidget_itemSelectionChanged()
 {
     ui->meshToolbar->insertTab(1, ui->Shading, "Shading");
+
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_shaderSettings.size(); ++i)
+    {
+        if(name == m_shaderSettings[i].first)
+        {
+            name.append(" has been selected");
+            ui->statusBar->showMessage(name, 1000);
+
+            QColor newColour(m_shaderSettings[i].second->red * 255.0f,
+                                        m_shaderSettings[i].second->green * 225.0f,
+                                        m_shaderSettings[i].second->blue * 255.0f,
+                                        1.0f);
+
+            QPalette palette = ui->meshColour->palette();
+            palette.setColor(ui->meshColour->backgroundRole(), newColour);
+            ui->meshColour->setAutoFillBackground(true);
+            ui->meshColour->setPalette(palette);
+        }
+    }
+
 }
+
+//Distance field settings
+
+void MainWindow::on_resolutionX_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->xRes = arg1;
+        }
+    }
+}
+
+void MainWindow::on_resolutionY_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->yRes = arg1;
+        }
+    }
+}
+
+void MainWindow::on_resolutionZ_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->zRes = arg1;
+        }
+    }
+}
+
+void MainWindow::on_innerValue_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->innerMargin = arg1;
+        }
+    }
+}
+
+void MainWindow::on_outerValue_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->outerMargin = arg1;
+        }
+    }
+}
+
+void MainWindow::on_boundsValue_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            m_distanceSettings[i].second->meshMargin = arg1;
+        }
+    }
+}
+
+void MainWindow::on_generateDistanceField_clicked()
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, cannot create distance field");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_distanceSettings.size(); ++i)
+    {
+        if(name == m_distanceSettings[i].first)
+        {
+            QString message = "Generating distance field for ";
+            message.append(name);
+            message.append("...");
+            ui->statusBar->showMessage(message, 2500);
+
+            emit runDistanceField(name, *m_distanceSettings[i].second);            
+
+            ui->statusBar->showMessage("Distance field complete", 1000);
+        }
+    }
+}
+
+//Sphere pack settings
+
+void MainWindow::on_sphereSizeValue_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->radius = arg1;
+        }
+    }
+}
+
+void MainWindow::on_sphereSpacingValue_valueChanged(double arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->spacing = arg1;
+        }
+    }
+}
+
+void MainWindow::on_maxSphereNumValue_valueChanged(int arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->maxNumber = arg1;
+        }
+    }
+}
+
+void MainWindow::on_limitSpheres_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->isMax = checked;
+        }
+    }
+}
+
+void MainWindow::on_drawSpheres_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->drawSpheres = checked;
+
+            emit passDrawSpheres(name, checked);
+        }
+    }
+}
+
+void MainWindow::on_packSphereButton_clicked()
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, cannot run sphere pack algorithm");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            QString message = "Running packing algorithm on ";
+            message.append(name);
+            message.append("...");
+            ui->statusBar->showMessage(message, 2500);
+
+            emit runSpherePack(name, *m_sphereSettings[i].second);
+
+            ui->statusBar->showMessage("Sphere packing complete", 1000);
+        }
+    }
+}
+
+//Constraint settings
+
+void MainWindow::on_addConstraints_clicked()
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, cannot create constraints");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            QString message = "Adding constraints to ";
+            message.append(name);
+            message.append("...");
+            ui->statusBar->showMessage(message, 2500);
+            emit runConstraintGen(name, *m_constraintSettings[i].second);
+
+
+            ui->statusBar->showMessage("Constraints complete", 1000);
+        }
+    }
+}
+
+void MainWindow::on_drawConstraintCheck_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->isDrawing = checked;
+
+            emit passDrawConstraints(name, checked);
+        }
+    }
+}
+
+void MainWindow::on_limitConstraints_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->isMax = checked;
+        }
+    }
+}
+
+void MainWindow::on_maxConstraintsValue_valueChanged(int arg1)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->maxNumber = arg1;
+        }
+    }
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    ui->strengthValue->setValue(float(value)/100.0f);
+}
+
+void MainWindow::on_strengthValue_valueChanged(double arg1)
+{
+    ui->horizontalSlider->setValue((int)(arg1 * 100));
+
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->constraintStrength = arg1;
+        }
+    }
+}
+
+//Simulation settings
 
 void MainWindow::on_runButton_clicked()
 {
+    ui->statusBar->showMessage("Running simulation", 1000);
+
     ui->runButton->setEnabled(false);
     ui->pauseButton->setEnabled(true);
     ui->resetButton->setEnabled(true);
@@ -295,6 +818,8 @@ void MainWindow::on_runButton_clicked()
 
 void MainWindow::on_pauseButton_clicked()
 {
+    ui->statusBar->showMessage("Simulation is paused");
+
     ui->runButton->setEnabled(true);
     ui->pauseButton->setEnabled(false);
     ui->resetButton->setEnabled(false);
@@ -304,6 +829,8 @@ void MainWindow::on_pauseButton_clicked()
 
 void MainWindow::on_resetButton_clicked()
 {
+    ui->statusBar->showMessage("Simulation has been reset", 1000);
+
     ui->runButton->setEnabled(true);
     ui->pauseButton->setEnabled(false);
     ui->resetButton->setEnabled(false);
@@ -324,7 +851,7 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
         break;
 
     case 2:
-        emit passNewStep(1.0f/35.0f);
+        emit passNewStep(1.0f/25.0f);
         break;
 
     default:
@@ -333,200 +860,3 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
     }
 }
 
-//Distance field settings
-void MainWindow::on_resolutionX_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->xRes = arg1;
-        }
-    }
-}
-
-void MainWindow::on_resolutionY_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->yRes = arg1;
-        }
-    }
-}
-
-void MainWindow::on_resolutionZ_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->zRes = arg1;
-        }
-    }
-}
-
-void MainWindow::on_innerValue_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->innerMargin = arg1;
-        }
-    }
-}
-
-void MainWindow::on_outerValue_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->outerMargin = arg1;
-        }
-    }
-}
-
-void MainWindow::on_boundsValue_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            m_distanceSettings[i].second->meshMargin = arg1;
-        }
-    }
-}
-
-void MainWindow::on_generateDistanceField_clicked()
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_distanceSettings.size(); ++i)
-    {
-        if(name == m_distanceSettings[i].first)
-        {
-            emit runDistanceField(name, *m_distanceSettings[i].second);
-        }
-    }
-}
-
-//Sphere pack settings
-
-void MainWindow::on_sphereSizeValue_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            m_sphereSettings[i].second->radius = arg1;
-        }
-    }
-}
-
-void MainWindow::on_sphereSpacingValue_valueChanged(double arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            m_sphereSettings[i].second->spacing = arg1;
-        }
-    }
-}
-
-void MainWindow::on_maxSphereNumValue_valueChanged(int arg1)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            m_sphereSettings[i].second->maxNumber = arg1;
-        }
-    }
-}
-
-void MainWindow::on_limitSpheres_toggled(bool checked)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            m_sphereSettings[i].second->isMax = checked;
-        }
-    }
-}
-
-void MainWindow::on_drawSpheres_toggled(bool checked)
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            m_sphereSettings[i].second->drawSpheres = checked;
-        }
-    }
-}
-
-void MainWindow::on_packSphereButton_clicked()
-{
-    auto selected = ui->treeWidget->selectedItems();
-
-    QString name = selected[0]->text(0);
-
-    for(uint i = 0; i < m_sphereSettings.size(); ++i)
-    {
-        if(name == m_sphereSettings[i].first)
-        {
-            emit runSpherePack(name, *m_sphereSettings[i].second);
-        }
-    }
-}

@@ -43,6 +43,7 @@ struct SortPair
 
 class Mesh
 {
+
 public:
     //Ctors
     Mesh(QVector4D colour, const std::string name);

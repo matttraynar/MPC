@@ -7,6 +7,7 @@
 
 #include <QVector3D>
 #include <QDebug>
+#include <QDialog>
 
 #include <vector>
 #include <memory>
@@ -66,7 +67,7 @@ public:
     inline uint getSphereNum() const                       { return (uint)m_spherePositions.size(); }
     inline vector_V getSpheres() const{ return m_spherePositions; }
 
-    void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints);
+    void getCloseSpheres(uint sphereIndex, vector_V &positions, std::vector<std::pair<uint, uint> > &pairs, int maxNumConstraints, float strength);
 
 private:
 
