@@ -386,9 +386,6 @@ background-color: rgb(20, 20, 80);</string>
                </property>
               </column>
              </widget>
-             <zorder>MeshLoading</zorder>
-             <zorder>treeWidget</zorder>
-             <zorder>settingsToolbar</zorder>
             </widget>
             <widget class="QWidget" name="Shading">
              <property name="sizePolicy">
@@ -880,8 +877,8 @@ background-color: rgb(20, 20, 80);</string>
              <rect>
               <x>10</x>
               <y>10</y>
-              <width>211</width>
-              <height>271</height>
+              <width>221</width>
+              <height>351</height>
              </rect>
             </property>
             <property name="orientation">
@@ -897,7 +894,7 @@ background-color: rgb(20, 20, 80);</string>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
@@ -1040,6 +1037,26 @@ background-color: rgb(20, 20, 80);</string>
                  </layout>
                 </item>
                </layout>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cullInner">
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="text">
+                 <string>Cull Inner Spheres?</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cullOuter">
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="text">
+                 <string>Cull Outer Spheres?</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -1384,12 +1401,6 @@ background-color: rgb(20, 20, 80);</string>
      </layout>
     </item>
    </layout>
-   <zorder>ToolbarChecks</zorder>
-   <zorder>settingsToolbar</zorder>
-   <zorder>meshToolbar</zorder>
-   <zorder>settingsToolbar_2</zorder>
-   <zorder>horizontalSpacer</zorder>
-   <zorder>horizontalLayoutWidget</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport_File">

@@ -769,6 +769,49 @@ void MainWindow::on_limitSpheres_toggled(bool checked)
     }
 }
 
+void MainWindow::on_cullInner_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->cullInner = checked;
+        }
+    }
+}
+
+void MainWindow::on_cullOuter_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_sphereSettings.size(); ++i)
+    {
+        if(name == m_sphereSettings[i].first)
+        {
+            m_sphereSettings[i].second->cullOuter = checked;
+        }
+    }
+}
+
+
 void MainWindow::on_drawSpheres_toggled(bool checked)
 {
     auto selected = ui->treeWidget->selectedItems();
@@ -1004,4 +1047,3 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
         break;
     }
 }
-

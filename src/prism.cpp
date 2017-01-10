@@ -1,6 +1,6 @@
 #include "prism.h"
 
-
+#include <QDebug>
 Prism::Prism(Triangle middle, float inner, float outer)
 {
     m_middle = middle;
@@ -10,13 +10,13 @@ Prism::Prism(Triangle middle, float inner, float outer)
     m_normal = QVector3D::crossProduct(e1, e2);
     m_normal.normalize();
 
-    m_inner.A = m_middle.A - (m_normal * inner);// * (1.5f + 1.5f));
-    m_inner.B = m_middle.B - (m_normal * inner);// * (1.5f + 1.5f));
-    m_inner.C = m_middle.C - (m_normal * inner);// * (1.5f + 1.5f));
+    m_inner.A = m_middle.A - (m_normal * inner);
+    m_inner.B = m_middle.B - (m_normal * inner);
+    m_inner.C = m_middle.C - (m_normal * inner);
 
-    m_outer.A = m_middle.A + (m_normal * outer);// * 1.5f);
-    m_outer.B = m_middle.B + (m_normal * outer);// * 1.5f);
-    m_outer.C = m_middle.C + (m_normal * outer);// * 1.5f);
+    m_outer.A = m_middle.A + (m_normal * outer);
+    m_outer.B = m_middle.B + (m_normal * outer);
+    m_outer.C = m_middle.C + (m_normal * outer);
 
     BBox inBBox    = triangleBoundingBox(m_inner);
     BBox midBBox = triangleBoundingBox(m_middle);

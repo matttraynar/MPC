@@ -985,6 +985,68 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
             }
         }
     }
+
+    if(settings.cullOuter)
+    {
+        //User wants to cull spheres on the outside of the mesh
+        vector_V newPositions;
+
+        //Iterate through them all
+        for(uint i = 0; i < m_spherePositions.size(); ++i)
+        {
+            //Get a trilinear interpolation of the point relative to the signed distance grid
+            float distance = interpolateTrilinear(m_spherePositions[i]);
+
+            //Because of the values set earlier in the 'generate distance field' section
+            //a value equal to the negative 'large number' means the point is inside
+            if(distance == -LARGE_PVE)
+            {
+                //So add it to our temporary vector
+                newPositions.push_back(m_spherePositions[i]);
+            }
+        }
+
+        //Finally update the sphere positions to only have the points
+        //inside the mesh
+        m_spherePositions = newPositions;
+    }
+
+    if(settings.cullInner)
+    {
+        //User wants to cull the spheres inside the mesh
+        vector_V newPositions;
+
+        for(uint i = 0; i < m_spherePositions.size(); ++i)
+        {
+            //First iterate over each face
+            for(uint j = 0; j < m_shell.size(); ++j)
+            {
+                QVector3D faceMiddle = m_shell[j].getTriangle().getMiddle();
+                QVector3D faceNormal = m_shell[j].getNormal();
+
+                //Do a quick sphere/plane intersection test
+                float delta = QVector3D::dotProduct(m_spherePositions[i] - faceMiddle, faceNormal);
+                delta /= faceNormal.length();
+
+                //An intersection occurs if the absolute of this value is smaller than the radius
+                //Simply using -ve value though to avoid sqrts
+                if(delta < m_radius && delta > -m_radius)
+                {
+                    //Interpolate as with culling inner spheres
+                    float distance = interpolateTrilinear(m_spherePositions[i]);
+
+                    if(distance == -LARGE_PVE)
+                    {
+                            newPositions.push_back(m_spherePositions[i]);
+                            break;
+                    }
+                }
+            }
+        }
+
+        //And again update the new sphere positions
+        m_spherePositions = newPositions;
+    }
 }
 
 void SpherePack::calculateMAABB(float margin)

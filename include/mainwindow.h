@@ -117,6 +117,10 @@ private slots:
 
     void on_deleteMeshButton_clicked();
 
+    void on_cullInner_toggled(bool checked);
+
+    void on_cullOuter_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 

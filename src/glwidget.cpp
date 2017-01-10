@@ -102,7 +102,11 @@ void GLWidget::removeMesh(QString meshName)
 //                m_sphereRadii.erase(m_sphereRadii.begin() + i - 1);
                 m_drawSphereStates.erase(m_drawSphereStates.begin() + i - 1);
                 m_drawConstraintStates.erase(m_drawConstraintStates.begin() + i - 1);
-                m_constraints.erase(m_constraints.begin() + i - 1);
+
+                if(m_constraints.size() > 0)
+                {
+                    m_constraints.erase(m_constraints.begin() + i - 1);
+                }
 
                 for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
                 {
