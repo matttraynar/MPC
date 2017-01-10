@@ -11,6 +11,11 @@
 
 #include "btshape.h"
 
+//Code for float->string convert taken from:
+//https://www.daniweb.com/programming/software-development/threads/146718/conversion-from-float-to-string
+#include <sstream>
+
+
 class BtWorld
 {
 public:
@@ -27,7 +32,7 @@ public:
 
     void addGround();
     void addMesh(const std::string name, QVector3D pos);
-    void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia);
+    void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia, float radius);
 
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
 
@@ -41,6 +46,11 @@ public:
 
     void moveBodies(QVector3D moveVec);
     void stopAdjusting();
+
+    inline static std::string convert(float number) {  std::ostringstream buff;
+                                                                        buff<<number;
+                                                                        return buff.str();  }
+
 
 private:
     btDefaultCollisionConfiguration*               m_collisionConfig;

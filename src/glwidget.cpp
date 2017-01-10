@@ -77,20 +77,6 @@ void GLWidget::removeMesh(QString meshName)
 
     int bodyCount = 0;
 
-//    qInfo()<<m_sceneObjects.size();
-//    qInfo()<<m_sceneObjectPositions.size();
-//    qInfo()<<m_drawMeshStates.size();
-
-//    qInfo()<<m_sphereNumbers.size();
-//    qInfo()<<m_spherePositions.size();
-
-//    qInfo()<<m_sphereRadii.size();
-
-//    qInfo()<<m_drawSphereStates.size();
-//    qInfo()<<m_drawConstraintStates.size();
-//    qInfo()<<m_constraints.size();
-
-
     for(uint i = 0; i < numObjects; ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
@@ -99,7 +85,7 @@ void GLWidget::removeMesh(QString meshName)
             {
                 m_sphereNumbers.erase(m_sphereNumbers.begin() + i - 1);
                 m_spherePositions.erase(m_spherePositions.begin() + i - 1);
-//                m_sphereRadii.erase(m_sphereRadii.begin() + i - 1);
+                m_sphereRadii.erase(m_sphereRadii.begin() + i - 1);
                 m_drawSphereStates.erase(m_drawSphereStates.begin() + i - 1);
                 m_drawConstraintStates.erase(m_drawConstraintStates.begin() + i - 1);
 
@@ -178,18 +164,19 @@ void GLWidget::runDistanceField(QString meshName, DistanceFieldSettings &setting
 
 void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
 {
+    BtShape* shapes = BtShape::instance();
+    std::string sphereName = BtWorld::convert(settings.radius);
+    shapes->addSphere(sphereName, settings.radius);
+
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
-            qInfo()<<i;
             m_sceneObjects[i]->runSpherePackAlgorithm(settings);
 
-            qInfo()<<"Finished sphere pack";
+            m_sphereRadii.push_back(settings.radius);
 
-            //Get the number of bodies in the bullet world *before* adding
-            //the sphere from the sphere pack
-            uint currentNBodies = m_bullet->getNumCollisionObjects();
+            qInfo()<<"Finished sphere pack";
 
             //A container for storing the sphere positions (used later)
             vector_V spherePositions = m_sceneObjects[i]->m_spherePack->getSpheres();
@@ -202,11 +189,8 @@ void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
                 //For each sphere add a new btSphere to the bullet world (and add the displacement
                 //specified by 'position')
                 spherePositions.push_back(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i]);
-                m_bullet->addSphere(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], 1.0f, QVector3D(0,0,0));
+                m_bullet->addSphere(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], 1.0f, QVector3D(0,0,0), settings.radius);
             }
-
-            //Get the number of collision objects in the world now
-            uint nBodies = m_bullet->getNumCollisionObjects();
 
             //Mark how many spheres were added for this mesh
             m_sphereNumbers.push_back(sphereNum);
@@ -437,9 +421,6 @@ void GLWidget::initializeGL()
 
      //Create an instance of the BtShape class
      BtShape* shapes = BtShape::instance();
-
-     //Add add the sphere shape to the bullet world for later
-     shapes->addSphere("sphere", m_radius);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
@@ -803,7 +784,7 @@ void GLWidget::paintGL()
                             //radius of one to facilitate this).
                             m_position = m_spherePositions[j][k];
 
-                            loadShaderMatrices(m_radius);
+                            loadShaderMatrices(m_sphereRadii[j]);
 
                             //Finally draw the sphere
                             sphere.draw();

@@ -158,11 +158,12 @@ void BtWorld::addMesh(const std::string name, QVector3D pos)
     m_bodies.push_back(mesh);
 }
 
-void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia)
+void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia, float radius)
 {
+    std::string sphereName = convert(radius);
     //This is the same as the addMesh function, only here the shape we want
     //from BtShape is known
-    btCollisionShape* newSphere = BtShape::instance()->getShape("sphere");
+    btCollisionShape* newSphere = BtShape::instance()->getShape(sphereName);
 
     btTransform startPos;
     startPos.setIdentity();
