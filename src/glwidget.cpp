@@ -195,6 +195,8 @@ void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
             //Mark how many spheres were added for this mesh
             m_sphereNumbers.push_back(sphereNum);
 
+            m_drawSphereStates[i - 1] = settings.drawSpheres;
+
             emit setSphereNumber(sphereNum);
 
             update();
@@ -323,13 +325,13 @@ void GLWidget::toggleDrawSpheres(QString meshName, bool drawSpheres)
 {
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
-        if(m_sceneObjects[i]->getName() == meshName.toStdString())
+        if(m_sceneObjects[i]->getName() == meshName.toStdString() && m_sceneObjects[i]->getName().length() == meshName.toStdString().length())
         {
             m_drawSphereStates[i - 1] = drawSpheres;
-            update();
-            break;
         }
     }
+
+    update();
 }
 
 void GLWidget::toggleDrawConstraints(QString meshName, bool drawConstraints)
@@ -582,7 +584,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     m_sceneObjectPositions.push_back(position);
 
     m_drawMeshStates.push_back(true);
-    m_drawSphereStates.push_back(true);
+    m_drawSphereStates.push_back(false);
     m_drawConstraintStates.push_back(false);
 
     emit setMeshColour(colour);
@@ -619,15 +621,18 @@ void GLWidget::updateConstraintDrawing()
     //Iterate through the container of constraints
     for(uint i = 0; i < m_constraints.size(); ++i)
     {
-        //The container is 2x2 so iterate through this
-        //next container
-        for(uint j = 0; j < m_constraints[i].size(); ++j)
+        if(m_drawConstraintStates[i])
         {
-            //Add the position of the two constrained spheres
-            //to the constrained verts (so later we can draw a
-            //line between them)
-            constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].first]);
-            constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].second]);
+            //The container is 2x2 so iterate through this
+            //next container
+            for(uint j = 0; j < m_constraints[i].size(); ++j)
+            {
+                //Add the position of the two constrained spheres
+                //to the constrained verts (so later we can draw a
+                //line between them)
+                constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].first]);
+                constraintVerts.push_back(m_spherePositions[i][m_constraints[i][j].second]);
+            }
         }
     }
 
@@ -765,7 +770,6 @@ void GLWidget::paintGL()
         m_pgm.setUniformValue("mCol",sphere.getColour());
 
         //Are we currently drawing the spheres or not?
-
         if(m_drawSphereStates.size() > 0)
         {
             for(uint i = 1; i < m_sceneObjects.size(); ++i)
@@ -774,22 +778,20 @@ void GLWidget::paintGL()
                 {
                     //We are, iterate through the 2x2 sphere position
                     //matrix
-                    for(uint j = 0; j < m_spherePositions.size(); ++j)
-                    {
-                        for(uint k = 0; k < m_spherePositions[j].size(); ++k)
+                        for(uint k = 0; k < m_spherePositions[i - 1].size(); ++k)
                         {
                             //Set the drawing position accordingly and load
                             //it to the shader. Make sure to set the drawing
                             //scale to the radius (the sphere mesh has a
                             //radius of one to facilitate this).
-                            m_position = m_spherePositions[j][k];
+                            m_position = m_spherePositions[i - 1][k];
 
-                            loadShaderMatrices(m_sphereRadii[j]);
+                            loadShaderMatrices(m_sphereRadii[i - 1]);
 
                             //Finally draw the sphere
                             sphere.draw();
                         }
-                    }
+
                 }
             }
         }

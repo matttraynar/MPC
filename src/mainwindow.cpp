@@ -811,7 +811,6 @@ void MainWindow::on_cullOuter_toggled(bool checked)
     }
 }
 
-
 void MainWindow::on_drawSpheres_toggled(bool checked)
 {
     auto selected = ui->treeWidget->selectedItems();
