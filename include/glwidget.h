@@ -77,6 +77,10 @@ public slots:
     void resetSimulation();
     void setSimulation(float stepValue);
 
+    void moveDown();
+    void moveUp();
+    void stopMove();
+
 private:
     //Method for creating the shader program and loading
     //the view/position matrices

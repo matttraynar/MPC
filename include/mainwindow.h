@@ -44,6 +44,10 @@ signals:
     void passReset();
     void passNewStep(float stepValue);
 
+    void passMoveDown();
+    void passMoveUp();
+    void passStopMoving();
+
 private slots:
     void setSphereNumber(int number);
 
@@ -134,6 +138,14 @@ private slots:
     void on_actionCollision_Example_2_triggered();
 
     void on_actionCollision_Example_3_triggered();
+
+    void on_moveDown_pressed();
+
+    void on_moveUp_pressed();
+
+    void on_moveDown_released();
+
+    void on_moveUp_released();
 
 private:
     Ui::MainWindow *ui;

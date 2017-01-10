@@ -30,6 +30,7 @@ public:
     void addSphere(const QVector3D &pos, float mass, const QVector3D &inertia, float radius);
 
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
+    void checkConstraints();
 
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;

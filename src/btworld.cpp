@@ -194,8 +194,58 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
     //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
+    connection->enableFeedback(true);
+//    connection->setBreakingImpulseThreshold(btScalar(100000));
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
+}
+
+void BtWorld::checkConstraints()
+{
+    for(int i = 0; i < m_dynamicsWorld->getNumConstraints(); ++i)
+    {
+        btFixedConstraint* constraint = (btFixedConstraint*)m_dynamicsWorld->getConstraint(i);
+
+        float impulse = (float)constraint->getAppliedImpulse();
+        impulse = impulse/(float)m_dynamicsWorld->getSolverInfo().m_timeStep;
+
+//        qInfo()<<impulse;
+
+        if(impulse < -20 || impulse > 20)
+        {
+            btRigidBody bodyA = constraint->getRigidBodyA();
+            btRigidBody bodyB = constraint->getRigidBodyB();
+
+
+
+            if(bodyA.getLinearVelocity().length() < 15 && bodyB.getLinearVelocity().length() < 15)
+            {
+                btTransform transA;
+                transA.setIdentity();
+                bodyA.getMotionState()->getWorldTransform(transA);
+
+                bodyA.setLinearVelocity(btVector3(0,0,0));
+
+                btTransform transB;
+                transB.setIdentity();
+                transB = (bodyA.getCenterOfMassTransform() * transA) * (bodyB.getCenterOfMassTransform().inverse());
+
+                bodyB.setLinearVelocity(btVector3(0,0,0));
+
+                constraint->setFrames(transA, transB);
+            }
+            else
+            {
+                m_dynamicsWorld->removeConstraint(constraint);
+            }
+        }
+        else if(impulse < -50 || impulse > 50)
+        {
+            qInfo()<<"LARGE IMPULSE";
+        }
+    }
+
+//    qInfo()<<"--------------------------------------------------";
 }
 
 uint BtWorld::getNumCollisionObjects() const

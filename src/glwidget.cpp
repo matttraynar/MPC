@@ -391,6 +391,39 @@ void GLWidget::setSimulation(float stepValue)
     m_simulationStep = stepValue;
 }
 
+void GLWidget::moveDown()
+{
+    if(m_moveUp)
+    {
+        m_moveUp = false;
+    }
+    else
+    {
+        m_moveDown = true;
+        m_adjustPos[1] -= 10.0f;
+    }
+}
+
+void GLWidget::moveUp()
+{
+    if(m_moveDown)
+    {
+        m_moveDown = false;
+    }
+    else
+    {
+        m_moveUp = true;
+        m_adjustPos[1] += 10.0f;
+    }
+}
+
+void GLWidget::stopMove()
+{
+    m_adjustPos[1] = 0.0f;
+    m_moveDown = false;
+    m_moveUp = false;
+}
+
 void GLWidget::initializeGL()
 {
     //Set the background colour for the window
@@ -416,10 +449,7 @@ void GLWidget::initializeGL()
                    QVector3D(0.0f, 1.0f, 0.0f));   // Up vector
 
      //Start the QTimer with a step of 10
-     startTimer(10);
-
-     //Create an instance of the BtShape class
-     BtShape* shapes = BtShape::instance();
+     startTimer(1);
 
      //Create a ground plane in the scene objects so that
      //it gets drawn
@@ -1091,22 +1121,13 @@ void GLWidget::timerEvent(QTimerEvent *e)
         if(m_moveUp)
         {
             m_bullet->moveBodies(m_adjustPos);
-            m_adjust = true;
-            m_moveUp = false;
         }
         else if(m_moveDown)
         {
             m_bullet->moveBodies(m_adjustPos);
-            m_adjust = true;
-            m_moveDown = false;
+        }
 
-        }
-        else if(m_adjust == true)
-        {
-            m_bullet->stopAdjusting();
-            m_adjustPos = QVector3D(0,0,0);
-            m_adjust = false;
-        }
+        m_bullet->checkConstraints();
 
         //Step the simulation
         m_bullet->step(m_simulationStep, 10);

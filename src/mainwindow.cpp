@@ -50,6 +50,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(passReset()), m_glWidget, SLOT(resetSimulation()));
     connect(this, SIGNAL(passNewStep(float)), m_glWidget, SLOT(setSimulation(float)));
 
+    connect(this, SIGNAL(passMoveDown()), m_glWidget, SLOT(moveDown()));
+    connect(this, SIGNAL(passMoveUp()), m_glWidget, SLOT(moveUp()));
+    connect(this, SIGNAL(passStopMoving()), m_glWidget, SLOT(stopMove()));
+
     connect(m_glWidget, SIGNAL(setSphereNumber(int)), this, SLOT(setSphereNumber(int)));
     connect(m_glWidget, SIGNAL(setMeshColour(QVector4D)), this, SLOT(setMeshColour(QVector4D)));
 }
@@ -1233,4 +1237,24 @@ void MainWindow::on_actionCollision_Example_3_triggered()
 
     m_shaderSettings[2].second->skinMesh = true;
     emit passMeshShader(m_treeItems[2]->text(0), *m_shaderSettings[2].second);
+}
+
+void MainWindow::on_moveDown_pressed()
+{
+    emit passMoveDown();
+}
+
+void MainWindow::on_moveUp_pressed()
+{
+    emit passMoveUp();
+}
+
+void MainWindow::on_moveDown_released()
+{
+    emit passStopMoving();
+}
+
+void MainWindow::on_moveUp_released()
+{
+    emit passStopMoving();
 }

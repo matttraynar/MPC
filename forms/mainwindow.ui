@@ -593,7 +593,7 @@ background-color: rgb(20, 20, 80);</string>
            <enum>QTabWidget::Triangular</enum>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideRight</enum>
@@ -1303,7 +1303,7 @@ background-color: rgb(20, 20, 80);</string>
              <rect>
               <x>10</x>
               <y>10</y>
-              <width>201</width>
+              <width>211</width>
               <height>121</height>
              </rect>
             </property>
@@ -1389,6 +1389,32 @@ background-color: rgb(20, 20, 80);</string>
                  </item>
                 </layout>
                </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>140</y>
+              <width>211</width>
+              <height>81</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_10">
+             <item>
+              <widget class="QPushButton" name="moveDown">
+               <property name="text">
+                <string>Move Simulation Down</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="moveUp">
+               <property name="text">
+                <string>Move Simulation Up</string>
+               </property>
               </widget>
              </item>
             </layout>
