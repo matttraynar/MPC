@@ -121,6 +121,8 @@ void MainWindow::addMeshToList(QString name, QString hasSpherePack)
     QTreeWidgetItem* mesh = new QTreeWidgetItem(ui->treeWidget);
     mesh->setText(0, name);
     mesh->setText(1, hasSpherePack);
+
+    m_treeItems.push_back(mesh);
 }
 
 void MainWindow::on_loadMeshButton_clicked()
@@ -1045,4 +1047,190 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
         emit passNewStep(1.0f/60.0f);
         break;
     }
+}
+
+void MainWindow::on_action1_Cube_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
+    ui->loadMeshButton->click();
+}
+
+void MainWindow::on_actionDragon_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/dragonBEST.obj");
+    ui->loadMeshButton->click();
+}
+
+void MainWindow::on_actionBunny_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/bunnyREDUCED.obj");
+    ui->loadMeshButton->click();
+}
+
+
+void MainWindow::on_actionStep_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeSTEP2.obj");
+    ui->loadMeshButton->click();
+}
+
+void MainWindow::on_actionCollision_Example_1_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeSTEP2.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(6.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[0]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->cullOuter->setChecked(true);
+    ui->packSphereButton->click();
+    ui->addConstraints->click();
+
+    ui->meshToolbar->setCurrentIndex(1);
+    ui->skinCheck->setChecked(true);
+    ui->meshToolbar->setCurrentIndex(0);
+
+    m_treeItems[0]->setSelected(false);
+
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
+
+    ui->positionX->setValue(-5.0f);
+    ui->positionY->setValue(25.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[1]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->cullOuter->setChecked(true);
+    ui->packSphereButton->click();
+    ui->addConstraints->click();
+
+    m_shaderSettings[1].second->skinMesh = true;
+    emit passMeshShader(m_treeItems[1]->text(0), *m_shaderSettings[1].second);
+}
+
+void MainWindow::on_actionCollision_Example_2_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(6.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[0]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->cullOuter->setChecked(true);
+    m_sphereSettings[0].second->cullOuter = true;
+    ui->packSphereButton->click();
+    ui->addConstraints->click();
+
+    ui->meshToolbar->setCurrentIndex(1);
+    ui->skinCheck->setChecked(true);
+//    m_shaderSettings[0].second->skinMesh = true;
+    ui->meshToolbar->setCurrentIndex(0);
+
+    m_treeItems[0]->setSelected(false);
+
+    ui->filenameLine->setText("$$PWD/../objFiles/bunnyREDUCED.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(30.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[1]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->cullOuter->setChecked(true);
+//    m_sphereSettings[1].second->cullOuter = true;
+    ui->packSphereButton->click();
+    ui->addConstraints->click();
+
+    m_shaderSettings[1].second->skinMesh = true;
+    emit passMeshShader(m_treeItems[1]->text(0), *m_shaderSettings[1].second);
+
+}
+
+void MainWindow::on_actionCollision_Example_3_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/dragonBEST.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(7.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[0]->setSelected(true);
+
+    ui->generateDistanceField->click();
+
+    ui->drawSpheres->setChecked(false);
+    m_sphereSettings[0].second->drawSpheres = false;
+    ui->packSphereButton->click();
+
+    ui->addConstraints->click();
+
+    ui->meshToolbar->setCurrentIndex(1);
+    ui->skinCheck->setChecked(true);
+    ui->meshToolbar->setCurrentIndex(0);
+
+    m_treeItems[0]->setSelected(false);
+
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeSTEP1.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(30.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[1]->setSelected(true);
+
+    ui->generateDistanceField->click();
+
+    ui->drawSpheres->setChecked(false);
+    m_sphereSettings[1].second->drawSpheres = false;
+    ui->packSphereButton->click();
+
+    ui->addConstraints->click();
+
+    m_shaderSettings[1].second->skinMesh = true;
+    emit passMeshShader(m_treeItems[1]->text(0), *m_shaderSettings[1].second);
+
+    m_treeItems[1]->setSelected(false);
+
+    ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
+
+    ui->positionX->setValue(10.0f);
+    ui->positionY->setValue(25.0f);
+    ui->positionZ->setValue(10.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[2]->setSelected(true);
+
+    ui->generateDistanceField->click();
+
+    ui->drawSpheres->setChecked(false);
+    m_sphereSettings[2].second->drawSpheres = false;
+    ui->packSphereButton->click();
+
+    ui->addConstraints->click();
+
+    m_shaderSettings[2].second->skinMesh = true;
+    emit passMeshShader(m_treeItems[2]->text(0), *m_shaderSettings[2].second);
 }

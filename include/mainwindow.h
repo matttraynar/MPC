@@ -121,6 +121,20 @@ private slots:
 
     void on_cullOuter_toggled(bool checked);
 
+    void on_action1_Cube_triggered();
+
+    void on_actionDragon_triggered();
+
+    void on_actionBunny_triggered();
+
+    void on_actionStep_triggered();
+
+    void on_actionCollision_Example_1_triggered();
+
+    void on_actionCollision_Example_2_triggered();
+
+    void on_actionCollision_Example_3_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -134,6 +148,8 @@ private:
     std::vector< std::pair< QString, DistanceFieldSettings*>> m_distanceSettings;
     std::vector< std::pair< QString, SpherePackSettings*>> m_sphereSettings;
     std::vector< std::pair< QString, ConstraintSettings*>> m_constraintSettings;
+
+    std::vector<QTreeWidgetItem* > m_treeItems;
 
 };
 

@@ -44,7 +44,8 @@ void BtWorld::setGravity(float x, float y, float z)
 void BtWorld::step(float time, float step)
 {
     //Step the simulation forward
-    m_dynamicsWorld->stepSimulation(time,step);
+//    m_dynamicsWorld->stepSimulation(time,step);
+    m_dynamicsWorld->stepSimulation(btScalar(time),int(step));
 }
 
 void BtWorld::stop()
@@ -160,10 +161,9 @@ void BtWorld::addMesh(const std::string name, QVector3D pos)
 
 void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia, float radius)
 {
-    std::string sphereName = convert(radius);
     //This is the same as the addMesh function, only here the shape we want
     //from BtShape is known
-    btCollisionShape* newSphere = BtShape::instance()->getShape(sphereName);
+    btCollisionShape* newSphere = new btSphereShape(btScalar(radius));
 
     btTransform startPos;
     startPos.setIdentity();

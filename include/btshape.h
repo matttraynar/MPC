@@ -18,7 +18,7 @@ public:
     void addMesh(const std::string name, const char* filepath, QVector3D colour);
     void addSphere(const std::string name, float radius);
 
-    btCollisionShape* getShape(const std::string name);
+    btCollisionShape* getShape(const std::string name);    
 
 private:
     BtShape();
@@ -27,7 +27,6 @@ private:
     std::unordered_map< std::string, std::shared_ptr<btCollisionShape> > m_shapes;
 
     static BtShape *s_instance;
-
 };
 
 #endif // BTSHAPE_H

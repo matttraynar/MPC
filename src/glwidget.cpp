@@ -135,6 +135,7 @@ void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 
             m_sceneObjects[i]->setWireMode(settings.wireframe);
 
+            qInfo()<<"name:"<<meshName;
             m_meshSkinStates[i - 1] = settings.skinMesh;
             m_drawMeshStates[i] = settings.drawMesh;
 
@@ -164,10 +165,6 @@ void GLWidget::runDistanceField(QString meshName, DistanceFieldSettings &setting
 
 void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
 {
-    BtShape* shapes = BtShape::instance();
-    std::string sphereName = BtWorld::convert(settings.radius);
-    shapes->addSphere(sphereName, settings.radius);
-
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
