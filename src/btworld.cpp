@@ -195,57 +195,79 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
     connection->enableFeedback(true);
-//    connection->setBreakingImpulseThreshold(btScalar(100000));
+
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
+}
+
+void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTransform transformA, btTransform transformB)
+{
+    btGeneric6DofSpringConstraint* connection = new btGeneric6DofSpringConstraint(*bodyA, *bodyB, transformA, transformB, true);
+
+    btScalar springRest = (transformA.getOrigin() - transformB.getOrigin()).length();
+    btScalar springGive = springRest;
+
+    connection->setLinearUpperLimit(btVector3(springRest + springGive, 0, 0));
+    connection->setLinearLowerLimit(btVector3(springRest - springGive, 0, 0));
+
+    connection->setAngularUpperLimit(btVector3(0,0,0));
+    connection->setAngularLowerLimit(btVector3(0,0,0));
+
+    m_dynamicsWorld->addConstraint(connection, true);
+
+    //HERE
+    connection->setBreakingImpulseThreshold(btScalar(25));
+
+    connection->enableSpring(0, true);
+    connection->setStiffness(0, 1.0f);
+
+    //PLAYING AROUND HERE
+    connection->setDamping(0, 100.0f);
+
+    connection->setParam(BT_CONSTRAINT_STOP_CFM, 1.0e-5f, 5);
+    connection->setEquilibriumPoint();
+    connection->enableFeedback(true);
 }
 
 void BtWorld::checkConstraints()
 {
     for(int i = 0; i < m_dynamicsWorld->getNumConstraints(); ++i)
     {
-        btFixedConstraint* constraint = (btFixedConstraint*)m_dynamicsWorld->getConstraint(i);
+        btGeneric6DofSpringConstraint* constraint = (btGeneric6DofSpringConstraint*)m_dynamicsWorld->getConstraint(i);
+
 
         float impulse = (float)constraint->getAppliedImpulse();
         impulse = impulse/(float)m_dynamicsWorld->getSolverInfo().m_timeStep;
 
-//        qInfo()<<impulse;
-
-        if(impulse < -20 || impulse > 20)
+        if(impulse > 20)
         {
-            btRigidBody bodyA = constraint->getRigidBodyA();
-            btRigidBody bodyB = constraint->getRigidBodyB();
+            //First get the transform of the first body
+            btTransform transA;
+            transA.setIdentity();
+            constraint->getRigidBodyA().getMotionState()->getWorldTransform(transA);
+
+            //Now get the second
+            btTransform transB;
+            transB.setIdentity();
+
+            //I originally tried doing this the same way as with A
+            //but found that this caused the two bodies to fly toward
+            //each other. Instead I convert the frame of B so that it
+            //is relative to A.
+            transB = (constraint->getRigidBodyA().getCenterOfMassTransform() * transA) * (constraint->getRigidBodyB().getCenterOfMassTransform().inverse());
+
+            float separation = (transA.getOrigin() - transB.getOrigin()).length();
+
+            constraint->setEnabled(false);
+
+            constraint->setLinearUpperLimit(btVector3(separation,0,0));
+            constraint->setLinearLowerLimit(btVector3(separation,0,0));
 
 
-
-            if(bodyA.getLinearVelocity().length() < 15 && bodyB.getLinearVelocity().length() < 15)
-            {
-                btTransform transA;
-                transA.setIdentity();
-                bodyA.getMotionState()->getWorldTransform(transA);
-
-                bodyA.setLinearVelocity(btVector3(0,0,0));
-
-                btTransform transB;
-                transB.setIdentity();
-                transB = (bodyA.getCenterOfMassTransform() * transA) * (bodyB.getCenterOfMassTransform().inverse());
-
-                bodyB.setLinearVelocity(btVector3(0,0,0));
-
-                constraint->setFrames(transA, transB);
-            }
-            else
-            {
-                m_dynamicsWorld->removeConstraint(constraint);
-            }
-        }
-        else if(impulse < -50 || impulse > 50)
-        {
-            qInfo()<<"LARGE IMPULSE";
+            constraint->setEnabled(true);
+            constraint->setStiffness(0, btScalar(1.0f));
         }
     }
-
-//    qInfo()<<"--------------------------------------------------";
 }
 
 uint BtWorld::getNumCollisionObjects() const

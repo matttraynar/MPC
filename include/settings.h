@@ -36,6 +36,8 @@ struct ConstraintSettings
     int maxNumber = 1000000;
     float constraintStrength = 0.5f;
     bool isDrawing = false;
+    bool useFixed = false;
+    bool useSpring = true;
 };
 
 struct ShaderSettings

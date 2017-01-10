@@ -46,7 +46,7 @@ GLWidget::GLWidget( QWidget* parent )
 GLWidget::~GLWidget()
 {
     //Clean up the BtShape incase an instance was made
-    BtShape::destroy();
+//    BtShape::destroy();
 }
 
 void GLWidget::setWorldColour(QColor colour)
@@ -300,7 +300,15 @@ void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
                             transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
                             //Add the constraint to the bullet world
-                            m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+
+                            if(settings.useFixed)
+                            {
+                                m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
+                            }
+                            else if(settings.useSpring)
+                            {
+                               m_bullet->addSpringConstraint(bodyA, bodyB, transA, transB);
+                            }
 
                             //Mark the addition of a new constraint
                             constCount++;
