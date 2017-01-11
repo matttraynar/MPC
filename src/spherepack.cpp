@@ -21,240 +21,7 @@ SpherePack::~SpherePack()
 
 }
 
-void SpherePack::generateDistanceField()
-{
-    //Intialise the bounding box minimum and maximum values
-    //to large numbers to ensure no errors when calculating the
-    //Margined Axis Aligned Bouding Box (MAABB)
-
-    //Calculate the MAABB
-    calculateMAABB(2.0f);
-
-    m_boxResolution = 2.0f;
-
-    float deltaPercent = (m_boxResolution/(m_meshAABB.yMax - m_meshAABB.yMin)) * 100;
-    float totalPercent = 0.0f;
-
-    Triangle defaultTri;
-
-    qInfo() << "Creating distance point grid\n";
-
-    //Iterate through every unit point in the MAABB, essentially creating a 3D grid
-    for(float y = m_meshAABB.yMin; y <= m_meshAABB.yMax; y+=m_boxResolution)
-    {
-        std::vector< int_V > zDistances;
-        std::vector< triangle_V > zTriangles;
-
-        for(float z = m_meshAABB.zMin; z <= m_meshAABB.zMax; z+=m_boxResolution)
-        {
-            int_V xDistances;
-            triangle_V xTriangles;
-
-            for(float x = m_meshAABB.xMin; x <= m_meshAABB.xMax; x+=m_boxResolution)
-            {
-                //Create a new point and a container to store intersections in
-
-                //Initialise the intersection count for this point to 0
-                int intersectionCount = 0;
-
-                //Get the number of intersections between a ray starting at the current
-                //point with a direction vector of (1,0,0) and the mesh
-                intersectionCount = getIntersections(QVector3D(x,y,z), QVector3D(1,0,0));
-
-                //Do a simple test to see if the number of intersections is odd or not,
-                //if it is the point is inside the mesh. This is marked with a large negative
-                //number, points outside are marked with a large positive number
-                if(((intersectionCount % 2) == 0))
-                {
-                    xDistances.push_back(LARGE_PVE);
-                }
-                else
-                {
-                    xDistances.push_back(-LARGE_PVE);
-                }
-
-                xTriangles.push_back(defaultTri);
-
-            }
-            //Add the row of distance values that have been created
-            //to the current 'z' row
-            zDistances.push_back(xDistances);
-            zTriangles.push_back(xTriangles);
-        }
-        //Finally add the container of z distance values to our class
-        //member to create a 3x3 data structure containing the
-        //distance values
-        m_distancePoints.push_back(zDistances);
-        m_distanceTriangles.push_back(zTriangles);
-
-        totalPercent += deltaPercent;
-        if(totalPercent > 100.0f)
-        {
-            totalPercent = 100.0f;
-        }
-        qInfo() << "Distance points are "<<(int)totalPercent<<"% done\n";
-    }
-
-    qInfo() << "Initial distance point grid creation completed\n";
-
-    for(uint i = 0; i < m_indices.size(); i += 3)
-    {
-        //Create the shells for the distance field. This is done
-        //by taking each triangle face and extruding it into a prism
-        //using the normal of the triangle face.
-        Triangle t;
-        t.A = m_verts[m_indices[i]];
-        t.B = m_verts[m_indices[i + 1]];
-        t.C = m_verts[m_indices[i + 2]];
-
-        //The constructor generates the prism and a bounding box
-        //for later
-        Prism p(t, 1.0f, 1.0f);
-
-        //Add this new prism to the shell container
-        m_shell.push_back(p);
-    }
-
-    qInfo() << "Shell size: "<<m_shell.size()<<'\n';
-
-    qInfo()<<"Distance field creation is complete\n";
-
-    int ySize =  (int)m_distancePoints.size();
-
-    float  y = m_meshAABB.yMin;
-
-    for(int yI = 0; yI < ySize; yI++)
-    {
-        int zSize =  (int)m_distancePoints[yI].size();
-
-        float z = m_meshAABB.zMin;
-
-        for(int zI = 0; zI < zSize; zI++)
-        {
-            int xSize =  (int)m_distancePoints[yI][zI].size();
-
-            float x = m_meshAABB.xMin;
-
-            for(int xI = 0; xI < xSize; xI++)
-            {
-                //This time we also iterate through the mesh shell
-                prism_Iter prism = m_shell.begin();
-
-                while(prism != m_shell.end())
-                {
-                    QVector3D curPoint(x, y, z);
-
-                    if(prism->bBoxContains(curPoint))
-                    {
-                        //Calcualte the closest point on the triangle face
-                        //the prism was formed from to the grid point
-                        QVector3D closestPoint = prism->checkWhere(curPoint);
-
-                        //Then get the distance to that point
-                        float distance = (closestPoint - curPoint).length();
-
-                        //Check what the current value for 'closest distance'
-                        //is
-                        if(fabs(m_distancePoints[yI][zI][xI]) > fabs(distance))
-                        {
-                            //The distance is a closer one so we need to get the sign
-                            //of the distance (simple dot product)
-                            int sign = 0;
-                            QVector3D::dotProduct(closestPoint, prism->getNormal()) < 0 ? sign = -1 : sign = 1;
-
-                            //The distance is converted to a signed value
-                            distance *= sign;
-
-                            //A check is done to see if the currently stored triangle for this point
-                            //is the default triangle inserted in the points generation stage
-                            if((m_distanceTriangles[yI][zI][xI]) != defaultTri)
-                            {
-                                //The centers of the currently marked triangle and the potential new
-                                //one are calculated
-                                QVector3D aCenter = (m_distanceTriangles[yI][zI][xI].A +
-                                                                m_distanceTriangles[yI][zI][xI].B +
-                                                                m_distanceTriangles[yI][zI][xI].C) / 3.0f;
-
-                                QVector3D bCenter = (prism->getTriangle().A +
-                                                                prism->getTriangle().B +
-                                                                prism->getTriangle().C) / 3.0f;
-
-                                //The vector between the two centers is next calculated
-                                QVector3D connectVector = bCenter - aCenter;
-
-                                //By checking the dot of this connection vector with one of the triangle
-                                //normals the check for concave/convex faces is made
-                                float connectType = QVector3D::dotProduct(m_distanceTriangles[yI][zI][xI].getNormal(), connectVector);
-
-                                if(connectType >= 0.0f)
-                                {
-                                    //Two faces are concave, make sure the signs are different
-                                    //distance change is ONLY from negative to positive
-                                    if((distance > 0.0f) && (m_distancePoints[yI][zI][xI] <= 0.0f))
-                                    {
-                                        //Set the new distance
-                                        m_distancePoints[yI][zI][xI] = distance;
-
-                                        //The triangle that forms the closest distance is also marked
-                                        m_distanceTriangles[yI][zI][xI] = prism->getTriangle();
-                                    }
-                                    else if((distance <= 0.0f && m_distancePoints[yI][zI][xI] <= 0.0f) ||
-                                             (distance > 0.0f && m_distancePoints[yI][zI][xI] > 0.0f))
-                                    {
-                                        //The distances have the same sign, set the new distance
-                                        m_distancePoints[yI][zI][xI] = distance;
-
-                                        //And mark the triangle
-                                        m_distanceTriangles[yI][zI][xI] = prism->getTriangle();
-                                    }
-                                }
-
-                                if(connectType < 0.0f)
-                                {
-                                    //Two faces are convex. Ensure if the distances have different signs
-                                    //change can only be made going from positive to negative
-                                    if((distance <= 0.0f) && (m_distancePoints[yI][zI][xI] > 0.0f))
-                                    {
-                                        //Same storing process
-                                        m_distancePoints[yI][zI][xI] = distance;
-                                        m_distanceTriangles[yI][zI][xI] = prism->getTriangle();
-                                    }
-                                    else if((distance <= 0.0f && m_distancePoints[yI][zI][xI] <= 0.0f) ||
-                                             (distance > 0.0f && m_distancePoints[yI][zI][xI] > 0.0f))
-                                    {
-                                        //Check again for distance with the same sign
-                                        m_distancePoints[yI][zI][xI] = distance;
-                                        m_distanceTriangles[yI][zI][xI] = prism->getTriangle();
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                m_distancePoints[yI][zI][xI] = distance;
-
-                                //The triangle that forms the closest distance is also marked
-                                m_distanceTriangles[yI][zI][xI] = prism->getTriangle();
-                            }
-                        }
-                    }
-
-                    prism++;
-                }
-                x += m_boxResolution;
-
-            }
-            z += m_boxResolution;
-
-        }
-        y += m_boxResolution;
-    }
-
-    qInfo()<<"Shell creation finished";
-
-}
-
-void SpherePack::generateDistanceField(DistanceFieldSettings &settings)
+void SpherePack::generateDistanceField(const DistanceFieldSettings &settings)
 {
     //Intialise the bounding box minimum and maximum values
     //to large numbers to ensure no errors when calculating the
@@ -266,10 +33,12 @@ void SpherePack::generateDistanceField(DistanceFieldSettings &settings)
     float deltaPercent = (settings.yRes/(m_meshAABB.yMax - m_meshAABB.yMin)) * 100;
     float totalPercent = 0.0f;
 
+    //Store the box resolution
     m_boxRes.setX(settings.xRes);
     m_boxRes.setY(settings.yRes);
     m_boxRes.setZ(settings.zRes);
 
+    //Create a default triangle to use later
     Triangle defaultTri;
 
     qInfo() << "Creating distance point grid\n";
@@ -406,11 +175,7 @@ void SpherePack::generateDistanceField(DistanceFieldSettings &settings)
                             {
                                 //The centers of the currently marked triangle and the potential new
                                 //one are calculated
-
-                                //POSSIBLY CHANGE ---------------------------------------------------------
-                                QVector3D aCenter = (m_distanceTriangles[yI][zI][xI].A +
-                                                                m_distanceTriangles[yI][zI][xI].B +
-                                                                m_distanceTriangles[yI][zI][xI].C) / 3.0f;
+                                QVector3D aCenter = m_distanceTriangles[yI][zI][xI].getMiddle();
 
                                 QVector3D bCenter = (prism->getTriangle().A +
                                                                 prism->getTriangle().B +
@@ -476,15 +241,16 @@ void SpherePack::generateDistanceField(DistanceFieldSettings &settings)
                         }
                     }
 
+                    //Increment the iterator
                     prism++;
                 }
-                x += m_boxResolution;
+                x += m_boxRes.x();
 
             }
-            z += m_boxResolution;
+            z += m_boxRes.z();
 
         }
-        y += m_boxResolution;
+        y += m_boxRes.y();
     }
 
     qInfo()<<"Shell creation finished";
@@ -507,6 +273,7 @@ void SpherePack::findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p
     //but in the -normal direction (so it is inside the mesh)
     QVector3D p0 = triMiddle - (triNorm * m_radius);
 
+    //Add the first sphere position
     m_spherePositions.push_back(p0);
 
     //Now create a second position
@@ -518,237 +285,9 @@ void SpherePack::findStartingPosition(uint triIndex, QVector3D &p1, QVector3D &p
     p2 += up * sqrt(3.0) * m_radius;
 }
 
-void SpherePack::packSpheres()
+void SpherePack::packSpheres(const SpherePackSettings &settings)
 {
-    //Set some variables for later use
-    QVector3D middlePos;
-
-    //Calculate the middle of the mesh
-    vector_Iter point = m_verts.begin();
-
-    while(point != m_verts.end())
-    {
-        middlePos += *point;
-        point++;
-    }
-
-    middlePos /= m_verts.size();
-
-    //Create the start positions for the first 3 spheres
-    QVector3D p0 = middlePos;
-    QVector3D p1 = p0;
-    QVector3D p2 = p0;
-
-    p1[0] += 2 * m_radius;
-    p2[0] += m_radius;
-
-    //This value comes from looking at three circle
-    //inscribed in an equilateral triangle.
-
-    //E.G. : usercontent1.hubstatic.com/8432260_f520.jpg
-
-    //The circle at the tip of the triangle will be √3 * radius
-    //higher than the other two circle
-    p2[1] += sqrt(3.0f) * m_radius;
-
-    //Check each point we've created against the mesh
-    if(!checkAgainstMesh(p0) || !checkAgainstMesh(p1) || !checkAgainstMesh(p2))
-    {
-        //One or more of the points was outside the mesh so
-        //try finding a new set
-        findStartingPosition(int(m_shell.size()) / 2, p1, p2);
-
-        //Check again
-        if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
-        {
-            findStartingPosition(int(m_shell.size()) / 4, p1, p2);
-
-            //Check once more
-            if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
-            {
-                findStartingPosition((int(m_shell.size()) / 4) * 3, p1, p2);
-
-                if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
-                {
-                    //Can't for certain say that no position for all three spheres exists
-                    //without checking all possible add anything special to the program
-                    //so just exit
-
-                    qWarning()<<"Can't find a position, radius is probably too big";
-                    exit(1);
-                }
-            }
-        }
-    }
-
-    //At this point the other two positions should be within the mesh,
-    //add them to our container
-    m_spherePositions.push_back(p1);
-    m_spherePositions.push_back(p2);
-
-    //Add these intial positions to the sphere front
-    std::vector<QVector3D> frontQueue;
-    frontQueue.push_back(p1);
-    frontQueue.push_back(p0);
-    frontQueue.push_back(p2);
-
-    qInfo()<<"Starting sphere pack";
-
-    vector_V candidateStore;
-
-    //Keep looping whilst there are still spheres in the front queue
-    while(frontQueue.size() != 0)
-    {
-        qInfo()<<"Number of spheres: "<<m_spherePositions.size();
-
-        //Get the position of the first 'sphere' in the queue
-        QVector3D currentSphere = frontQueue[0];
-
-        //First a check is done to see if there are any left over
-        //candidates from previous iterations. This provides an
-        //efficiency increase as these points don't have to be
-        //calculated a second time
-        if(candidateStore.size() > 0)
-        {
-            //This process is the same as the one done for normal
-            //candidate points so for more info look further down
-            //this function
-            validatePoints(candidateStore);
-
-            if(candidateStore.size() > 0)
-            {
-                int bestPoint = getBestPoint(currentSphere, candidateStore);
-
-                m_spherePositions.push_back(candidateStore[bestPoint]);
-
-                frontQueue.push_back(candidateStore[bestPoint]);
-            }
-
-            if(candidateStore.size() < 2)
-            {
-                //The only difference is ensuring the candidate store
-                //is cleared to size = 0 when there are none left
-                candidateStore.clear();
-            }
-        }
-        else
-        {
-            //Calculate a region around it
-            BBox neighbourhood = makeNeighbourhood(currentSphere);
-
-            //Create a container for storing other spheres
-            std::vector<QVector3D> neighbours;
-
-            //Iterate through the queue (skipping the first
-            //entry because that is the current sphere)
-            for(uint i = 1; i < frontQueue.size(); ++i)
-            {
-                //Check if the region around the current sphere contains
-                //the sphere at this position
-                if(bBoxContains(neighbourhood, frontQueue[i]))
-                {
-                    //If it does then add it to our 'neighbourhood'
-                    neighbours.push_back(frontQueue[i]);
-                }
-            }
-
-            //Create a container to store candidate sphere
-            //positions in
-            std::vector<QVector3D> candidatePoints;
-
-            //Set an iterator to the first element of the neighbourhood
-            vector_Iter a = neighbours.begin();
-
-            //Keep iterating until we reach the end
-            while(a != neighbours.end())
-            {
-                //This is an NxN check so create a new iterator
-                vector_Iter b = neighbours.begin();
-
-                while(b != neighbours.end())
-                {
-                    //Skip when the iterators are equal
-                    if(a == b)
-                    {
-                        b++;
-                    }
-                    else
-                    {
-                        //Create some data which will be overwritten by
-                        //the next function call
-                        QVector3D validPoint1;
-                        QVector3D validPoint2;
-                        HaloIntersections pointType;
-
-                        //Check the current sphere for halo intersections with
-                        //two other spheres in the neighbourhood
-                        haloIntersection(currentSphere, *a, *b,
-                                                validPoint1, validPoint2,
-                                                pointType);
-
-                        //Check what the result was
-                        if(pointType != NoHit)
-                        {
-                            //There was at least one valid point so add that
-                            //to the container
-                            candidatePoints.push_back(validPoint1);
-
-                            if(pointType == TwoHits)
-                            {
-                                //There were two valid points, add the second
-                                candidatePoints.push_back(validPoint2);
-                            }
-                        }
-
-                        //Increment the iterators
-                        b++;
-                    }
-                }
-                a++;
-            }
-
-            //Check all of the points we might be able to put a
-            //sphere at to see if they are:
-            // 1) Inside the mesh
-            // 2) Not intersecting with any other spheres in the pack
-            validatePoints(candidatePoints);
-
-            //See if there are any candidate points left
-            if(candidatePoints.size() > 0)
-            {
-                //If there are then just get the index of the closest point and
-                //use that to add it to the sphere pack
-                int bestPoint = getBestPoint(currentSphere, candidatePoints);
-
-                m_spherePositions.push_back(candidatePoints[bestPoint]);
-
-                //Also add this new sphere to the end of the front queue
-                frontQueue.push_back(candidatePoints[bestPoint]);
-            }
-
-            //Finally check how many candidate points there are
-            if(candidatePoints.size() < 2)
-            {
-                //In this case there was no more than 1 (which
-                //has now been added to the pack). The current
-                //has had the maximum number of spheres
-                //packed around it so we can remove it and move
-                //on to the next sphere in the front
-                frontQueue.erase(frontQueue.begin());
-            }
-            else
-            {
-                //There are more candidates left. Store them so
-                //they can be checked by the short circuit at the
-                //start of this loop
-                candidateStore = candidatePoints;
-            }
-        }
-    }
-}
-
-void SpherePack::packSpheres(SpherePackSettings &settings)
-{
+    //Store the data from settings localy
    m_radius = settings.radius;
    m_spacing = settings.spacing;
 
@@ -812,7 +351,7 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
                         //anything special to the program so just exit
 
                         qWarning()<<"Can't find a position, radius is probably too big";
-                        exit(1);
+                        return;
                     }
                 }
             }
@@ -839,6 +378,7 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
     {
         qInfo()<<"Number of spheres: "<<m_spherePositions.size();
 
+        //Check if a maximum number of spheres has been specified
         if(settings.isMax)
         {
             if(m_spherePositions.size() > settings.maxNumber)
@@ -1003,9 +543,11 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
             //Get a trilinear interpolation of the point relative to the signed distance grid
             float distance = interpolateTrilinear(m_spherePositions[i]);
 
+            qInfo()<<distance;
+
             //Because of the values set earlier in the 'generate distance field' section
             //a value equal to the negative 'large number' means the point is inside
-            if(distance == -LARGE_PVE)
+            if(distance < -LARGE_PVE + 400000000)
             {
                 //So add it to our temporary vector
                 newPositions.push_back(m_spherePositions[i]);
@@ -1015,9 +557,9 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
         //Finally update the sphere positions to only have the points
         //inside the mesh
         m_spherePositions = newPositions;
+        qInfo()<<"New number of spheres: "<<m_spherePositions.size();
     }
-
-    if(settings.cullInner)
+    else if(settings.cullInner)
     {
         //User wants to cull the spheres inside the mesh
         vector_V newPositions;
@@ -1038,21 +580,16 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
                 //Simply using -ve value though to avoid sqrts
                 if(delta < m_radius && delta > -m_radius)
                 {
-                    //Interpolate as with culling inner spheres
-                    float distance = interpolateTrilinear(m_spherePositions[i]);
-
-                    if(distance == -LARGE_PVE)
-                    {
-                            newPositions.push_back(m_spherePositions[i]);
-                            break;
-                    }
+                    newPositions.push_back(m_spherePositions[i]);
                 }
             }
         }
 
         //And again update the new sphere positions
         m_spherePositions = newPositions;
+        qInfo()<<"New number of spheres: "<<m_spherePositions.size();
     }
+
 }
 
 void SpherePack::calculateMAABB(float margin)
@@ -1103,7 +640,6 @@ void SpherePack::calculateMAABB(float margin)
     }
 
     //Add a margin relative to the sphere radius to the bounding box
-
     xMin -=  m_radius * margin;
     xMax += m_radius * margin;
 

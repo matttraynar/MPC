@@ -7,6 +7,9 @@
 
 #include "triangle.h"
 
+//A structure for storing bounding box data
+//Initial values are set so they are very likely to
+//be overwritten when tested against
 struct BBox
 {
     float xMin = 1000000.0f;
@@ -31,12 +34,14 @@ struct BBox
     }
 };
 
+//Class for a prism, essentially defined by three triangles
 class Prism
 {
 public:
     Prism(Triangle middle, float inner, float outer);
     ~Prism();
 
+    //Similar to the function in sphere pack
     bool bBoxContains(QVector3D point);
     QVector3D checkWhere(QVector3D point);
 

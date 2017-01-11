@@ -3,6 +3,8 @@
 
 #include <QVector3D>
 
+//A class used to store triangle data with a couple of
+//specialised boolean operators and functions
 class Triangle
 {
 public:

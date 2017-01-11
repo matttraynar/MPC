@@ -1108,6 +1108,29 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
     }
 }
 
+void MainWindow::on_moveDown_pressed()
+{
+    emit passMoveDown();
+}
+
+void MainWindow::on_moveUp_pressed()
+{
+    emit passMoveUp();
+}
+
+void MainWindow::on_moveDown_released()
+{
+    emit passStopMoving();
+}
+
+void MainWindow::on_moveUp_released()
+{
+    emit passStopMoving();
+}
+
+
+//Menu presets
+
 void MainWindow::on_action1_Cube_triggered()
 {
     ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
@@ -1117,7 +1140,6 @@ void MainWindow::on_action1_Cube_triggered()
 
     ui->generateDistanceField->click();
 
-    ui->cullOuter->setChecked(true);
     ui->packSphereButton->click();
 }
 
@@ -1132,7 +1154,6 @@ void MainWindow::on_actionBunny_triggered()
     ui->filenameLine->setText("$$PWD/../objFiles/bunnyREDUCED.obj");
     ui->loadMeshButton->click();
 }
-
 
 void MainWindow::on_actionStep_triggered()
 {
@@ -1298,26 +1319,6 @@ void MainWindow::on_actionCollision_Example_3_triggered()
 
     m_shaderSettings[2].second->skinMesh = true;
     emit passMeshShader(m_treeItems[2]->text(0), *m_shaderSettings[2].second);
-}
-
-void MainWindow::on_moveDown_pressed()
-{
-    emit passMoveDown();
-}
-
-void MainWindow::on_moveUp_pressed()
-{
-    emit passMoveUp();
-}
-
-void MainWindow::on_moveDown_released()
-{
-    emit passStopMoving();
-}
-
-void MainWindow::on_moveUp_released()
-{
-    emit passStopMoving();
 }
 
 void MainWindow::on_actionCollision_Example_4_triggered()

@@ -1,18 +1,20 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-//#include "glwidget.h"
 #include "mainwindow.h"
 
 int main( int argc, char* argv[] )
 {
+    //Create a new application
     QApplication a( argc, argv );
 
-    // Create a GLWidget requesting our format
+    // Create a window
     MainWindow w;
 
+    //Center the window on the user's screen
     w.move(QApplication::desktop()->screen()->rect().center() - w.rect().center());
-    w.resize(1120, 600);
+
+    //Show the window
     w.show();
 
     return a.exec();

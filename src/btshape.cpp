@@ -1,6 +1,13 @@
 #include "btshape.h"
 
+/*******************************************************
+ * Full details see the header file
+ *
+********************************************************/
+
 //Create an instance of this class but set it to NULL for now
+//I am aware that global variables are generally bad practice
+//but doing this enables me to use the singleton pattern
 BtShape* BtShape::s_instance = NULL;
 
 BtShape *BtShape::instance()

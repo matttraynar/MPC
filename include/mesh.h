@@ -19,6 +19,8 @@
 
 #include "spherepack.h"
 
+//A structure used to store the boolean overload which
+//will allow me to find a QVector in an std::vector
 struct FindVector
 {
     FindVector(QVector3D vec) : m_toFind(vec) {}
@@ -33,6 +35,8 @@ struct FindVector
     }
 };
 
+//Similar to the last struct, only this one is for sorting uint/float pairs
+//by their second value
 struct SortPair
 {
     bool operator() (const std::pair<uint, float> &i, const std::pair<uint, float> &j)
@@ -58,13 +62,16 @@ public:
     void prepareSkinnedMesh(QOpenGLShaderProgram &program);
     void draw();
 
-    //Method which creates a sphere pack for the mesh
+    //Method which creates a sphere pack for the mesh (calls functions from
+    //the 'spherepack' class
     void generateDistanceField(DistanceFieldSettings &settings);
     void runSpherePackAlgorithm(SpherePackSettings &settings);
 
-    void runSpherePackAlgorithm(float radius);
-
+    //Skins the mesh to the sphere in the sphere pack
     void skinMeshToSpheres(uint numControlSpheres);
+
+    //Updates the positions of the skinned mesh verts relative to
+    //the spheres they are skinned to
     void updateSkinnedMesh(const vector_V &spherePositions);
 
     //Set methods
@@ -83,16 +90,22 @@ public:
     inline bool hasSpherePack() const { return m_hasSpherePack;}
     inline bool isSkinned() const { return m_isSkinned; }
 
+    //The class used for sphere packing. This is global because
+    //there were some issues causes when it was private and I used
+    //getters and setters
     std::shared_ptr<SpherePack> m_spherePack;
 
 private:
+    //Don't let a mesh get constructed without the neccesary data
     Mesh() = default;
 
+    //Function used to check whether a vector is (0,0,0) but allowing for accuracy errors
     bool vectorIsSmall(const QVector3D &a);
 
     //Colour of the mesh
     QVector4D m_colour;
 
+    //The name of the mesh
     std::string m_name;
 
     //Array and buffer object for the mesh
@@ -111,13 +124,20 @@ private:
     uint_V m_meshIndex;
     QVector3D m_COM;
 
+    //Container for the positions of all the skinned vertices of the mesh
     vector_V m_skinnedVerts;
 
+    //Container used to store the relative positional vectors of vertices to
+    //sphere positions
     std::vector< std::vector< std::pair< uint, QVector3D> > > m_vertSkinVectors;
 
     //Wireframe state of the mesh
     bool m_wireframeMode;
+
+    //Whether sphere packing has been done on this mesh or not
     bool m_hasSpherePack;
+
+    //And finally if the mesh is skinned or not
     bool m_isSkinned;
 };
 

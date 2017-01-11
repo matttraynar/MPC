@@ -15,10 +15,8 @@ GLWidget::GLWidget( QWidget* parent )
     m_bullet->setGravity(0.0f, -9.8f, 0.0f);
     m_bullet->addGround();
 
+    //Set the initial value of the simulation step
     m_simulationStep = 1.0f/60.0f;
-
-    //The radius of the spheres being packed
-    m_radius = 1.0f;
 
     //Initialise variables for mouse control to 0
     m_xRot = 0;
@@ -26,31 +24,30 @@ GLWidget::GLWidget( QWidget* parent )
     m_zRot = 0;
     m_zDis = 0;
     m_mouseDelta = 0;
-    m_cameraPos = QVector3D(50.0f,50.0f,50.0f);
+    m_cameraPos = QVector3D(25.0f,25.0f,25.0f);
 
     //Set the booleans which dictate drawing
     m_isSimulating = false;
-    m_drawMesh = false;
-    m_drawSpheres = true;
 
     //These variables are activated when the user
     //moves the mesh, set them all to false for now
     m_moveUp = false;
     m_moveDown = false;
-    m_adjust = false;
 
     //Initialise the postition which will be used later
-    m_position = QVector3D();
+    m_position = QVector3D(0,0,0);
 }
 
 GLWidget::~GLWidget()
 {
-    //Clean up the BtShape incase an instance was made
-//    BtShape::destroy();
+
 }
+
+//----------------------------------------------------------------------------- SLOTS -----------------------------------------------------------------------------//
 
 void GLWidget::setWorldColour(QColor colour)
 {
+    //Slot used to set the background colour of the window
     glClearColor((float)colour.red()/255.0f,
                       (float)colour.green()/255.0f,
                       (float)colour.blue()/255.0f,
@@ -59,6 +56,9 @@ void GLWidget::setWorldColour(QColor colour)
 
 void GLWidget::setPlaneColour(QColor colour)
 {
+    //Slot which adjusts the colour of the plane. As the plane
+    //is always added first to the scene it's index in the container
+    //of objects can be assumed
     m_sceneObjects[0]->setColour(QVector4D((float)colour.red()/255.0f,
                                                  (float)colour.green()/255.0f,
                                                  (float)colour.blue()/255.0f,
@@ -67,47 +67,61 @@ void GLWidget::setPlaneColour(QColor colour)
 
 void GLWidget::addNewMesh(QString fileName, QString meshName, QVector3D position)
 {
+    //Adds a new mesh to the scene and then updates
     createMesh(fileName.toStdString().c_str(), meshName.toStdString(), position);
     update();
 }
 
 void GLWidget::removeMesh(QString meshName)
 {
+    //Remove a mesh from the scene
     uint numObjects = (uint)m_sceneObjects.size();
 
     int bodyCount = 0;
 
     for(uint i = 0; i < numObjects; ++i)
     {
+        //First we check the name of each object
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
+            //If the object has been sphere packed already we need to take care of that
             if(m_sceneObjects[i]->hasSpherePack())
             {
+                //Delete all the neccesary data
                 m_sphereNumbers.erase(m_sphereNumbers.begin() + i - 1);
                 m_spherePositions.erase(m_spherePositions.begin() + i - 1);
                 m_sphereRadii.erase(m_sphereRadii.begin() + i - 1);
                 m_drawSphereStates.erase(m_drawSphereStates.begin() + i - 1);
                 m_drawConstraintStates.erase(m_drawConstraintStates.begin() + i - 1);
 
+                //Remove any constraints
                 if(m_constraints.size() > 0)
                 {
                     m_constraints.erase(m_constraints.begin() + i - 1);
                 }
 
+                //Remove the spheres from the bullet world
                 for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
                 {
                     m_bullet->remove(j + bodyCount - 1);
                 }
 
+                //And remove from the container of 'Body' types
                 m_bullet->removeBodies(bodyCount - 1, m_sceneObjects[i]->m_spherePack->getSphereNum());
             }
 
+            //Finally delete the position data, the draw mesh state and then the actual mesh
+            //object from the scene
             m_sceneObjectPositions.erase(m_sceneObjectPositions.begin() + i);
             m_drawMeshStates.erase(m_drawMeshStates.begin() + i);
             m_sceneObjects.erase(m_sceneObjects.begin() + i);
+
+            //As this will only be done once we can break here
             break;
         }
 
+        //Update numbers just so they can be used when removing bodies from
+        //the bullet world
         if(m_sceneObjects[i]->hasSpherePack())
         {
             bodyCount += m_sceneObjects[i]->m_spherePack->getSphereNum();
@@ -118,15 +132,20 @@ void GLWidget::removeMesh(QString meshName)
         }
     }
 
+    //And update the scene
     update();
 }
 
 void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 {
+    //Iterate over the objects in the scene
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
+        //Check their names
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
+            //We've found the mesh so update all the neccesary values using the
+            //data passed in the settings
             m_sceneObjects[i]->setColour(QVector4D(settings.red,
                                                                           settings.green,
                                                                           settings.blue,
@@ -142,6 +161,8 @@ void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
                 m_sceneObjects[i]->skinMeshToSpheres(4);
                 m_sceneObjects[i]->updateSkinnedMesh(m_sceneObjects[i]->m_spherePack->getSpheres());
             }
+
+            //Finally update the window and break (to avoid any unnessecary loops)
             update();
             break;
         }
@@ -150,6 +171,7 @@ void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 
 void GLWidget::runDistanceField(QString meshName, DistanceFieldSettings &settings)
 {
+    //Calculate the signed distance field for the given mesh using the settings provided
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
@@ -163,15 +185,16 @@ void GLWidget::runDistanceField(QString meshName, DistanceFieldSettings &setting
 
 void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
 {
+    //Similar to the distance field, only this function also adds the spheres to the bullet world
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
+            //First run the algorithm
             m_sceneObjects[i]->runSpherePackAlgorithm(settings);
 
+            //Then store the radius so it can be drawn properly later
             m_sphereRadii.push_back(settings.radius);
-
-            qInfo()<<"Finished sphere pack";
 
             //A container for storing the sphere positions (used later)
             vector_V spherePositions = m_sceneObjects[i]->m_spherePack->getSpheres();
@@ -192,6 +215,7 @@ void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
 
             m_drawSphereStates[i - 1] = settings.drawSpheres;
 
+            //Emit a signal so that the number of spheres in the UI gets updated
             emit setSphereNumber(sphereNum);
 
             update();
@@ -202,6 +226,7 @@ void GLWidget::runSpherePack(QString meshName, SpherePackSettings &settings)
 
 void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
 {
+    //Similar to the last two slots but for constraints
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
@@ -214,10 +239,15 @@ void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
             //A container for storing the constraints of the spheres by index
             std::vector< std::pair<uint, uint> > sphereConstraints;
 
+            //A value for storing how many other bodies there are in the world,
+            //the value starts at 1 because we know there is already the static
+            //ground plane
             uint numOtherBodies = 1;
 
+            //Iterate through this container and add the right number of spheres
             for(uint j = 0; j < m_sphereNumbers.size(); ++j)
             {
+                //Ignore the object we're currently adding constraints to
                 if(j == (i - 1))
                 {
                     continue;
@@ -240,16 +270,18 @@ void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
                 //the sphere pack
                 std::vector<QVector3D> spheresToConnect;
 
+                //See if the user has specified a maximum number of constraints or not
                 if(settings.isMax)
                 {
                     m_sceneObjects[i]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, settings.maxNumber, settings.constraintStrength);
                 }
                 else
                 {
+                    //If they haven't set the maximum number ridiculously high (so it won't have any affect)
                     m_sceneObjects[i]->m_spherePack->getCloseSpheres(sphereIndex, spheresToConnect, sphereIndices, 1000000, settings.constraintStrength);
                 }
 
-                //Check if there are any candidate spheres
+                //Check if there are any candidate spheres to connect to
                 if(spheresToConnect.size() == 0)
                 {
                     //We can ignore this sphere if there aren't any
@@ -297,8 +329,7 @@ void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
                             //is relative to A.
                             transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
-                            //Add the constraint to the bullet world
-
+                            //Add the constraint to the bullet world using the specified type
                             if(settings.useFixed)
                             {
                                 m_bullet->addFixedConstraint(bodyA, bodyB, transA, transB);
@@ -326,6 +357,7 @@ void GLWidget::runConstraints(QString meshName, ConstraintSettings &settings)
 
 void GLWidget::toggleDrawSpheres(QString meshName, bool drawSpheres)
 {
+    //Changes whether the given mesh is having it's spheres drawn or not
     for(uint i = 0; i < m_sceneObjects.size(); ++i)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString() && m_sceneObjects[i]->getName().length() == meshName.toStdString().length())
@@ -339,6 +371,7 @@ void GLWidget::toggleDrawSpheres(QString meshName, bool drawSpheres)
 
 void GLWidget::toggleDrawConstraints(QString meshName, bool drawConstraints)
 {
+    //Same as previous slot but for constraint drawing
     if(m_constraints.size() > 0)
     {
         for(uint i = 0; i < m_sceneObjects.size(); ++i)
@@ -355,12 +388,13 @@ void GLWidget::toggleDrawConstraints(QString meshName, bool drawConstraints)
 
 void GLWidget::toggleSimulation(bool isSimulating)
 {
+    //Set simulating boolean according to the sent signal
     m_isSimulating = isSimulating;
 }
 
 void GLWidget::resetSimulation()
 {
-    //User pressed 'home' so stop the simulation
+    //User has reset the simulation, so stop everything
     m_bullet->stop();
 
     int objCount = 0;
@@ -382,11 +416,10 @@ void GLWidget::resetSimulation()
         }
     }
 
-    //Step the simulation once so that everything
-    //changes properly
+    //Step the simulation once so that everything updates
     m_bullet->step(1.0f/60.0f, 10);
 
-    //Stop the simulation
+    //And stop the simulation (don't simulate any further)
     m_isSimulating = false;
 
     update();
@@ -394,17 +427,22 @@ void GLWidget::resetSimulation()
 
 void GLWidget::setSimulation(float stepValue)
 {
+    //Set the simulation step value
     m_simulationStep = stepValue;
 }
 
 void GLWidget::moveDown()
 {
+    //User has pressed the move down button
     if(m_moveUp)
     {
+        //If we were already moving up, cancel that
         m_moveUp = false;
     }
     else
     {
+        //Set the direction of movement and update
+        //movement vector
         m_moveDown = true;
         m_adjustPos[1] -= 20.0f;
     }
@@ -412,6 +450,7 @@ void GLWidget::moveDown()
 
 void GLWidget::moveUp()
 {
+    //Essentially the opposite of the 'moveDown' slot
     if(m_moveDown)
     {
         m_moveDown = false;
@@ -425,6 +464,8 @@ void GLWidget::moveUp()
 
 void GLWidget::stopMove()
 {
+    //The user isn't pressing either move up or down button so
+    //reset everything for future use
     m_adjustPos[1] = 0.0f;
     m_moveDown = false;
     m_moveUp = false;
@@ -458,8 +499,16 @@ void GLWidget::initializeGL()
      startTimer(1);
 
      //Create a ground plane in the scene objects so that
-     //it gets drawn
+     //it gets drawn. A ground plane was already added to
+     //the BtWorld in the constructor of this class
      createGround();
+
+     //Create a sphere which will be used to draw the sphere pack. By doing this
+     //there only ever has to be one instance of the sphere, it just gets drawn
+     //in different positions and scaled accordingly in the shader to show different
+     //bullet objects
+     m_sphere.loadMesh("objFiles/sphere.obj");
+     m_sphere.prepareMesh(m_pgm);
 
      //Release the shader program
      m_pgm.release();
@@ -532,7 +581,10 @@ void GLWidget::loadShaderMatrices(float radius)
     //Pass the MVP into the shader
     m_pgm.setUniformValue("M",m_model);
     m_pgm.setUniformValue("MVP",m_mvp);
-    m_pgm.setUniformValue("camPos", newCamPos);//* m_model);
+    m_pgm.setUniformValue("camPos", newCamPos);
+
+    //This value is used for drawing spheres of different sizes (without having to store different meshes
+    //or do anything procedurally
     m_pgm.setUniformValue("scale", radius);
 }
 
@@ -570,6 +622,7 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     int index = 0;
     int newMeshPosition = 1000000000;
 
+    //Create a new random colour for the mesh
     QVector4D colour((float)rand()/RAND_MAX,
                                 (float)rand()/RAND_MAX,
                                 (float)rand()/RAND_MAX,
@@ -620,8 +673,8 @@ void GLWidget::createMesh(const char *filepath, const std::string name, QVector3
     m_drawSphereStates.push_back(false);
     m_drawConstraintStates.push_back(false);
 
+    //Emit a signal which will change the colour in the Shader tab of the UI
     emit setMeshColour(colour);
-
 
     //Release the shader program
     m_pgm.release();
@@ -642,7 +695,6 @@ bool GLWidget::checkExisting(const std::string name, int &position)
             return true;
         }
     }
-
     return false;
 }
 
@@ -721,13 +773,10 @@ void GLWidget::paintGL()
     //Now bind the shader program to the current context
     m_pgm.bind();
 
+    //Check there are objects in the scene (no need to do the following
+    //steps if not. Notice size > 1 as we are ignoring the ground plane
     if(m_sceneObjects.size() > 1)
     {
-        //Create a sphere which will be used to draw the sphere pack
-        Mesh sphere(QVector4D(1.0f, 0.0f, 0.0f, 1.0f), "sphere");
-        sphere.loadMesh("objFiles/sphere.obj");
-        sphere.prepareMesh(m_pgm);
-
         //Get the number of bullet bodies
         uint nBodies = m_bullet->getNumCollisionObjects();
 
@@ -740,6 +789,7 @@ void GLWidget::paintGL()
         int numSpheres = 0;
         int bodyNumber = 0;
 
+        //Clear the position of all the spheres
         m_spherePositions.clear();
 
         //Iterate through them
@@ -756,12 +806,10 @@ void GLWidget::paintGL()
             {
                 //Add the position and increment the count
                 spherePositions.push_back(m_position);
-
                 numSpheres++;
 
                 //Check to see if all the spheres from the current
                 //mesh have been added to the position container
-
                 if(m_sphereNumbers.size() > 0)
                 {
                     if(numSpheres == m_sphereNumbers[bodyNumber])
@@ -798,9 +846,8 @@ void GLWidget::paintGL()
             }
         }
 
-
         //Set the drawing colour to the sphere colour
-        m_pgm.setUniformValue("mCol",sphere.getColour());
+        m_pgm.setUniformValue("mCol",m_sphere.getColour());
 
         //Are we currently drawing the spheres or not?
         if(m_drawSphereStates.size() > 0)
@@ -811,27 +858,28 @@ void GLWidget::paintGL()
                 {
                     //We are, iterate through the 2x2 sphere position
                     //matrix
-                        for(uint k = 0; k < m_spherePositions[i - 1].size(); ++k)
-                        {
-                            //Set the drawing position accordingly and load
-                            //it to the shader. Make sure to set the drawing
-                            //scale to the radius (the sphere mesh has a
-                            //radius of one to facilitate this).
-                            m_position = m_spherePositions[i - 1][k];
+                    for(uint k = 0; k < m_spherePositions[i - 1].size(); ++k)
+                    {
+                        //Set the drawing position accordingly and load
+                        //it to the shader. Make sure to set the drawing
+                        //scale to the radius (the sphere mesh has a
+                        //radius of one to facilitate this).
+                        m_position = m_spherePositions[i - 1][k];
 
-                            loadShaderMatrices(m_sphereRadii[i - 1]);
+                        loadShaderMatrices(m_sphereRadii[i - 1]);
 
-                            //Finally draw the sphere
-                            sphere.draw();
-                        }
-
+                        //Finally draw the instance of the sphere that was
+                        //created in initializeGL()
+                        m_sphere.draw();
+                    }
                 }
             }
         }
 
-
         //Reset the drawing position
         m_position = QVector3D(0,0,0);
+
+        //Reload it with a drawing scale of 1
         loadShaderMatrices(1.0f);
 
         if(m_drawConstraintStates.size() > 0)
@@ -840,38 +888,45 @@ void GLWidget::paintGL()
             {
                 if(m_drawConstraintStates[i - 1])
                 {
+                    //Draw constraints (if we're meant to);
                     updateConstraintDrawing();
 
+                    //The vao will only contain data from constraints
+                    //which are due to be drawn, so we can break afterwards
                     m_vaoConstraint.bind();
-                    m_pgm.setUniformValue("mCol",sphere.getColour());
+                    m_pgm.setUniformValue("mCol",m_sphere.getColour());
 
                     glLineWidth(0.25f);
                     glDrawArrays(GL_LINES, 0, (int)constraintVerts.size());
                     m_vaoConstraint.release();
+                    break;
                 }
             }
         }
 
+        //Are we drawing any meshes?
         if(m_drawMeshStates.size() > 1)
         {
-            //If it is, iterate through the objects in the scene starting
-            //at 1 because 0 (the ground plane) has already been drawn
+            //We are, iterate through the objects in the scene starting
+            //at 1 because 0 (the ground plane) will be done later
             for(uint i = 1; i < m_sceneObjects.size(); ++i)
             {
                 if(m_drawMeshStates[i])
                 {
-
                     //Set the right colour
                     m_pgm.setUniformValue("mCol",m_sceneObjects[i]->getColour());
 
+                    //Check for skinned verts
                     if(m_sceneObjects[i]->isSkinned())
                     {
-                        //Because this uses the skinned verts which were updated later
+                        //Skinned verts will already have position so
                         //the drawing position doesn't need updating
                         m_sceneObjects[i]->draw();
                     }
                     else
                     {
+                        //Otherwise we need to use the position specified when
+                        //the mesh was added to the scene
                         m_position = m_sceneObjectPositions[i];
 
                         loadShaderMatrices(1.0f);
@@ -881,8 +936,11 @@ void GLWidget::paintGL()
                 }
             }
         }
-
     }
+
+    //Finally draw the ground plane, as this is always visible
+    //it can be put outside of the if statement
+
     //Reset the drawing position
     m_position = QVector3D(0,0,0);
     loadShaderMatrices(1.0f);
@@ -937,107 +995,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
     update();
 }
 
-void GLWidget::keyPressEvent(QKeyEvent *e)
-{    
-    int objCount = 0;
-
-    switch(e->key())
-    {
-    case Qt::Key_W:
-        //User pressed 'W' so update the wireframe mode
-        //of each mesh in the scene
-        for(uint i = 1; i < m_sceneObjects.size(); ++i)
-        {
-//            m_sceneObjects[i]->setWireMode();
-        }
-
-        break;
-
-    case Qt::Key_S:
-        m_drawSpheres = !m_drawSpheres;
-        break;
-
-    case Qt::Key_Escape:
-        //User pressed 'esc' so close the window
-        close();
-        break;
-
-    case Qt::Key_Space:
-        //User pressed 'space' so toggle the
-        //simulation
-        m_isSimulating = !m_isSimulating;
-        break;
-
-    case Qt::Key_M:
-        //User pressed 'm' so toggle the
-        //drawing of the mesh
-        m_drawMesh = !m_drawMesh;
-        break;
-
-    case Qt::Key_Up:
-        if(m_moveDown)
-        {
-            m_moveDown = false;
-        }
-        else
-        {
-            m_moveUp = true;
-            m_adjustPos[1] += 50.0f;
-        }
-        break;
-
-    case Qt::Key_Down:
-        if(m_moveUp)
-        {
-            m_moveUp = false;
-        }
-        else
-        {
-            m_moveDown = true;
-            m_adjustPos[1] -= 50.0f;
-        }
-        break;
-
-    case Qt::Key_Home:
-        //User pressed 'home' so stop the simulation
-        m_bullet->stop();
-
-        //Reset all the sphere positions
-        for(int i = 0; i < m_sceneObjects.size(); ++i)
-        {
-            if(m_sceneObjects[i]->hasSpherePack())
-            {
-                for(uint j = 0; j < m_sceneObjects[i]->m_spherePack->getSphereNum(); ++j)
-                {
-                    m_bullet->reset(m_sceneObjects[i]->m_spherePack->getSphereAt(j) + m_sceneObjectPositions[i], objCount);
-                    objCount++;
-                }
-            }
-            else
-            {
-                objCount++;
-            }
-        }
-
-        //Step the simulation once so that everything
-        //changes properly
-        m_bullet->step(1.0f/60.0f, 10);
-
-        //Stop the simulation
-        m_isSimulating = false;
-
-        break;
-
-    default:
-        break;
-    }
-
-    //Redraw with the changes in mind
-    update();
-}
-
 void GLWidget::qNormalizeAngle(int &angle)
 {
+    //This uses the mouse/camera movement example on Qt's website:
+    //http://doc.qt.io/qt-4.8/qt-opengl-hellogl-example.html
+
     //Make sure the angle is adjusted accordingly
     while (angle < 0) angle += 360 * 16;
     while (angle > 360 * 16) angle -= 360 * 16;
@@ -1118,12 +1080,12 @@ void GLWidget::setZRotation(int angle)
 
 void GLWidget::timerEvent(QTimerEvent *e)
 {
-    //Getting a warning because the timer event isn't being used
-    e;
+    //QTimerEvent isn't used
 
     //Check if the program should be simulating
     if(m_isSimulating)
     {
+        //Make sure bodies are moved if they're meant to be
         if(m_moveUp)
         {
             m_bullet->moveBodies(m_adjustPos);

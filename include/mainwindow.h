@@ -10,6 +10,9 @@
 #include <vector>
 #include <memory>
 
+//Similar to the source file of this class this is mainly just signals and slots
+//and should hopefully be easy to understand
+
 namespace Ui {
 class MainWindow;
 }

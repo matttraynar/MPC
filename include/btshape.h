@@ -9,6 +9,9 @@
 
 #include "mesh.h"
 
+//Worth noting this class isn't used but I implemented it initially so that meshes
+//could easily be added to the BtWorld and referred to by name. To that end
+//I have left it in in case I want to improve the project post-deadline
 class BtShape
 {
 public:

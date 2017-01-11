@@ -27,7 +27,6 @@ Mesh::Mesh(const Mesh &copy)
     m_skinnedVerts = copy.m_skinnedVerts;
     m_vertSkinVectors = copy.m_vertSkinVectors;
 
-    //Wireframe state of the mesh
     m_wireframeMode = copy.m_wireframeMode;
     m_hasSpherePack = copy.m_hasSpherePack;
     m_isSkinned = copy.m_isSkinned;
@@ -201,7 +200,8 @@ void Mesh::prepareSkinnedMesh(QOpenGLShaderProgram &program)
     m_nbo.release();
 
     //Finally we have an index buffer object for storing the indices used
-    //to draw the mesh with
+    //to draw the mesh with. This doesn't have to be changed as the number
+    //of verts/their relationships doesn't change
     m_ibo.create();
     m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     m_ibo.bind();
@@ -263,28 +263,21 @@ void Mesh::setColour(QVector4D colour)
 
 void Mesh::generateDistanceField(DistanceFieldSettings &settings)
 {
+    //Pass the vertex and index data to the sphere pack (by making a new one)
     m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, 1.0f));
 
+    //And generate the distance field
     m_spherePack->generateDistanceField(settings);
-
-//    m_spherePack->generateDistanceField();
 }
 
 void Mesh::runSpherePackAlgorithm(SpherePackSettings &settings)
 {
+    //Run the algorithm
     m_spherePack->packSpheres(settings);
-    m_hasSpherePack = true;
-}
-
-void Mesh::runSpherePackAlgorithm(float radius)
-{
-    //Mark that the mesh has a sphere pack
-    m_hasSpherePack = true;
-
-    //Reset the sphere pack variable using the parameterised
-    //constructor. This effectively runs the sphere pack
-    m_spherePack.reset(new SpherePack(m_verts, m_meshIndex, radius));
     qInfo()<<"Sphere packing finished on"<<(QString)m_name.c_str();
+
+    //Mark the it has been completed
+    m_hasSpherePack = true;
 }
 
 void Mesh::skinMeshToSpheres(uint numControlSpheres)
@@ -387,6 +380,17 @@ void Mesh::skinMeshToSpheres(uint numControlSpheres)
 
 void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
 {
+    /*********************************************
+     * KNOWN ERROR:
+     * There is an error with this function
+     * which I think is caused by gimbal
+     * lock. To change this I would use
+     * quaternions rather than rotation
+     * matrices but given the scope of the
+     * project and the time available to me
+     * I decided to focus on other things
+   ***********************************************/
+
     //Create a container to store rotation matrices in
     std::vector<QMatrix4x4> rotationMatrices;
 
@@ -397,7 +401,6 @@ void Mesh::updateSkinnedMesh(const vector_V &spherePositions)
     {
         com += spherePositions[i];
     }
-
     com /= spherePositions.size();
 
     //Iterate through the sphere pack

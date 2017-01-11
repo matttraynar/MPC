@@ -23,9 +23,22 @@ BtWorld::BtWorld()
 
 BtWorld::~BtWorld()
 {
+    //Clean everthing up
     for(int i = 0; i < m_bodies.size(); ++i)
     {
-        m_dynamicsWorld->removeRigidBody(m_bodies[i].body.get());
+        btRigidBody* toDelete = m_bodies[i].body.get();
+
+        for(uint j = 0; j < toDelete->getNumConstraintRefs(); ++j)
+        {
+            m_dynamicsWorld->removeConstraint(toDelete->getConstraintRef(j));
+        }
+
+        m_dynamicsWorld->removeRigidBody(toDelete);
+    }
+
+    for(int i = 0; i < m_dynamicsWorld->getNumConstraints(); ++i)
+    {
+        m_dynamicsWorld->removeConstraint(m_dynamicsWorld->getConstraint(i));
     }
 
     delete m_collisionConfig;
@@ -33,6 +46,20 @@ BtWorld::~BtWorld()
     delete m_broadphase;
     delete m_solver;
     delete m_dynamicsWorld;
+
+    /*********************************************************************
+     * KNOWN ERROR
+     * There is an error here that occurs when constraints
+     * have been added during run time and the window is
+     * then closed. I think this may be something to do with
+     * the shared_ptr used to store btRigidBody in the Body
+     * struct. The main problem is that it is being deleted
+     * and as I do not have ownership of the pointer (it belongs
+     * to bullet) it doesn't like it and throws an exception.
+     * I've tried resetting the smart pointer and setting it
+     * to NULL but this didn't work. As its not a fatal error
+     * I have simply left it and marked it for fixing
+   *************************************************************************/
 }
 
 void BtWorld::setGravity(float x, float y, float z)
@@ -71,20 +98,27 @@ void BtWorld::reset(QVector3D position, uint index)
 
 void BtWorld::remove(uint index)
 {
+    //Remove the given body from the bullet world
     m_dynamicsWorld->removeRigidBody(m_bodies[index].body.get());
 }
 
 void BtWorld::removeBodies(uint index, uint size)
 {
+    //Removes a range of bodies from the 'Body' container. This is called
+    //when an object is deleted but has already been sphere packed
     uint removed = 0;
 
     while(removed != (size - 1))
     {
+        //Make sure we're not stuck in a recursion loop
         if(removed > 1000000)
         {
             break;
         }
 
+        //Erase the body from the container. Index is not incremented because
+        //the elements after the index that has been removed will be moved up
+        //to replace it
         m_bodies.erase(m_bodies.begin() + index);
         removed++;
     }
@@ -115,12 +149,18 @@ void BtWorld::addGround()
     //Finally create a new 'body' (my own class)
     Body ground;
     ground.name = "groundPlane";
-    ground.body.reset(groundRB);// = groundRB;
+    ground.body.reset(groundRB);
 
     //Store the body in a container so it can be accessed later
     m_bodies.push_back(ground);
 }
 
+/*********************************************
+ * As explained in the header this
+ * function is not used, but has been
+ * left in in case I want to add mesh
+ * objects to the world in future
+**********************************************/
 void BtWorld::addMesh(const std::string name, QVector3D pos)
 {
     //Add a new mesh collision shape using the stored shapes in BtShape
@@ -155,14 +195,14 @@ void BtWorld::addMesh(const std::string name, QVector3D pos)
 
     Body mesh;
     mesh.name = name;
-    mesh.body.reset(meshRB);// = meshRB;
+    mesh.body.reset(meshRB);
     m_bodies.push_back(mesh);
 }
 
+
 void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inertia, float radius)
 {
-    //This is the same as the addMesh function, only here the shape we want
-    //from BtShape is known
+    //This is the same as the addMesh function only here a sphere is added instead of a mesh
     btCollisionShape* newSphere = new btSphereShape(btScalar(radius));
 
     btTransform startPos;
@@ -184,7 +224,7 @@ void BtWorld::addSphere(const QVector3D &pos, float mass, const QVector3D &inert
     m_dynamicsWorld->addRigidBody(sphereRB);
     Body sphere;
     sphere.name = "sphere";
-    sphere.body.reset(sphereRB);//= sphereRB;
+    sphere.body.reset(sphereRB);
 
     m_bodies.push_back(sphere);
 }
@@ -194,38 +234,51 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
     //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
-    connection->setBreakingImpulseThreshold(btScalar(10));
-    connection->enableFeedback(true);
-
     //Add the constraint to the world
     m_dynamicsWorld->addConstraint(connection, false);
+    bodyA->addConstraintRef(connection);
+    bodyB->addConstraintRef(connection);
 }
 
 void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTransform transformA, btTransform transformB)
 {
+    //Create a new sprint constraint
     btGeneric6DofSpringConstraint* connection = new btGeneric6DofSpringConstraint(*bodyA, *bodyB, transformA, transformB, true);
 
+    //Get the current separation between the bodies and assign a value which the spring
+    //oscillate between
     btScalar springRest = (transformA.getOrigin() - transformB.getOrigin()).length();
     btScalar springGive = springRest;
 
+    //Set the limits of the constraint. Because the constraint has been added with the linear
+    //frame reference set to A all of these values are in object space of the constraint (starting at A)
     connection->setLinearUpperLimit(btVector3(springRest + springGive, 0, 0));
-
     connection->setLinearLowerLimit(btVector3(springRest - springGive, 0, 0));
 
+    //By setting the angular limits equal to each other this locks any angular rotation
     connection->setAngularUpperLimit(btVector3(0,0,0));
     connection->setAngularLowerLimit(btVector3(0,0,0));
 
+    //Make sure the 'spring' breaks if it undergoes an impulse which is too big
     connection->setBreakingImpulseThreshold(btScalar(30));
 
+    //Enable the spring at the x axis
     connection->enableSpring(0, true);
+
+    //Set the stiffness value of the spring. Not entirely sure what this actually changes but
+    //a higher value seems to result in a less stiff constraint
     connection->setStiffness(0, 1.0f);
 
+    //Stick on a lot of damping so that we don't get any wild bouncing around
     connection->setDamping(0, 100.0f);
 
+    //Make sure the constraint doesn't lock at the limits
     connection->setParam(BT_CONSTRAINT_STOP_CFM, 1.0e-5f, 5);
-    connection->setEquilibriumPoint();
-    connection->enableFeedback(true);
 
+    //Set the current position ot be the constraint's equilibrium
+    connection->setEquilibriumPoint();
+
+    //Add the constraint to the world and store a reference with the corresponding bodies
     m_dynamicsWorld->addConstraint(connection, false);
     bodyA->addConstraintRef(connection);
     bodyB->addConstraintRef(connection);
