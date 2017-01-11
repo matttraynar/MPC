@@ -208,20 +208,19 @@ void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTran
     btScalar springGive = springRest;
 
     connection->setLinearUpperLimit(btVector3(springRest + springGive, 0, 0));
+
     connection->setLinearLowerLimit(btVector3(springRest - springGive, 0, 0));
 
     connection->setAngularUpperLimit(btVector3(0,0,0));
     connection->setAngularLowerLimit(btVector3(0,0,0));
 
-    m_dynamicsWorld->addConstraint(connection, true);
+    m_dynamicsWorld->addConstraint(connection, false);
 
-    //HERE
     connection->setBreakingImpulseThreshold(btScalar(25));
 
     connection->enableSpring(0, true);
-    connection->setStiffness(0, 1.0f);
+    connection->setStiffness(0, 30.0f);
 
-    //PLAYING AROUND HERE
     connection->setDamping(0, 100.0f);
 
     connection->setParam(BT_CONSTRAINT_STOP_CFM, 1.0e-5f, 5);
@@ -241,31 +240,64 @@ void BtWorld::checkConstraints()
 
         if(impulse > 20)
         {
-            //First get the transform of the first body
+            btVector3 tmp(0,0,0);
+            for(int i = 0; i < constraint->getRigidBodyA().getNumConstraintRefs(); ++i)
+            {
+                btGeneric6DofSpringConstraint* newConstraint = (btGeneric6DofSpringConstraint*)constraint->getRigidBodyA().getConstraintRef(i);
+
+                if(newConstraint == constraint)
+                {
+                    continue;
+                }
+
+                newConstraint->getLinearLowerLimit(tmp);
+                newConstraint->setLinearLowerLimit(tmp * 2);
+
+                newConstraint->getLinearUpperLimit(tmp);
+                newConstraint->setLinearUpperLimit(tmp * 2);
+            }
+
+            for(int i = 0; i < constraint->getRigidBodyB().getNumConstraintRefs(); ++i)
+            {
+                btGeneric6DofSpringConstraint* newConstraint = (btGeneric6DofSpringConstraint*)constraint->getRigidBodyB().getConstraintRef(i);
+
+                if(newConstraint == constraint)
+                {
+                    continue;
+                }
+
+                newConstraint->getLinearLowerLimit(tmp);
+                newConstraint->setLinearLowerLimit(tmp * 2);
+
+                newConstraint->getLinearUpperLimit(tmp);
+                newConstraint->setLinearUpperLimit(tmp * 2);
+            }
+
+            constraint->getRigidBodyA().setDamping(constraint->getRigidBodyA().getLinearDamping() * 2, constraint->getRigidBodyA().getAngularDamping() * 2);
+            constraint->getRigidBodyB().setDamping(constraint->getRigidBodyB().getLinearDamping() * 2, constraint->getRigidBodyB().getAngularDamping() * 2);
+
             btTransform transA;
             transA.setIdentity();
             constraint->getRigidBodyA().getMotionState()->getWorldTransform(transA);
 
-            //Now get the second
             btTransform transB;
             transB.setIdentity();
+            transB = ( constraint->getRigidBodyA().getCenterOfMassTransform() * transA) * ( constraint->getRigidBodyB().getCenterOfMassTransform().inverse());
 
-            //I originally tried doing this the same way as with A
-            //but found that this caused the two bodies to fly toward
-            //each other. Instead I convert the frame of B so that it
-            //is relative to A.
-            transB = (constraint->getRigidBodyA().getCenterOfMassTransform() * transA) * (constraint->getRigidBodyB().getCenterOfMassTransform().inverse());
-
-            float separation = (transA.getOrigin() - transB.getOrigin()).length();
-
-            constraint->setEnabled(false);
-
-            constraint->setLinearUpperLimit(btVector3(separation,0,0));
-            constraint->setLinearLowerLimit(btVector3(separation,0,0));
+            btScalar separation = (transA.getOrigin() - transB.getOrigin()).length();
 
 
-            constraint->setEnabled(true);
-            constraint->setStiffness(0, btScalar(1.0f));
+            if(separation > 3)
+            {
+                constraint->setEnabled(false);
+            }
+            else
+            {
+                constraint->setEnabled(true);
+                constraint->setLinearLowerLimit(btVector3(separation,0,0));
+                constraint->setLinearUpperLimit(btVector3(separation,0,0));
+            }
+
         }
     }
 }
