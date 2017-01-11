@@ -1095,8 +1095,9 @@ void GLWidget::timerEvent(QTimerEvent *e)
             m_bullet->moveBodies(m_adjustPos);
         }
 
-        //Step the simulation
-        m_bullet->step(m_simulationStep, 10);
+        //Step the simulation with a very high max substeps
+        //to account for simulation step changes
+        m_bullet->step(m_simulationStep, 20);
 
         //Update the window
         update();

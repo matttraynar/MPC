@@ -72,7 +72,7 @@ void BtWorld::step(float time, float step)
 {
     //Step the simulation forward
 //    m_dynamicsWorld->stepSimulation(time,step);
-    m_dynamicsWorld->stepSimulation(btScalar(time),int(step));
+    m_dynamicsWorld->stepSimulation(btScalar(time),int(step),time);
 }
 
 void BtWorld::stop()
@@ -243,7 +243,7 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
 void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTransform transformA, btTransform transformB)
 {
     //Create a new sprint constraint
-    btGeneric6DofSpringConstraint* connection = new btGeneric6DofSpringConstraint(*bodyA, *bodyB, transformA, transformB, true);
+    btGeneric6DofSpring2Constraint* connection = new btGeneric6DofSpring2Constraint(*bodyA, *bodyB, transformA, transformB);//, true);
 
     //Get the current separation between the bodies and assign a value which the spring
     //oscillate between
@@ -279,14 +279,16 @@ void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTran
     connection->setEquilibriumPoint();
 
     //Add the constraint to the world and store a reference with the corresponding bodies
-    m_dynamicsWorld->addConstraint(connection, false);
+    m_dynamicsWorld->addConstraint(connection, true);
     bodyA->addConstraintRef(connection);
     bodyB->addConstraintRef(connection);
 }
 
 //This is the code I was using to try and do plastic deformation. I tried about 20 different ways to
-//update the constraints but as explained in the video it didn't really work succesfully. Nonetheless
-//I thought I'd leave it here anyway
+//update the constraints but as explained in the video it didn't really work succesfully. Whilst I can get
+//the meshes to deform plastically when they fall on to the floor when I pick the objects 'back up' using
+//the buttons in the UI the change does not stay. Nonetheless I thought I'd leave it here anyway just to
+//show my process
 
 //void BtWorld::checkConstraints()
 //{
@@ -299,8 +301,8 @@ void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTran
 
 //        if(impulse > 20)
 //        {
-//            constraint->setEnabled(false);
-//            m_dynamicsWorld->removeConstraint(constraint);
+//////            constraint->setEnabled(false);
+//////            m_dynamicsWorld->removeConstraint(constraint);
 
 //            btRigidBody* bodyA = &constraint->getRigidBodyA();
 //            btRigidBody* bodyB = &constraint->getRigidBodyB();
@@ -311,10 +313,10 @@ void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTran
 //            btTransform transB;
 //            transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
-//            addSpringConstraint(bodyA, bodyB, transA, transB);
+//////            addSpringConstraint(bodyA, bodyB, transA, transB);
 
-//            constraint->setLinearLowerLimit(btVector3(0,0,0));
-//            constraint->setLinearUpperLimit(btVector3(0,0,0));
+////            constraint->setLinearLowerLimit(btVector3(0,0,0));
+////            constraint->setLinearUpperLimit(btVector3(0,0,0));
 //        }
 //    }
 //}
