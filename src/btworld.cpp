@@ -194,6 +194,7 @@ void BtWorld::addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTrans
     //Create a new fixed constraint from the given data
     btFixedConstraint* connection = new btFixedConstraint(*bodyA, *bodyB, transformA, transformB);
 
+    connection->setBreakingImpulseThreshold(btScalar(10));
     connection->enableFeedback(true);
 
     //Add the constraint to the world
@@ -214,93 +215,56 @@ void BtWorld::addSpringConstraint(btRigidBody *bodyA, btRigidBody *bodyB, btTran
     connection->setAngularUpperLimit(btVector3(0,0,0));
     connection->setAngularLowerLimit(btVector3(0,0,0));
 
-    m_dynamicsWorld->addConstraint(connection, false);
-
-    connection->setBreakingImpulseThreshold(btScalar(25));
+    connection->setBreakingImpulseThreshold(btScalar(30));
 
     connection->enableSpring(0, true);
-    connection->setStiffness(0, 30.0f);
+    connection->setStiffness(0, 1.0f);
 
     connection->setDamping(0, 100.0f);
 
     connection->setParam(BT_CONSTRAINT_STOP_CFM, 1.0e-5f, 5);
     connection->setEquilibriumPoint();
     connection->enableFeedback(true);
+
+    m_dynamicsWorld->addConstraint(connection, false);
+    bodyA->addConstraintRef(connection);
+    bodyB->addConstraintRef(connection);
 }
 
-void BtWorld::checkConstraints()
-{
-    for(int i = 0; i < m_dynamicsWorld->getNumConstraints(); ++i)
-    {
-        btGeneric6DofSpringConstraint* constraint = (btGeneric6DofSpringConstraint*)m_dynamicsWorld->getConstraint(i);
+//This is the code I was using to try and do plastic deformation. I tried about 20 different ways to
+//update the constraints but as explained in the video it didn't really work succesfully. Nonetheless
+//I thought I'd leave it here anyway
 
+//void BtWorld::checkConstraints()
+//{
+//    for(int i = 0; i < m_dynamicsWorld->getNumConstraints(); ++i)
+//    {
+//          btGeneric6DofSpringConstraint* constraint = (btGeneric6DofSpringConstraint*)m_dynamicsWorld->getConstraint(i);
 
-        float impulse = (float)constraint->getAppliedImpulse();
-        impulse = impulse/(float)m_dynamicsWorld->getSolverInfo().m_timeStep;
+//        float impulse = (float)constraint->getAppliedImpulse();
+//        impulse = impulse/(float)m_dynamicsWorld->getSolverInfo().m_timeStep;
 
-        if(impulse > 20)
-        {
-            btVector3 tmp(0,0,0);
-            for(int i = 0; i < constraint->getRigidBodyA().getNumConstraintRefs(); ++i)
-            {
-                btGeneric6DofSpringConstraint* newConstraint = (btGeneric6DofSpringConstraint*)constraint->getRigidBodyA().getConstraintRef(i);
+//        if(impulse > 20)
+//        {
+//            constraint->setEnabled(false);
+//            m_dynamicsWorld->removeConstraint(constraint);
 
-                if(newConstraint == constraint)
-                {
-                    continue;
-                }
+//            btRigidBody* bodyA = &constraint->getRigidBodyA();
+//            btRigidBody* bodyB = &constraint->getRigidBodyB();
 
-                newConstraint->getLinearLowerLimit(tmp);
-                newConstraint->setLinearLowerLimit(tmp * 2);
+//            btTransform transA;
+//            bodyA->getMotionState()->getWorldTransform(transA);
 
-                newConstraint->getLinearUpperLimit(tmp);
-                newConstraint->setLinearUpperLimit(tmp * 2);
-            }
+//            btTransform transB;
+//            transB = (bodyA->getCenterOfMassTransform() * transA) * (bodyB->getCenterOfMassTransform().inverse());
 
-            for(int i = 0; i < constraint->getRigidBodyB().getNumConstraintRefs(); ++i)
-            {
-                btGeneric6DofSpringConstraint* newConstraint = (btGeneric6DofSpringConstraint*)constraint->getRigidBodyB().getConstraintRef(i);
+//            addSpringConstraint(bodyA, bodyB, transA, transB);
 
-                if(newConstraint == constraint)
-                {
-                    continue;
-                }
-
-                newConstraint->getLinearLowerLimit(tmp);
-                newConstraint->setLinearLowerLimit(tmp * 2);
-
-                newConstraint->getLinearUpperLimit(tmp);
-                newConstraint->setLinearUpperLimit(tmp * 2);
-            }
-
-            constraint->getRigidBodyA().setDamping(constraint->getRigidBodyA().getLinearDamping() * 2, constraint->getRigidBodyA().getAngularDamping() * 2);
-            constraint->getRigidBodyB().setDamping(constraint->getRigidBodyB().getLinearDamping() * 2, constraint->getRigidBodyB().getAngularDamping() * 2);
-
-            btTransform transA;
-            transA.setIdentity();
-            constraint->getRigidBodyA().getMotionState()->getWorldTransform(transA);
-
-            btTransform transB;
-            transB.setIdentity();
-            transB = ( constraint->getRigidBodyA().getCenterOfMassTransform() * transA) * ( constraint->getRigidBodyB().getCenterOfMassTransform().inverse());
-
-            btScalar separation = (transA.getOrigin() - transB.getOrigin()).length();
-
-
-            if(separation > 3)
-            {
-                constraint->setEnabled(false);
-            }
-            else
-            {
-                constraint->setEnabled(true);
-                constraint->setLinearLowerLimit(btVector3(separation,0,0));
-                constraint->setLinearUpperLimit(btVector3(separation,0,0));
-            }
-
-        }
-    }
-}
+//            constraint->setLinearLowerLimit(btVector3(0,0,0));
+//            constraint->setLinearUpperLimit(btVector3(0,0,0));
+//        }
+//    }
+//}
 
 uint BtWorld::getNumCollisionObjects() const
 {

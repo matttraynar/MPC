@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1120</width>
-    <height>629</height>
+    <height>648</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -593,7 +593,7 @@ background-color: rgb(20, 20, 80);</string>
            <enum>QTabWidget::Triangular</enum>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideRight</enum>
@@ -845,7 +845,7 @@ background-color: rgb(20, 20, 80);</string>
               <x>10</x>
               <y>191</y>
               <width>211</width>
-              <height>56</height>
+              <height>81</height>
              </rect>
             </property>
             <property name="title">
@@ -1152,7 +1152,7 @@ background-color: rgb(20, 20, 80);</string>
               <x>10</x>
               <y>10</y>
               <width>208</width>
-              <height>191</height>
+              <height>251</height>
              </rect>
             </property>
             <property name="orientation">
@@ -1283,6 +1283,33 @@ background-color: rgb(20, 20, 80);</string>
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_11">
+                  <item>
+                   <widget class="QRadioButton" name="fixed">
+                    <property name="layoutDirection">
+                     <enum>Qt::RightToLeft</enum>
+                    </property>
+                    <property name="text">
+                     <string>Fixed Constraints</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="spring">
+                    <property name="layoutDirection">
+                     <enum>Qt::RightToLeft</enum>
+                    </property>
+                    <property name="text">
+                     <string>Spring Constraints</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
                </layout>
               </item>
              </layout>
@@ -1393,7 +1420,7 @@ background-color: rgb(20, 20, 80);</string>
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="">
+           <widget class="QWidget" name="layoutWidget">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -1456,6 +1483,7 @@ background-color: rgb(20, 20, 80);</string>
      <addaction name="actionCollision_Example_1"/>
      <addaction name="actionCollision_Example_2"/>
      <addaction name="actionCollision_Example_3"/>
+     <addaction name="actionCollision_Example_4"/>
     </widget>
     <addaction name="menuDefault_1_Cubes"/>
    </widget>
@@ -1497,6 +1525,11 @@ background-color: rgb(20, 20, 80);</string>
   <action name="actionCollision_Example_3">
    <property name="text">
     <string>Collision Example 3</string>
+   </property>
+  </action>
+  <action name="actionCollision_Example_4">
+   <property name="text">
+    <string>Collision Example 4</string>
    </property>
   </action>
  </widget>

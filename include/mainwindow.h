@@ -147,6 +147,12 @@ private slots:
 
     void on_moveUp_released();
 
+    void on_fixed_toggled(bool checked);
+
+    void on_spring_toggled(bool checked);
+
+    void on_actionCollision_Example_4_triggered();
+
 private:
     Ui::MainWindow *ui;
 

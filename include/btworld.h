@@ -31,7 +31,6 @@ public:
 
     void addFixedConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
     void addSpringConstraint(btRigidBody* bodyA, btRigidBody* bodyB, btTransform transformA, btTransform transformB);
-    void checkConstraints();
 
     uint getNumCollisionObjects() const;
     QVector3D getTransform(uint index) const;

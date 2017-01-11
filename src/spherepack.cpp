@@ -12,7 +12,7 @@ SpherePack::SpherePack(const vector_V &verts, const uint_V &indices, float radiu
     m_verts = verts;
     m_indices = indices;
 
-    m_radius = 1.0f;
+    m_radius = radius;
     m_spacing = 1.9f;
 }
 
@@ -800,14 +800,20 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
             {
                 findStartingPosition((int(m_shell.size()) / 4) * 3, p1, p2);
 
+                //Check once more
                 if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
                 {
-                    //Can't for certain say that no position for all three spheres exists
-                    //without checking all possible add anything special to the program
-                    //so just exit
+                    findStartingPosition(0, p1, p2);
 
-                    qWarning()<<"Can't find a position, radius is probably too big";
-                    exit(1);
+                    if(!checkAgainstMesh(p1) || !checkAgainstMesh(p2))
+                    {
+                        //Can't for certain say that no position for all three spheres exists
+                        //without checking all possible positions but this wouldn't add
+                        //anything special to the program so just exit
+
+                        qWarning()<<"Can't find a position, radius is probably too big";
+                        exit(1);
+                    }
                 }
             }
         }
@@ -848,7 +854,7 @@ void SpherePack::packSpheres(SpherePackSettings &settings)
         //candidates from previous iterations. This provides an
         //efficiency increase as these points don't have to be
         //calculated a second time
-        if(candidateStore.size() > 0)
+        if(candidateStore.size() != 0)
         {
             //This process is the same as the one done for normal
             //candidate points so for more info look further down

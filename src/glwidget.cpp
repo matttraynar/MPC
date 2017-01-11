@@ -73,7 +73,7 @@ void GLWidget::addNewMesh(QString fileName, QString meshName, QVector3D position
 
 void GLWidget::removeMesh(QString meshName)
 {
-    uint numObjects = m_sceneObjects.size();
+    uint numObjects = (uint)m_sceneObjects.size();
 
     int bodyCount = 0;
 
@@ -127,7 +127,6 @@ void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
     {
         if(m_sceneObjects[i]->getName() == meshName.toStdString())
         {
-            qInfo()<<"updating shader";
             m_sceneObjects[i]->setColour(QVector4D(settings.red,
                                                                           settings.green,
                                                                           settings.blue,
@@ -135,7 +134,6 @@ void GLWidget::setMeshShader(QString meshName, ShaderSettings &settings)
 
             m_sceneObjects[i]->setWireMode(settings.wireframe);
 
-            qInfo()<<"name:"<<meshName;
             m_meshSkinStates[i - 1] = settings.skinMesh;
             m_drawMeshStates[i] = settings.drawMesh;
 
@@ -408,7 +406,7 @@ void GLWidget::moveDown()
     else
     {
         m_moveDown = true;
-        m_adjustPos[1] -= 10.0f;
+        m_adjustPos[1] -= 20.0f;
     }
 }
 
@@ -421,7 +419,7 @@ void GLWidget::moveUp()
     else
     {
         m_moveUp = true;
-        m_adjustPos[1] += 10.0f;
+        m_adjustPos[1] += 20.0f;
     }
 }
 
@@ -1134,8 +1132,6 @@ void GLWidget::timerEvent(QTimerEvent *e)
         {
             m_bullet->moveBodies(m_adjustPos);
         }
-
-        m_bullet->checkConstraints();
 
         //Step the simulation
         m_bullet->step(m_simulationStep, 10);

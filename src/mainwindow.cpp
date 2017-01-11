@@ -8,6 +8,15 @@
 #include <QtGui>
 #include <QtCore>
 
+/*-----------------------------------------------------------------------------------------
+ * This file is simply for settings up the UI
+ * and making sure the correct signals and
+ * slots are connected. This means much
+ * of it is just repeating processe. As a result
+ * the code should be fairly explanatoy, so
+ * there aren't many comments
+--------------------------------------------------------------------------------------------*/
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -246,7 +255,7 @@ void MainWindow::on_deleteMeshButton_clicked()
 
     QString name = selected[0]->text(0);
 
-    uint size = m_shaderSettings.size();
+    uint size = (uint)m_shaderSettings.size();
 
     for(uint i = 0; i < size; ++i)
     {
@@ -269,7 +278,7 @@ void MainWindow::on_deleteMeshButton_clicked()
             {
                 ui->meshToolbar->removeTab(1);
 
-                for(uint i = 0; i < ui->settingsToolbar->count(); ++i)
+                for(int i = 0; i < ui->settingsToolbar->count(); ++i)
                 {
                     ui->settingsToolbar->removeTab(1);
                 }
@@ -292,6 +301,8 @@ void MainWindow::on_filenameButton_clicked()
 
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
+    //Column is not used
+
     for(uint i = 0; i < m_shaderSettings.size(); ++i)
     {
         if(item->text(0) == m_shaderSettings[i].first)
@@ -996,6 +1007,50 @@ void MainWindow::on_strengthValue_valueChanged(double arg1)
     }
 }
 
+void MainWindow::on_fixed_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->useFixed = checked;
+            m_constraintSettings[i].second->useSpring = !checked;
+        }
+    }
+}
+
+void MainWindow::on_spring_toggled(bool checked)
+{
+    auto selected = ui->treeWidget->selectedItems();
+
+    if(selected.length() == 0)
+    {
+        QMessageBox::critical(this, "Error - No Mesh Selected", "No mesh is selected in the mesh toolbar, settings cannot be saved");
+        return;
+    }
+
+    QString name = selected[0]->text(0);
+
+    for(uint i = 0; i < m_constraintSettings.size(); ++i)
+    {
+        if(name == m_constraintSettings[i].first)
+        {
+            m_constraintSettings[i].second->useFixed = !checked;
+            m_constraintSettings[i].second->useSpring = checked;
+        }
+    }
+}
+
 //Simulation settings
 
 void MainWindow::on_runButton_clicked()
@@ -1057,6 +1112,13 @@ void MainWindow::on_action1_Cube_triggered()
 {
     ui->filenameLine->setText("$$PWD/../objFiles/cubeLARGE.obj");
     ui->loadMeshButton->click();
+
+    m_treeItems[0]->setSelected(true);
+
+    ui->generateDistanceField->click();
+
+    ui->cullOuter->setChecked(true);
+    ui->packSphereButton->click();
 }
 
 void MainWindow::on_actionDragon_triggered()
@@ -1159,7 +1221,6 @@ void MainWindow::on_actionCollision_Example_2_triggered()
 
     ui->generateDistanceField->click();
     ui->cullOuter->setChecked(true);
-//    m_sphereSettings[1].second->cullOuter = true;
     ui->packSphereButton->click();
     ui->addConstraints->click();
 
@@ -1257,4 +1318,40 @@ void MainWindow::on_moveDown_released()
 void MainWindow::on_moveUp_released()
 {
     emit passStopMoving();
+}
+
+void MainWindow::on_actionCollision_Example_4_triggered()
+{
+    ui->filenameLine->setText("$$PWD/../objFiles/bunnyREDUCED.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(7.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[0]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->packSphereButton->click();
+    ui->addConstraints->click();
+
+    ui->meshToolbar->setCurrentIndex(1);
+    ui->skinCheck->setChecked(true);
+    ui->meshToolbar->setCurrentIndex(0);
+
+    m_treeItems[0]->setSelected(false);
+
+    ui->filenameLine->setText("$$PWD/../objFiles/sphereLARGE.obj");
+
+    ui->positionX->setValue(0.0f);
+    ui->positionY->setValue(40.0f);
+    ui->positionZ->setValue(0.0f);
+
+    ui->loadMeshButton->click();
+
+    m_treeItems[1]->setSelected(true);
+
+    ui->generateDistanceField->click();
+    ui->packSphereButton->click();
 }
